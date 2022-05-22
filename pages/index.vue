@@ -1,13 +1,30 @@
 <template>
     <div class="main">
-        Language app!
+        <div>Language app!</div>
+        <button @click="add">Increment</button>
     </div>
 </template>
 
-<script lang="ts">
+<script>
 import Vue from 'vue'
+import { mapActions, mapGetters } from 'vuex';
 
-export default Vue.extend({})
+export default Vue.extend({
+    methods: {
+        ...mapActions({ increment: 'count' }),
+        add() {
+            this.increment(this.count+1);
+        }
+    },
+    computed: {
+		...mapGetters(['count']),
+	},
+    watch: {
+         count: function() {
+            console.log('this.count', this.count);
+        }
+    }
+})
 </script>
 
 
