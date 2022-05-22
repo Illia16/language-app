@@ -71,3 +71,58 @@ export const sentenceBuilderArr = (data) => {
 const uniqueElements = (array) => {
     return [...new Set(array)];
 }
+
+export const dataBase = () => {
+    return [
+        {
+            id: '1-11',
+            level: 0,
+            wordData: {
+                word: 'turn left',
+                translation: 'Поверните налево',
+                transcription: ''
+            },
+            isSentense: false
+        },
+        {
+            id: '1-1',
+            level: 0,
+            wordData: {
+                word: 'cook something',
+                translation: 'приготовить что-нибудь',
+                transcription: ''
+            },
+            isSentense: false
+        },
+        {
+            id: '1-2',
+            level: 0,
+            wordData: {
+                word: 'nine',
+                translation: 'девять',
+                transcription: ''
+            },
+            isSentense: false
+        },
+        {
+            id: '1-3',
+            level: 0,
+            wordData: {
+                word: 'nine o`clock',
+                translation: 'девять часов',
+                transcription: ''
+            },
+            isSentense: false
+        },
+        {
+            id: '1-4',
+            level: 0,
+            wordData: {
+                word: 'How would you like to pay?',
+                translation: 'Как бы вы хотели расплатиться?',
+                transcription: ''
+            },
+            isSentense: true
+        },
+    ]
+}
