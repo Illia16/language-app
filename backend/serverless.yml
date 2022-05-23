@@ -1,0 +1,28 @@
+service: ${file(./values.yml):service}
+
+plugins:
+  - '@silvermine/serverless-plugin-cloudfront-lambda-edge'
+
+provider:
+  name: ${file(./values.yml):provider}
+  stage: ${file(./values.yml):stage}
+  region: ${file(./values.yml):region}
+  profile: ${file(./values.yml):profile}
+  deploymentBucket:
+    name: ${file(./values.yml):deploymentBucket}
+  runtime: nodejs14.x
+
+resources:
+  - ${file(cloudfront/resources/dist.yml)}
+
+functions:
+  redirect:
+    name: ${file(./values.yml):functionName}
+    handler: redirect/index.handler
+    description: redirect
+    memorySize: 128
+    timeout: 5
+    lambdaAtEdge:
+      -
+        distribution: ${file(./values.yml):cfDistribution}
+        eventType: viewer-request

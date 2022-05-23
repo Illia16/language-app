@@ -1,0 +1,50 @@
+Resources:
+  CloudFrontDistributionMazeGame:
+    Type: AWS::CloudFront::Distribution
+    Properties:
+      DistributionConfig:
+        Aliases:
+            Ref: AWS::NoValue
+        CustomErrorResponses:
+            Ref: AWS::NoValue
+        DefaultCacheBehavior:
+          AllowedMethods:
+            - GET
+            - HEAD
+          CachedMethods:
+            - GET
+            - HEAD
+          Compress: true
+          ForwardedValues:
+            QueryString: true
+          TargetOriginId: ${file(./values.yml):targetOriginId}
+          ViewerProtocolPolicy: redirect-to-https
+        DefaultRootObject: index.html
+        Enabled: true
+        HttpVersion: http2
+        Logging:
+            Ref: AWS::NoValue
+        Origins:
+          - Id: ${file(./values.yml):targetOriginId}
+            DomainName: ${file(./values.yml):domainName}
+            OriginPath: ""
+            S3OriginConfig:
+              OriginAccessIdentity: origin-access-identity/cloudfront/${file(./values.yml):originAccessIdentity}
+        PriceClass: PriceClass_100
+        ViewerCertificate:
+            CloudFrontDefaultCertificate: true
+
+Outputs:
+  cfDistributionId:
+    Value:
+      Ref: ${file(./values.yml):cfDistribution}
+    Export:
+      Name: cfDistributionIdMazeGame
+
+  cfDistributionDomainName:
+    Value:
+      Fn::GetAtt:
+        - ${file(./values.yml):cfDistribution}
+        - DomainName
+    Export:
+      Name: cfDistributionDomainNameLanguageApp
