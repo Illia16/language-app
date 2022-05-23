@@ -1,13 +1,50 @@
 <template>
-    <div v-if="lessonData && lessonData.length && !lessonDone">
-        <p>Current question: {{currentQuestionNum}}</p>
-        <p>{{currentQuestion.question}}</p>
+    <div>
+        <div v-if="lessonData && lessonData.length && !lessonDone">
+            <p>Current question: {{currentQuestionNum}}</p>
+            <p>{{currentQuestion.question}}</p>
 
-        <QuestionMsgCorrectOrIncorrect
-            :currentQuestionAnswered="currentQuestionAnswered"
-            :currentQuestion="currentQuestion"
-            :userAnswer="userAnswer"
-        />
+            <QuestionMsgCorrectOrIncorrect
+                :currentQuestionAnswered="currentQuestionAnswered"
+                :currentQuestion="currentQuestion"
+                :userAnswer="userAnswer"
+            />
+
+            <!-- handling question based on the mode -->
+            <QuestionTypeMpChoice
+                v-if="currentQuestion.all && currentQuestion.all.length"
+                @handleUserAnswer="setUserAnswer"
+                :userAnswer="userAnswer"
+                :currentQuestion="currentQuestion"
+                :currentQuestionAnswered="currentQuestionAnswered"
+            />
+
+            <QuestionTypySentenceBuilder
+                v-if="currentQuestion.splitted && currentQuestion.splitted.length"
+                @handleUserAnswer="setUserAnswer"
+                :userAnswer="userAnswer"
+                :currentQuestion="currentQuestion"
+                :currentQuestionAnswered="currentQuestionAnswered"
+            />
+
+            <QuestionTypeRegular
+                v-if="!currentQuestion.splitted && !currentQuestion.all"
+                @handleUserAnswer="setUserAnswer"
+                :userAnswer="userAnswer"
+                :currentQuestionAnswered="currentQuestionAnswered"
+            />
+
+            <button @click="check" :disabled="!userAnswer">Check</button>
+            <button
+                v-if="!lessonDone"
+                @click="nextQuestion"
+                :disabled="!currentQuestionAnswered">
+                Next question
+            </Button>
+        </div>
+        <div v-else-if="lessonDone">
+            <Report :report="report" />
+        </div>
     </div>
 </template>
 
@@ -16,19 +53,20 @@
     import { getLesson, getQuestion, isCorrect } from '../helpers/helpers';
     // Question-related components
     import QuestionMsgCorrectOrIncorrect from './question/QuestionMsgCorrectOrIncorrect';
-    // import QuestionTypeRegular from './question/QuestionTypeRegular';
-    // import QuestionTypeMpChoice from './question/QuestionTypeMpChoice';
-    // import QuestionTypySentenceBuilder from './question/QuestionTypeSentenceBuilder';
+    import QuestionTypeRegular from './question/QuestionTypeRegular';
+    import QuestionTypeMpChoice from './question/QuestionTypeMpChoice';
+    import QuestionTypySentenceBuilder from './question/QuestionTypeSentenceBuilder';
 
     // Lesson-related componets
-    // import LessonReport from './LessonReport';
+    import Report from './Report';
 
     export default Vue.extend({
         components: {
             QuestionMsgCorrectOrIncorrect,
-            // QuestionTypeRegular,
-            // QuestionTypeMpChoice,
-            // QuestionTypySentenceBuilder
+            QuestionTypeRegular,
+            QuestionTypeMpChoice,
+            QuestionTypySentenceBuilder,
+            Report
         },
         props: [ 'data', 'numQuestions', 'mode' ],
         data() {
@@ -48,7 +86,7 @@
                 if (this.lessonData && this.lessonData.length) {
                     this.currentQuestion = getQuestion(this.mode, this.lessonData, this.currentQuestionNum);
                 }
-            }
+            },
         },
         mounted() {
             this.lessonData = getLesson(this.mode, this.data).slice(0, this.numQuestions);
@@ -61,10 +99,10 @@
             check() {
                 if (!isCorrect(this.currentQuestion, this.userAnswer)) {
                     this.currentQuestionAnswered = true;
-                    recordUserAnswer(false, this.userAnswer, this.currentQuestion);
+                    this.recordUserAnswer(false, this.userAnswer, this.currentQuestion);
                 } else {
-                    this.currentQuestionAnswered = false;
-                    recordUserAnswer(true, userAnswer, currentQuestion);
+                    this.currentQuestionAnswered = true;
+                    this.recordUserAnswer(true, this.userAnswer, this.currentQuestion);
                     this.numOfCorrectAnswers = this.numOfCorrectAnswers + 1;
                 }
 
@@ -98,6 +136,9 @@
             handleMode(v) {
                 this.$emit('changeMode', v);
             },
+            setUserAnswer(v) {
+                this.userAnswer = v;
+            }
         }
     });
 </script>

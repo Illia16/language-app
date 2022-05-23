@@ -47,7 +47,6 @@
         },
         watch: {
             'filteredData.length': function() {
-                console.log('filteredData.length changed', this.filteredData.length);
                 this.numberOfQ = [
                     this.filteredData.length >= 10 && 10,
                     this.filteredData.length >= 20 && 20,
@@ -56,12 +55,6 @@
                     this.filteredData.length,
                 ].filter(el=>el);
             },
-            numberOfQ: function() {
-                console.log('numberOfQ', this.numberOfQ);
-            }
-        },
-        mounted() {
-
         },
         methods: {
             handleNumberQuestions(v) {

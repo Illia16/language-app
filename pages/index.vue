@@ -1,8 +1,7 @@
 <template>
     <div class="main">
-        <div v-if="started">
+        <div v-if="this.started">
             <Lesson
-                @startLesson="handleLesson"
                 :data="filteredData"
                 :numQuestions="numQuestions"
                 :mode="mode"
@@ -18,7 +17,7 @@
                     :filteredData="filteredData"
                 />
             </div>
-            <button @click="handleLesson" :disabled="!numQuestions || !mode">Start</button>
+            <button @click="handleLesson(true)" :disabled="!numQuestions || !mode">Start</button>
         </div>
     </div>
 </template>
@@ -39,7 +38,6 @@ export default Vue.extend({
         return {
             data: null,
             filteredData: null,
-            started: false,
             numQuestions: null,
             mode: null,
         };
@@ -49,13 +47,12 @@ export default Vue.extend({
         this.filteredData = dataBase();
     },
     methods: {
-        ...mapActions({ increment: 'count' }),
-        handleLesson() {
-            this.started = true;
+        ...mapActions({ setStarted: 'started' }),
+        handleLesson(v) {
+            this.setStarted(v);
         },
         handleMode(m) {
             if (m === 'sentenceWordTranslation' || m === 'sentenceTranslationWord') {
-                console.log('m', m);
                 this.mode = m;
                 this.filteredData = sentenceBuilderArr(this.data);
             } else {
@@ -68,11 +65,16 @@ export default Vue.extend({
         }
     },
     computed: {
-		...mapGetters(['count']),
+		...mapGetters(['started']),
 	},
     watch: {
-         numQuestions: function() {
-            console.log('this.numQuestions', this.numQuestions);
+        numQuestions: function() {
+        },
+        started: function() {
+            if (!this.started) {
+                this.numQuestions = null;
+                this.mode = null;
+            }
         }
     }
 })

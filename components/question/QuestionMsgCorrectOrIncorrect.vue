@@ -1,6 +1,6 @@
 <template>
     <div v-if="currentQuestionAnswered">
-        <p>{{isCorrect(currentQuestion, userAnswer) ? 'Correct!': `Incorrect, correct answer is: ${currentQuestion.qAnswer}`}}</p>
+        <p>{{correct ? 'Correct!': `Incorrect, correct answer is: ${currentQuestion.qAnswer}`}}</p>
     </div>
 </template>
 
@@ -13,20 +13,14 @@ export default Vue.extend({
     props: [ 'currentQuestionAnswered', 'currentQuestion', 'userAnswer' ],
     data() {
         return {
-            numberOfQ: null,
+            correct: null,
         };
     },
     watch: {
-        numberOfQ: function() {
-            console.log('numberOfQ', this.numberOfQ);
+        currentQuestionAnswered: function() {
+            return isCorrect(this.currentQuestion, this.userAnswer) ? this.correct = true : this.correct = false;
         }
     },
-    mounted() {
-
-    },
-    methods: {
-
-    }
 });
 </script>
 

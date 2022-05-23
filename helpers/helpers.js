@@ -30,7 +30,7 @@ export const getQuestion = (m, lessonData, currentQuestionNum) => {
         } else if (m === 'translationWordMPChoice') {
             questionAnswer.all = fillMpChoiceArray(lessonData,  questionAnswer.qAnswer, 'word');
         } else if (m === 'sentenceWordTranslation' || m === 'sentenceTranslationWord') {
-            questionAnswer.splitted = sortArray(uniqueElements(questionAnswer.qAnswer.split('')));
+            questionAnswer.splitted = sortArray(uniqueElements(questionAnswer.qAnswer.split(' ')));
         }
 
         return questionAnswer;
@@ -59,7 +59,7 @@ export const fillMpChoiceArray = (data, correctAnswer, mpChoiceType) => {
 }
 
 export const isCorrect = (currentQuestion, answer) => {
-    return answer.toLowerCase().trim() === currentQuestion.qAnswer.toLowerCase().trim();
+    return answer.toLowerCase().trim().split(' ').join('') === currentQuestion.qAnswer.toLowerCase().trim().split(' ').join('');
 }
 
 // function outputs a lesson array for sentence-builder mode ONLY
@@ -120,6 +120,16 @@ export const dataBase = () => {
             wordData: {
                 word: 'How would you like to pay?',
                 translation: 'Как бы вы хотели расплатиться?',
+                transcription: ''
+            },
+            isSentense: true
+        },
+        {
+            id: '1-5',
+            level: 0,
+            wordData: {
+                word: 'What time is it now?',
+                translation: 'Который сейчас час?',
                 transcription: ''
             },
             isSentense: true
