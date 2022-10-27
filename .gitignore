@@ -10,8 +10,18 @@ yarn-error.log*
 s3.config
 s3Test.config
 deploy.config.js
+node_modules
+*.log*
+.nuxt
+.nitro
+.cache
+.output
+.env
+dist
+
 
 /backend/values.yml
+___nuxt2
 
 # Runtime data
 pids
