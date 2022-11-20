@@ -39,7 +39,7 @@ Outputs:
     Value:
       Ref: ${file(./values.yml):cfDistribution}
     Export:
-      Name: cfDistributionIdMazeGame
+      Name: cfDistributionIdLanguageApp
 
   cfDistributionDomainName:
     Value:

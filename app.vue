@@ -1,21 +1,24 @@
 <template>
-    <div>
+    <div class="language-app-site">
         <MainMenu />
         <NuxtPage />
     </div>
 </template>
 
 
-<script lang="ts" setup>
+<script setup>
 
 </script>
 
 <style lang="scss">
-    p {
-        @apply text-red-400;
+    .language-app-site {
+        margin: 10vh 15vw;
+        p {
+            // @apply text-red-400;
 
-        &.specialP {
-        @apply text-yellow-600;
+            &.specialP {
+                @apply text-yellow-600;
+            }
         }
     }
 </style>
