@@ -36,7 +36,6 @@ export const getQuestion = (m, lessonData, currentQuestionNum) => {
             questionAnswer.splitted = sortArray(uniqueElements(questionAnswer.qAnswer.split(' ')));
         }
 
-        console.log('questionAnswer', questionAnswer);
         return questionAnswer;
     }
 
