@@ -17,7 +17,7 @@ export const getLesson = (m, lessonData) => {
     // }
 }
 
-export const getQuestion = (m, lessonData, currentQuestionNum) => {
+export const getQuestion = (m, lessonData, currentQuestionNum, lessonType) => {
 
     const handleQuestion = (m, lessonData, currentQuestionNum) => {
         const questionAnswer = {};
@@ -42,14 +42,14 @@ export const getQuestion = (m, lessonData, currentQuestionNum) => {
     if (m !== 'random') {
         return handleQuestion(m, lessonData, currentQuestionNum);
     } else {
-        const randomMode = getRandomMode();
+        const randomMode = getRandomMode(lessonType);
         return handleQuestion(randomMode, lessonData, currentQuestionNum);
     }
 }
 
 // function to get a random mode
-const getRandomMode = () => {
-    const allModes = ['wordTranslation', 'translationWord', 'wordTranslationMPChoice', 'translationWordMPChoice', 'sentenceWordTranslation', 'sentenceTranslationWord'];
+const getRandomMode = (lessonType) => {
+    const allModes = lessonType === 'words' ? ['wordTranslation', 'translationWord', 'wordTranslationMPChoice', 'translationWordMPChoice'] : ['wordTranslation', 'translationWord', 'wordTranslationMPChoice', 'translationWordMPChoice', 'sentenceWordTranslation', 'sentenceTranslationWord'];
     const randomIndex = Math.floor(Math.random()*allModes.length);
     return allModes[randomIndex];
 }
@@ -73,4 +73,26 @@ export const isCorrect = (currentQuestion, answer) => {
 // this function returns an array of letters that only repeat once
 const uniqueElements = (array) => {
     return [...new Set(array)];
+}
+
+
+export const mapModeNames = (v) => {
+    switch (v) {
+        case 'wordTranslation':
+            return 'Word - Translation'
+        case 'translationWord':
+            return 'Translation - Word'
+        case 'wordTranslationMPChoice':
+            return 'Multiple Choice: Word - Translation'
+        case 'translationWordMPChoice':
+            return 'Multiple Choice: Translation - Word'
+        case 'sentenceWordTranslation':
+            return 'Sentence: Word - Translation'
+        case 'sentenceTranslationWord':
+            return 'Sentence: Translation - Word'
+        case 'random':
+            return 'All'
+        default:
+            return null
+    }
 }

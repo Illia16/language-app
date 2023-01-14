@@ -4,12 +4,12 @@
             All options for a lesson
         </div>
 
-        <div v-if="lessonType === 'tenses'">
+        <div>
             <div v-if="!store.lessonStarted">
                 <!-- TENSES -->
-                <div v-if="tensesData && tensesData.length && !store.lessonStarted">
-                    <h2>Select an exersise or multiple exersises:</h2>
-                    <div v-for="(tense, i) of tensesData" :key="i" class="tense-checkbox" tabindex="0">
+                <div v-if="initData && initData.length && !store.lessonStarted">
+                    <h2 class="text-main">Select an exersise or multiple exersises:</h2>
+                    <div v-for="(tense, i) of initData" :key="i" class="tense-checkbox" tabindex="0">
                         <label>
                             <input
                                 tabindex="-1"
@@ -45,7 +45,7 @@
                     <!-- MODES -->
                     <div id="mode">
                         <h2>Select a learning mode (default is <span>all types</span>)</h2>
-                        <div v-for="(mode, i) of ['wordTranslation', 'translationWord', 'wordTranslationMPChoice', 'translationWordMPChoice', 'sentenceWordTranslation', 'sentenceTranslationWord', 'random']" :key="i" class="mode-radio" tabindex="0">
+                        <div v-for="(mode, i) of lessonType === 'words' ? ['wordTranslation', 'translationWord', 'wordTranslationMPChoice', 'translationWordMPChoice', 'random'] : ['wordTranslation', 'translationWord', 'wordTranslationMPChoice', 'translationWordMPChoice', 'sentenceWordTranslation', 'sentenceTranslationWord', 'random']" :key="i" class="mode-radio" tabindex="0">
                             <label>
                                 <input
                                 tabindex="-1"
@@ -103,7 +103,7 @@
                     </div>
 
                     <!--MODE: Sentence Builer -->
-                    <div class="my-3" v-if="currentQuestion.mode === 'sentenceWordTranslation' || currentQuestion.mode === 'sentenceTranslationWord'">
+                    <div class="my-3" v-if="lessonType !== 'words' && (currentQuestion.mode === 'sentenceWordTranslation' || currentQuestion.mode === 'sentenceTranslationWord')">
                         <div>
                             <button @click="userAnswer = ''" :disabled="!userAnswer || currentQuestionAnswered">Clear</button>
                         </div>
@@ -139,8 +139,8 @@
 </template>
 
 <script setup>
-import { getLesson, getQuestion, isCorrect } from '@/helper/helpers';
-import { tensesData } from 'helper/tensesData';
+import { getLesson, getQuestion, isCorrect, mapModeNames } from '@/helper/helpers';
+import data from 'helper/data';
 import { useMainStore } from '@/store/main';
 
 const props = defineProps({
@@ -154,13 +154,14 @@ const store = useMainStore();
 
 // lesson menu states
 const v_selectedTenses = ref([]) // v-model for selected checkboxes
-const selectedTenses = computed(() => tensesData.map((el, i) => v_selectedTenses.value[i] ? el : null).filter(el => el)) // selected tenses full Object (can be more than 1)
+const selectedTenses = computed(() => initData.value.map((el, i) => v_selectedTenses.value[i] ? el : null).filter(el => el)) // selected tenses/words full Object (can be more than 1)
 const allQuestions = computed(() => selectedTenses.value.map((el, i) => el.data).flat()) // allQuestions in 1 array
 const numQuestions = computed(() => [allQuestions.value.length >= 10 && 10, allQuestions.value.length >= 20 && 20, allQuestions.value.length >= 30 && 30, Math.round(allQuestions.value.length / 2), allQuestions.value.length].filter(el=>el)) // number of questions generated based on how many exersises available
 const numQuestionsSelected = ref(5) // selected num of questions by user
 const modeSelected = ref('random')
 
 // lesson state
+const initData = ref([]);
 const lessonData = ref([]);
 const currentQuestionNum = ref(1);
 const currentQuestion = ref({});
@@ -169,12 +170,15 @@ const userAnswer = ref();
 const numOfCorrectAnswers = ref(0);
 const report = ref([]);
 
+onMounted(() => {
+    initData.value = data[props.lessonType];
+})
 
 watch(() => store.lessonStarted, (v) => {
     if (v) {
         lessonData.value = getLesson(modeSelected.value, allQuestions.value).slice(0, numQuestionsSelected.value);
         if (lessonData.value && lessonData.value.length) {
-            currentQuestion.value = getQuestion(modeSelected.value, lessonData.value, currentQuestionNum.value);
+            currentQuestion.value = getQuestion(modeSelected.value, lessonData.value, currentQuestionNum.value, props.lessonType);
         }
     } else {
         lessonData.value = [];
@@ -190,7 +194,7 @@ watch(() => store.lessonStarted, (v) => {
 
 watch(currentQuestionNum, function() {
     if (lessonData.value && lessonData.value.length) {
-        currentQuestion.value = getQuestion(modeSelected.value, lessonData.value, currentQuestionNum.value);
+        currentQuestion.value = getQuestion(modeSelected.value, lessonData.value, currentQuestionNum.value, props.lessonType);
     }
 });
 
@@ -233,26 +237,6 @@ const nextQuestion = () => {
     userAnswer.value = '';
 };
 
-const mapModeNames = (v) => {
-    switch (v) {
-        case 'wordTranslation':
-            return 'Word - Translation'
-        case 'translationWord':
-            return 'Translation - Word'
-        case 'wordTranslationMPChoice':
-            return 'Multiple Choice: Word - Translation'
-        case 'translationWordMPChoice':
-            return 'Multiple Choice: Translation - Word'
-        case 'sentenceWordTranslation':
-            return 'Sentence: Word - Translation'
-        case 'sentenceTranslationWord':
-            return 'Sentence: Translation - Word'
-        case 'random':
-            return 'All'
-        default:
-            return null
-    }
-}
 </script>
 
 <style lang="scss">
