@@ -33,8 +33,12 @@ export default defineNuxtConfig({
             },
         },
     },
+    buildModules: [
+        '@nuxt/postcss8',
+    ],
     modules: [
         '@pinia/nuxt',
+        '@nuxtjs/tailwindcss',
     ],
     alias: {
         'helper': resolve(__dirname, './helper')
