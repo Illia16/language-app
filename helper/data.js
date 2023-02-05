@@ -107,7 +107,51 @@ export default {
                 {
                     word: 'Cup',
                     translation: 'Чашка',
-                }
+                },
+                {
+                    word: 'Bake',
+                    translation: 'выпекать',
+                },
+                {
+                    word: 'Add',
+                    translation: 'добавлять',
+                },
+                {
+                    word: 'Measure',
+                    translation: 'отмерить',
+                },
+                {
+                    word: 'Combine',
+                    translation: 'соединить',
+                },
+                {
+                    word: 'Flip',
+                    translation: 'переворачивать',
+                },
+                {
+                    word: 'Season',
+                    translation: 'приправлять',
+                },
+                {
+                    word: 'fry potatoes',
+                    translation: 'жарить картошку',
+                },
+                {
+                    word: 'peel potatoes',
+                    translation: 'чистить картошку',
+                },
+                {
+                    word: 'pour water',
+                    translation: 'лить воду',
+                },
+                {
+                    word: 'wash dishes',
+                    translation: 'мыть посуду',
+                },
+                {
+                    word: 'boil water',
+                    translation: 'кипятить воду',
+                },
             ]
         },
     ],

@@ -3,8 +3,8 @@
         <div>
             <h1>Select a task:</h1>
         </div>
-        <NuxtLink to="/tenses" class="custom-button-link">Tenses</NuxtLink>
-        <NuxtLink to="/words" class="custom-button-link">Words</NuxtLink>
+        <NuxtLink to="/tenses" class="custom-button-link">Tenses (времена)</NuxtLink>
+        <NuxtLink to="/words" class="custom-button-link">Words (слова)</NuxtLink>
     </div>
 </template>
 

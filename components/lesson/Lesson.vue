@@ -67,9 +67,11 @@
             </div>
 
             <div v-if="store.lessonStarted">
-                <div v-if="currentQuestionAnswered">
-                    <p v-if="isCorrect(currentQuestion, userAnswer)" class="correct-answer">Correct!</p>
-                    <p v-if="!isCorrect(currentQuestion, userAnswer)" class="incorrect-answer">Incorrect, correct answer is: {{currentQuestion?.qAnswer}}</p>
+                <div class="min-h-[65px]">
+                    <div v-if="currentQuestionAnswered">
+                        <p v-if="isCorrect(currentQuestion, userAnswer)" class="correct-answer">Correct!</p>
+                        <p v-if="!isCorrect(currentQuestion, userAnswer)" class="incorrect-answer">Incorrect, correct answer is: {{currentQuestion?.qAnswer}}</p>
+                    </div>
                 </div>
 
                 <div>
@@ -88,13 +90,14 @@
                     <!--MODE: Multiple Choice -->
                     <div class="my-3" v-if="currentQuestion.mode === 'wordTranslationMPChoice' || currentQuestion.mode === 'translationWordMPChoice'">
                         <div v-for="(q, key, i) of currentQuestion.all" :key="i" class="num-of-q-checkbox" tabindex="0">
-                            <label class="p-2 border border-black">
+                            <label :class="[`p-2 border border-black ${currentQuestionAnswered && 'opacity-25'}`]">
                                 <input
                                     tabindex="-1"
                                     class="sr-only"
                                     type="radio"
                                     name="number-of-q"
-                                    @change="userAnswer = q"
+                                    @click="userAnswer = q"
+                                    :disabled="currentQuestionAnswered"
                                 />
                                 <span class="tense-checkbox-bg"></span>
                                 <span class="tense-name">{{q}}</span>

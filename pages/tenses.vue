@@ -11,7 +11,7 @@
     .mode-radio,
     .num-of-q-checkbox,
     .tense-checkbox {
-        @apply my-7;
+        @apply py-5;
         label {
             @apply relative;
 
