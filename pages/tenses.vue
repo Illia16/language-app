@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="w-full">
     <NuxtLink to="/">Back to homepage</NuxtLink>
     <div>
         <Lesson lessonType="tenses" />
@@ -71,13 +71,6 @@
                     }
                 }
             }
-        }
-    }
-
-    button {
-        @apply px-6 py-1 border border-black;
-        &:disabled {
-            @apply text-gray-400 border-gray-400;
         }
     }
 </style>

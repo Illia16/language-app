@@ -1,6 +1,6 @@
 <template>
     <div class="language-app-site">
-        <MainMenu />
+        <!-- <MainMenu /> -->
         <NuxtPage />
     </div>
 </template>
@@ -12,10 +12,9 @@
 
 <style lang="scss">
     .language-app-site {
-        margin: 10vh 15vw;
-        p {
-            // @apply text-red-400;
+        @apply flex flex-col items-center justify-center min-h-screen bg-amber-200 px-5 py-4;
 
+        p {
             &.specialP {
                 @apply text-yellow-600;
             }

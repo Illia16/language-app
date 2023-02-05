@@ -1,11 +1,21 @@
 <template>
-    <div>
-        <h1>Content:</h1>
+    <div class="main-page">
         <div>
-            <NuxtLink to="/tenses">Tenses</NuxtLink>
+            <h1>Select a task:</h1>
         </div>
-        <div>
-            <NuxtLink to="/words">Words</NuxtLink>
-        </div>
+        <NuxtLink to="/tenses" class="custom-button-link">Tenses</NuxtLink>
+        <NuxtLink to="/words" class="custom-button-link">Words</NuxtLink>
     </div>
 </template>
+
+
+<style lang="scss">
+    .main-page {
+        @apply flex flex-col items-center space-y-5;
+
+        h1 {
+            @apply text-4xl mb-5;
+        }
+    }
+</style>
+

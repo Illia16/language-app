@@ -8,7 +8,7 @@
             <div v-if="!store.lessonStarted">
                 <!-- TENSES -->
                 <div v-if="initData && initData.length && !store.lessonStarted">
-                    <h2 class="text-main">Select an exersise or multiple exersises:</h2>
+                    <h2>Select an exersise or multiple exersises:</h2>
                     <div v-for="(tense, i) of initData" :key="i" class="tense-checkbox" tabindex="0">
                         <label>
                             <input
@@ -60,7 +60,7 @@
                         </div>
                     </div>
 
-                    <button @click="store.setLessonStarted(true)" :disabled="selectedTenses.every(el => !el)">
+                    <button class="custom-button-link" @click="store.setLessonStarted(true)" :disabled="selectedTenses.every(el => !el)">
                         Start
                     </button>
                 </div>
@@ -68,14 +68,14 @@
 
             <div v-if="store.lessonStarted">
                 <div v-if="currentQuestionAnswered">
-                    <p v-if="isCorrect(currentQuestion, userAnswer)" class="text-green-500">Correct!</p>
-                    <p v-if="!isCorrect(currentQuestion, userAnswer)" class="text-red-500">Incorrect, correct answer is: {{currentQuestion?.qAnswer}}</p>
+                    <p v-if="isCorrect(currentQuestion, userAnswer)" class="correct-answer">Correct!</p>
+                    <p v-if="!isCorrect(currentQuestion, userAnswer)" class="incorrect-answer">Incorrect, correct answer is: {{currentQuestion?.qAnswer}}</p>
                 </div>
 
                 <div>
                     <div>Question number is {{currentQuestionNum}} out of {{lessonData?.length}}</div>
-                    <div>Question: {{currentQuestion.question}}</div>
-                    <div>Your answer: {{userAnswer}}</div>
+                    <div class="font-bold">Question: {{currentQuestion.question}}</div>
+                    <div class="min-h-[50px] break-all">Your answer: {{userAnswer}}</div>
 
 
                     <!--MODE: Write text -->
@@ -103,29 +103,31 @@
                     </div>
 
                     <!--MODE: Sentence Builer -->
-                    <div class="my-3" v-if="lessonType !== 'words' && (currentQuestion.mode === 'sentenceWordTranslation' || currentQuestion.mode === 'sentenceTranslationWord')">
-                        <div>
-                            <button @click="userAnswer = ''" :disabled="!userAnswer || currentQuestionAnswered">Clear</button>
+                    <div v-if="lessonType !== 'words' && (currentQuestion.mode === 'sentenceWordTranslation' || currentQuestion.mode === 'sentenceTranslationWord')">
+                        <div class="my-3">
+                            <button class="custom-button-link" @click="userAnswer = ''" :disabled="!userAnswer || currentQuestionAnswered">Clear</button>
                         </div>
-                        <button
-                            @click="userAnswer ? userAnswer = userAnswer + ' ' + word : userAnswer = word"
-                            v-for="(word, key, i) of currentQuestion.splitted"
-                            :key="i"
-                            class="mx-2"
-                            :disabled="currentQuestionAnswered">
-                            {{word}}
-                        </button>
+                        <div class="my-5 flex flex-wrap">
+                            <button
+                                @click="userAnswer ? userAnswer = userAnswer + ' ' + word : userAnswer = word"
+                                v-for="(word, key, i) of currentQuestion.splitted"
+                                :key="i"
+                                class="custom-button-link custom-button-link--mp-choice"
+                                :disabled="currentQuestionAnswered">
+                                {{word}}
+                            </button>
+                        </div>
                     </div>
                 </div>
 
                 <div class="lesson-btns">
-                    <button @click="check" :disabled="!userAnswer || currentQuestionAnswered">
+                    <button class="custom-button-link" @click="check" :disabled="!userAnswer || currentQuestionAnswered">
                         Check
                     </button>
                 </div>
 
                 <div class="lesson-btns">
-                    <button v-if="currentQuestionNum < lessonData?.length" @click="nextQuestion" :disabled="!currentQuestionAnswered">
+                    <button class="custom-button-link" v-if="currentQuestionNum < lessonData?.length" @click="nextQuestion" :disabled="!currentQuestionAnswered">
                         Next Question
                     </button>
                 </div>
@@ -241,8 +243,6 @@ const nextQuestion = () => {
 
 <style lang="scss">
 .lesson-btns {
-    @apply text-center;
-
     button {
         @apply mt-3 min-w-[175px];
     }

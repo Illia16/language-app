@@ -11,7 +11,10 @@ module.exports = {
     theme: {
         extend: {
             colors: {
-                "main": '#FFA500'
+                "main": '#FFA500',
+                "button-bg": '#f5deb3',
+                "white": '#fff',
+                "mp-choice": '#f0f8ff',
             }
         },
     },

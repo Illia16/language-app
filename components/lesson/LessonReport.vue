@@ -4,12 +4,12 @@
         <ol>
             <li v-for="(q, key, i) of report" :key="i">
                 <span>Question: {{q.question}}</span>
-                <span :class="q.userAnswer === q.correctAnswer ? 'text-green-500' : 'text-red-500'">My answer: {{q.userAnswer}}</span>
+                <span :class="q.userAnswer === q.correctAnswer ? 'correct-answer' : 'incorrect-answer'">My answer: {{q.userAnswer}}</span>
                 <span>Correct answer: {{q.correctAnswer}}</span>
             </li>
         </ol>
 
-        <button @click="store.setLessonStarted(false)">Exit lesson</button>
+        <button class="custom-button-link" @click="store.setLessonStarted(false)">Exit lesson</button>
     </div>
 </template>
 

@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="w-full">
     <NuxtLink to="/">Back to homepage</NuxtLink>
     <Lesson lessonType="words" />
   </div>

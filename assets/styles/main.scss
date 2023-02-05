@@ -1,3 +1,24 @@
 @import "tailwindcss/base";
 @import "tailwindcss/components";
 @import "tailwindcss/utilities";
+
+
+.custom-button-link {
+    @apply border border-black bg-button-bg py-2 px-11 text-2xl disabled:opacity-25;
+
+    &.custom-button-link--mp-choice {
+        @apply bg-mp-choice py-1 px-2 m-1;
+    }
+}
+
+h2 {
+    @apply text-xl font-bold;
+}
+
+.correct-answer {
+    @apply text-green-500 text-xl font-bold;
+}
+
+.incorrect-answer {
+    @apply text-red-500 text-xl font-bold;
+}
