@@ -2,11 +2,15 @@ import { defineStore } from "pinia";
 
 export const useMainStore = defineStore('main-store', {
     state: () => ({
+        lang: '',
         lessonType: "123",
         lessonStarted: false,
         lessonData: {},
     }),
     actions: {
+        setLang(lang) {
+            this.lang = lang;
+        },
         setLessonType(i) {
             this.lessonType = i;
         },
@@ -17,8 +21,5 @@ export const useMainStore = defineStore('main-store', {
             this.lessonData = data;
         }
     },
-    // getter here is like computed
-    // getters: {
-    //     lessonType: (state) => state.lessonType,
-    // },
+    persist: true,
 });

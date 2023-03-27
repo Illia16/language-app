@@ -6,9 +6,6 @@
 </template>
 
 
-<script setup>
-
-</script>
 
 <style lang="scss">
     .language-app-site {

@@ -39,6 +39,7 @@ export default defineNuxtConfig({
     modules: [
         '@pinia/nuxt',
         '@nuxtjs/tailwindcss',
+        '@pinia-plugin-persistedstate/nuxt',
     ],
     alias: {
         'helper': resolve(__dirname, './helper')

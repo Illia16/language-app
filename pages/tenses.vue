@@ -8,6 +8,7 @@
 </template>
 
 <style lang="scss">
+    .user_language-radio,
     .mode-radio,
     .num-of-q-checkbox,
     .tense-checkbox {
@@ -59,6 +60,7 @@
         }
     }
 
+    .user_language-radio,
     .mode-radio,
     .num-of-q-checkbox {
         label {
