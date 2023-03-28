@@ -21,5 +21,5 @@ export const useMainStore = defineStore('main-store', {
             this.lessonData = data;
         }
     },
-    persist: true,
+    // persist: true,
 });

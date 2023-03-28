@@ -1,35 +1,29 @@
 <template>
     <div class="main-page">
         <div v-if="!store.lang" id="user_language">
-            <h2>Select your mother tongue</h2>
-            <div v-for="(user_language, i) of ['en', 'ru', 'cn']" :key="i" class="user_language-radio" tabindex="0">
-                <label>
-                    <input
-                    tabindex="-1"
-                    class="sr-only"
-                    type="radio"
-                    name="user_language"
-                    @change="store.setLang(user_language)"
-                        />
-                    <span class="radio-bg"></span>
-                    <span class="input-name">{{user_language}}</span>
-                </label>
-            </div>
+            <h1>Select the preferred language of interface</h1>
+            <ul>
+                <li v-for="(user_language, i) of ['en', 'ru', 'cn']" :key="i" class="user_language">
+                    <NuxtLink :to="switchLocalePath(user_language)" @click="store.setLang(user_language)">{{mapLanguage(user_language)}}</NuxtLink>
+                </li>
+            </ul>
         </div>
 
         <template v-if="store.lang">
-            <div>
-                <h1>Select a task:</h1>
-            </div>
-            <NuxtLink to="/tenses" class="custom-button-link">Tenses (времена)</NuxtLink>
-            <NuxtLink to="/words" class="custom-button-link">Words (слова)</NuxtLink>
+            <h1>{{ t('selectTask') }}</h1>
+            <NuxtLink :to="localePath({ name: 'tenses' })" class="custom-button-link">{{ t('tenses') }}</NuxtLink>
+            <NuxtLink :to="localePath({ name: 'words' })" class="custom-button-link">{{ t('words') }}</NuxtLink>
         </template>
     </div>
 </template>
 
 <script setup>
 import { useMainStore } from '@/store/main';
+import { mapLanguage } from '@/helper/helpers';
 const store = useMainStore();
+const { t } = useI18n()
+const localePath = useLocalePath()
+const switchLocalePath = useSwitchLocalePath()
 </script>
 
 

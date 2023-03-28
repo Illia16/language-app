@@ -96,3 +96,14 @@ export const mapModeNames = (v) => {
             return null
     }
 }
+
+export const mapLanguage = (v) => {
+    switch (v) {
+        case 'ru':
+            return 'Русский'
+        case 'cn':
+            return '中文'
+        default:
+            return 'English'
+    }
+}

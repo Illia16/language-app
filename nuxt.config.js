@@ -40,6 +40,36 @@ export default defineNuxtConfig({
         '@pinia/nuxt',
         '@nuxtjs/tailwindcss',
         '@pinia-plugin-persistedstate/nuxt',
+        [
+            '@nuxtjs/i18n',
+            {
+                // customRoutes: 'config',
+                strategy: 'prefix_except_default',
+                defaultLocale: 'en',
+                locales: ['en', 'ru', 'cn'],
+                vueI18n: {
+                  legacy: false,
+                  locale: 'en',
+                  messages: {
+                    en: {
+                      selectTask: 'Select a task',
+                      tenses: "Tenses",
+                      words: "Words",
+                    },
+                    ru: {
+                      selectTask: 'Выберите задание',
+                      tenses: "Времена",
+                      words: "Слова",
+                    },
+                    cn: {
+                        selectTask: '选择任务',
+                        tenses: "时态",
+                        words: "字",
+                    }
+                  }
+                }
+            }
+        ]
     ],
     alias: {
         'helper': resolve(__dirname, './helper')
