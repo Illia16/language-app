@@ -101,7 +101,7 @@ export const mapLanguage = (v) => {
     switch (v) {
         case 'ru':
             return 'Русский'
-        case 'cn':
+        case 'zh':
             return '中文'
         default:
             return 'English'

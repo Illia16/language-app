@@ -1,6 +1,7 @@
 <template>
   <div class="w-full">
-    <NuxtLink to="/">Back to homepage</NuxtLink>
+    <BackToHomeBtn />
+
     <div>
         <Lesson lessonType="tenses" />
     </div>

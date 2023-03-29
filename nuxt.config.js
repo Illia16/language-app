@@ -43,30 +43,52 @@ export default defineNuxtConfig({
         [
             '@nuxtjs/i18n',
             {
-                // customRoutes: 'config',
                 strategy: 'prefix_except_default',
                 defaultLocale: 'en',
-                locales: ['en', 'ru', 'cn'],
-                vueI18n: {
-                  legacy: false,
-                  locale: 'en',
-                  messages: {
-                    en: {
-                      selectTask: 'Select a task',
-                      tenses: "Tenses",
-                      words: "Words",
+                locales: [
+                    {
+                        code: 'en',
+                        iso: 'en-US',
+                        name: 'English'
                     },
-                    ru: {
-                      selectTask: 'Выберите задание',
-                      tenses: "Времена",
-                      words: "Слова",
+                    {
+                        code: 'ru',
+                        iso: 'ru-RU',
+                        name: 'Русский'
                     },
-                    cn: {
-                        selectTask: '选择任务',
-                        tenses: "时态",
-                        words: "字",
+                    {
+                        code: 'zh',
+                        iso: 'zh-CN',
+                        name: '简体中文'
                     }
-                  }
+                ],
+                vueI18n: {
+                    legacy: false,                
+                    messages: {
+                        en: {
+                            welcomeMessage: 'Select your mother tongue',
+                            selectTask: 'Select a task',
+                            tenses: "Tenses",
+                            words: "Words",
+                        },
+                        ru: {
+                            welcomeMessage: 'Выберите Ваш родной язык',
+                            selectTask: 'Выберите задание',
+                            tenses: "Времена",
+                            words: "Слова",
+                        },
+                        zh: {
+                            welcomeMessage: '选择您的母语',
+                            selectTask: '选择任务',
+                            tenses: "时态",
+                            words: "字",
+                        }
+                    }
+                },
+                detectBrowserLanguage: {
+                    useCookie: true,
+                    cookieKey: 'i18n_redirected',
+                    redirectOn: 'root',
                 }
             }
         ]

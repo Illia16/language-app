@@ -5,8 +5,6 @@
     </div>
 </template>
 
-
-
 <style lang="scss">
     .language-app-site {
         @apply flex flex-col items-center justify-center min-h-screen bg-amber-200 px-5 py-4;
