@@ -5,21 +5,17 @@ export const useMainStore = defineStore('main-store', {
         lang: '',
         lessonType: "123",
         lessonStarted: false,
-        lessonData: {},
     }),
     actions: {
-        setLang(lang) {
+        setLang(lang: string) {
             this.lang = lang;
         },
-        setLessonType(i) {
+        setLessonType(i: string) {
             this.lessonType = i;
         },
-        setLessonStarted(v) {
+        setLessonStarted(v: boolean) {
             this.lessonStarted = v;
         },
-        setLessonData(data) {
-            this.lessonData = data;
-        }
     },
     // persist: true,
 });

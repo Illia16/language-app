@@ -3,7 +3,7 @@
 </template>
 
 
-<script setup lang="ts">
+<script lang="ts" setup>
 const localePath = useLocalePath()
 const { t } = useI18n({
   useScope: 'local'
