@@ -246,8 +246,10 @@ const nextQuestion = () => {
 
 <style lang="scss">
 .lesson-btns {
+    @apply min-w-[175px];
+
     button {
-        @apply mt-3 min-w-[175px];
+        @apply mt-3 w-full;
     }
 }
 </style>

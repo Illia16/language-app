@@ -1,6 +1,6 @@
 <template>
     <div class="language-app-site">
-        <!-- <MainMenu /> -->
+        <MainMenu />
         <NuxtPage />
     </div>
 </template>

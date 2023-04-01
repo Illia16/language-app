@@ -1,7 +1,5 @@
 <template>
-  <div class="w-full">
-    <BackToHomeBtn />
-
+  <div class="page-tenses">
     <div>
         <Lesson lessonType="tenses" />
     </div>

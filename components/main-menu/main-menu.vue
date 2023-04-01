@@ -1,6 +1,6 @@
 <template>
     <div>
-        <div>Menu</div>
+        <BackToHomeBtn />
     </div>
 </template>
 
