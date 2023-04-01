@@ -2,7 +2,7 @@
     <div>
         <h2>Results:</h2>
         <ol>
-            <li v-for="(q, key, i) of report" :key="i">
+            <li v-for="(q, key) of props.report" :key="`report-${key}`">
                 <span>Question: {{q.question}}</span>
                 <span :class="q.userAnswer === q.correctAnswer ? 'correct-answer' : 'incorrect-answer'">My answer: {{q.userAnswer}}</span>
                 <span>Correct answer: {{q.correctAnswer}}</span>
@@ -13,8 +13,8 @@
     </div>
 </template>
 
-<script setup>
-import { useMainStore } from '@/store/main'
+<script lang="ts" setup>
+import { useMainStore } from 'store/main'
 
 const props = defineProps({
     report: {

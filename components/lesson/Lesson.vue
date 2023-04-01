@@ -26,7 +26,7 @@
                     <div v-if="numQuestions && numQuestions.length">
                         <div id="number-of-q">
                             <h2>Select a number of questions: (default is <span>5</span>)</h2>
-                            <div v-for="(number, key, i) of numQuestions" :key="i" class="num-of-q-checkbox" tabindex="0">
+                            <div v-for="(number, key) of numQuestions" :key="`number-of-q-key-${key}`" class="num-of-q-checkbox" tabindex="0">
                                 <label>
                                     <input
                                     tabindex="-1"
@@ -89,7 +89,7 @@
 
                     <!--MODE: Multiple Choice -->
                     <div class="my-3" v-if="currentQuestion.mode === 'wordTranslationMPChoice' || currentQuestion.mode === 'translationWordMPChoice'">
-                        <div v-for="(q, key, i) of currentQuestion.all" :key="i" class="num-of-q-checkbox" tabindex="0">
+                        <div v-for="(q, key) of currentQuestion.all" :key="`mp-choice-q-key-${key}`" class="num-of-q-checkbox" tabindex="0">
                             <label :class="[`p-2 border border-black ${currentQuestionAnswered && 'opacity-25'}`]">
                                 <input
                                     tabindex="-1"
@@ -113,8 +113,8 @@
                         <div class="my-5 flex flex-wrap">
                             <button
                                 @click="userAnswer ? userAnswer = userAnswer + ' ' + word : userAnswer = word"
-                                v-for="(word, key, i) of currentQuestion.splitted"
-                                :key="i"
+                                v-for="(word, key) of currentQuestion.splitted"
+                                :key="`sentence-builer-q-key-${key}`"
                                 class="custom-button-link custom-button-link--mp-choice"
                                 :disabled="currentQuestionAnswered">
                                 {{word}}
@@ -143,10 +143,11 @@
     </div>
 </template>
 
-<script setup>
-import { getLesson, getQuestion, isCorrect, mapModeNames } from '@/helper/helpers';
+<script lang="ts" setup>
+import {WordTranslationArrayOfObj, InitData, Question, InitDataArrayOfObj, Report, ReportArrayOfObj, RecordUserAnswerDestructured } from 'types/helperTypes'
+import { getLesson, getQuestion, isCorrect, mapModeNames } from 'helper/helpers';
 import data from 'helper/data';
-import { useMainStore } from '@/store/main';
+import { useMainStore } from 'store/main';
 
 const props = defineProps({
     lessonType: {
@@ -159,21 +160,41 @@ const store = useMainStore();
 
 // lesson menu states
 const v_selectedTenses = ref([]) // v-model for selected checkboxes
-const selectedTenses = computed(() => initData.value.map((el, i) => v_selectedTenses.value[i] ? el : null).filter(el => el)) // selected tenses/words full Object (can be more than 1)
-const allQuestions = computed(() => selectedTenses.value.map((el, i) => el.data).flat()) // allQuestions in 1 array
-const numQuestions = computed(() => [allQuestions.value.length >= 10 && 10, allQuestions.value.length >= 20 && 20, allQuestions.value.length >= 30 && 30, Math.round(allQuestions.value.length / 2), allQuestions.value.length].filter(el=>el)) // number of questions generated based on how many exersises available
-const numQuestionsSelected = ref(5) // selected num of questions by user
-const modeSelected = ref('random')
+const selectedTenses = computed<InitDataArrayOfObj>((): InitDataArrayOfObj => {
+    return initData.value
+        .map((el, i) => v_selectedTenses.value[i] ? el : null)
+        .filter(el => el) as InitDataArrayOfObj;
+}) // selected tenses/words full Object (can be more than 1)
+
+const allQuestions = computed<WordTranslationArrayOfObj>((): WordTranslationArrayOfObj => {
+    return selectedTenses.value.map((el: InitData): WordTranslationArrayOfObj => {
+        return el.data;
+    }).flat();
+}) // allQuestions in 1 array
+
+const numQuestions = computed<number[]>(() => {
+    return  [
+        allQuestions.value.length >= 10 ? 10 : 0, 
+        allQuestions.value.length >= 20 ? 20 : 0, 
+        allQuestions.value.length >= 30 ? 30 : 0, 
+        Math.round(allQuestions.value.length / 2), 
+        allQuestions.value.length
+    ]
+    .filter(el=>el)
+}) // number of questions generated based on how many exersises available
+
+const numQuestionsSelected = ref<number>(5) // selected num of questions by user
+const modeSelected = ref<string>('random')
 
 // lesson state
-const initData = ref([]);
-const lessonData = ref([]);
-const currentQuestionNum = ref(1);
-const currentQuestion = ref({});
-const currentQuestionAnswered = ref(false);
-const userAnswer = ref();
-const numOfCorrectAnswers = ref(0);
-const report = ref([]);
+const initData = ref<InitDataArrayOfObj>([] as InitDataArrayOfObj);
+const lessonData = ref<WordTranslationArrayOfObj>([]);
+const currentQuestionNum = ref<number>(1);
+const currentQuestion = ref<Question>({} as Question);
+const currentQuestionAnswered = ref<boolean>(false);
+const userAnswer = ref<string>('');
+const numOfCorrectAnswers = ref<number>(0);
+const report = ref<ReportArrayOfObj>([]);
 
 onMounted(() => {
     initData.value = data[props.lessonType];
@@ -181,14 +202,15 @@ onMounted(() => {
 
 watch(() => store.lessonStarted, (v) => {
     if (v) {
-        lessonData.value = getLesson(modeSelected.value, allQuestions.value).slice(0, numQuestionsSelected.value);
+        lessonData.value = getLesson(modeSelected.value, allQuestions.value).slice(0, numQuestionsSelected.value) as WordTranslationArrayOfObj;
         if (lessonData.value && lessonData.value.length) {
+            
             currentQuestion.value = getQuestion(modeSelected.value, lessonData.value, currentQuestionNum.value, props.lessonType);
         }
     } else {
         lessonData.value = [];
         currentQuestionNum.value = 1;
-        currentQuestion.value = {};
+        currentQuestion.value = {} as Question;
         currentQuestionAnswered.value = false;
         userAnswer.value = ''
         numOfCorrectAnswers.value = 0;
@@ -205,7 +227,7 @@ watch(currentQuestionNum, function() {
 
 
 // handling incorrect, correct answers and if no more questions, stopping the lesson
-const check = () => {
+const check = ():void => {
     console.log('checking...');
     if (!isCorrect(currentQuestion.value, userAnswer.value)) {
         console.log('not correct...');
@@ -220,8 +242,8 @@ const check = () => {
 };
 
 // recording answers, their correctness for report at the end and updating API.
-const recordUserAnswer = (correct, userAnswer, { qAnswer, question, id }) => {
-    const r = {};
+const recordUserAnswer = (correct: boolean, userAnswer: string, { qAnswer, question, id }:RecordUserAnswerDestructured ):void => {
+    const r:Report = {} as Report;
     r.question = question;
     r.userAnswer = userAnswer;
     r.correctAnswer = qAnswer;
@@ -236,7 +258,7 @@ const recordUserAnswer = (correct, userAnswer, { qAnswer, question, id }) => {
     report.value = [...report.value, r];
 };
 
-const nextQuestion = () => {
+const nextQuestion = ():void => {
     currentQuestionNum.value = currentQuestionNum.value + 1;
     currentQuestionAnswered.value = false;
     userAnswer.value = '';

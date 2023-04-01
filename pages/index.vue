@@ -18,18 +18,16 @@
     </div>
 </template>
 
-<script setup>
-import { useMainStore } from '@/store/main';
-import { mapLanguage } from '@/helper/helpers';
+<script lang="ts" setup>
+import { useMainStore } from 'store/main';
+import { mapLanguage } from 'helper/helpers';
 const store = useMainStore();
 const { t, locale } = useI18n()
 const localePath = useLocalePath()
 const switchLocalePath = useSwitchLocalePath()
 
-
 useHead({
     title: 'Language App',
-    lang: locale,
     htmlAttrs: {
         lang: locale,
     }

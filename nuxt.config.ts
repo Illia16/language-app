@@ -1,10 +1,11 @@
-import { defineNuxtConfig } from "nuxt/config";
 import { resolve } from 'path'
+import type { NuxtConfig } from '@nuxt/types'
 
-// https://v3.nuxtjs.org/api/configuration/nuxt.config
-export default defineNuxtConfig({
+const config: NuxtConfig = {
     // typescript: {
-    //     shim: false,
+    //     // shim: false,
+    //     // typeCheck: true,
+    //     // strict: true
     // },
     app: {
         head: {
@@ -35,6 +36,7 @@ export default defineNuxtConfig({
     },
     buildModules: [
         '@nuxt/postcss8',
+        '@nuxt/typescript-build',
     ],
     modules: [
         '@pinia/nuxt',
@@ -63,8 +65,7 @@ export default defineNuxtConfig({
                     }
                 ],
                 vueI18n: {
-                    legacy: false,                
-                    messages: {
+                        messages: {
                         en: {
                             welcomeMessage: 'Select your mother tongue',
                             selectTask: 'Select a task',
@@ -94,6 +95,10 @@ export default defineNuxtConfig({
         ]
     ],
     alias: {
-        'helper': resolve(__dirname, './helper')
+        'helper': resolve(__dirname, './helper'),
+        'store': resolve(__dirname, './store'),
+        'types': resolve(__dirname, './types')
     }
-});
+};
+
+export default config;
