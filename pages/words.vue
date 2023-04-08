@@ -1,5 +1,3 @@
 <template>
-  <div class="page-words">
-    <Lesson lessonType="words" />
-  </div>
+    <Lesson lessonType="words" class="page-words"/>
 </template>

@@ -1,13 +1,13 @@
 import { WordTranslation, WordTranslationArrayOfObj, SortableArray, Question } from 'types/helperTypes';
 
-export const sortArray = (arr: SortableArray): SortableArray => {    
+export const sortArray = (arr: SortableArray): SortableArray => {
     for (let i = arr.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
-        const temp = arr[i];    
+        const temp = arr[i];
         arr[i] = arr[j];
         arr[j] = temp;
     }
-    
+
     return arr;
 };
 
@@ -19,8 +19,8 @@ export const getQuestion = (m: string, lessonData: WordTranslationArrayOfObj, cu
 
     const handleQuestion = (m: string, lessonData: WordTranslationArrayOfObj, currentQuestionNum: number): Question => {
         const questionAnswer = {} as Question;
-        const q = lessonData[currentQuestionNum-1];     
-        
+        const q = lessonData[currentQuestionNum-1];
+
         questionAnswer.question = q[m === 'wordTranslation' || m === 'wordTranslationMPChoice' || m === 'sentenceWordTranslation' ? 'word' : 'translation'];
         questionAnswer.qAnswer = q[m === 'wordTranslation' || m === 'wordTranslationMPChoice' || m === 'sentenceWordTranslation' ? 'translation' : 'word'];
         questionAnswer.id = q.id;
@@ -48,14 +48,14 @@ export const getQuestion = (m: string, lessonData: WordTranslationArrayOfObj, cu
 // function to get a random mode
 const getRandomMode = (lessonType: string):string => {
     const allModes: string[] = lessonType === 'words'
-        ? ['wordTranslation', 'translationWord', 'wordTranslationMPChoice', 'translationWordMPChoice'] 
+        ? ['wordTranslation', 'translationWord', 'wordTranslationMPChoice', 'translationWordMPChoice']
         : ['wordTranslation', 'translationWord', 'wordTranslationMPChoice', 'translationWordMPChoice', 'sentenceWordTranslation', 'sentenceTranslationWord'];
     const randomIndex:number = Math.floor(Math.random()*allModes.length);
     return allModes[randomIndex];
 }
 
 // function to produce 4 MP choices + include 1 correct answer
-export const fillMpChoiceArray = (data: WordTranslationArrayOfObj, correctAnswer:string, mpChoiceType: string): string[] => {  
+export const fillMpChoiceArray = (data: WordTranslationArrayOfObj, correctAnswer:string, mpChoiceType: string): string[] => {
     const mpChoices: string[] = data
         .map((el: WordTranslation, i: number): string => {
                 let res: string = '';

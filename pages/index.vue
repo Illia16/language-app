@@ -1,19 +1,24 @@
 <template>
     <div class="main-page">
-        <div v-if="!store.lang" id="user_language">
+        <template v-if="!store.lang">
             <h1>{{ t('welcomeMessage') }}</h1>
-            <ul>
-                <li v-for="(user_language, i) of ['en', 'ru', 'zh']" :key="i" class="user_language">
-                    <NuxtLink :to="switchLocalePath(user_language)" @click="store.setLang(user_language)">{{mapLanguage(user_language)}}</NuxtLink>
+            <ul class="list-items">
+                <li v-for="(user_language, i) of ['en', 'ru', 'zh']" :key="i">
+                    <NuxtLink class="custom-button-link" :to="switchLocalePath(user_language)" @click="store.setLang(user_language)">{{mapLanguage(user_language)}}</NuxtLink>
                 </li>
             </ul>
-        </div>
+        </template>
 
         <template v-if="store.lang">
             <h1>{{ t('selectTask') }}</h1>
-            <NuxtLink :to="localePath({ name: 'tenses' })" class="custom-button-link">{{ t('tenses') }}</NuxtLink>
-            <NuxtLink :to="localePath({ name: 'words' })" class="custom-button-link">{{ t('words') }}</NuxtLink>
-            <button @click="store.setLang('')">Back to language menu</button>
+            <ul class="list-items">
+                <li>
+                    <NuxtLink :to="localePath({ name: 'tenses' })" class="custom-button-link">{{ t('tenses') }}</NuxtLink>
+                </li>
+                <li>
+                    <NuxtLink :to="localePath({ name: 'words' })" class="custom-button-link">{{ t('words') }}</NuxtLink>
+                </li>
+            </ul>
         </template>
     </div>
 </template>
@@ -37,10 +42,10 @@ useHead({
 
 <style lang="scss">
     .main-page {
-        @apply flex flex-col items-center space-y-5;
+        @apply flex flex-col items-center space-y-20;
 
         h1 {
-            @apply text-4xl mb-5;
+            @apply text-4xl text-center;
         }
     }
 </style>

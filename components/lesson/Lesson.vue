@@ -1,14 +1,14 @@
 <template>
-    <div>
+    <div class="w-full">
         <div v-if="lessonType === 'all'">
             All options for a lesson
         </div>
 
-        <div>
-            <div v-if="!store.lessonStarted">
-                <!-- TENSES -->
-                <div v-if="initData && initData.length && !store.lessonStarted">
-                    <h2>Select an exersise or multiple exersises:</h2>
+        <template v-if="!store.lessonStarted">
+            <!-- TENSES -->
+            <template v-if="initData && initData.length && !store.lessonStarted">
+                <div id="learning-data" class="learning-data">
+                    <h2>{{ t('selectExercise') }}</h2>
                     <div v-for="(tense, i) of initData" :key="i" class="tense-checkbox" tabindex="0">
                         <label>
                             <input
@@ -21,125 +21,126 @@
                             <span class="input-name">{{tense.name}}</span>
                         </label>
                     </div>
+                </div>
 
-                    <!-- NUMBER OF Qs -->
-                    <div v-if="numQuestions && numQuestions.length">
-                        <div id="number-of-q">
-                            <h2>Select a number of questions: (default is <span>5</span>)</h2>
-                            <div v-for="(number, key) of numQuestions" :key="`number-of-q-key-${key}`" class="num-of-q-checkbox" tabindex="0">
-                                <label>
-                                    <input
-                                    tabindex="-1"
-                                    class="sr-only"
-                                    type="radio"
-                                    name="number-of-q"
-                                    @change="numQuestionsSelected = number"
-                                    />
-                                    <span class="radio-bg"></span>
-                                    <span class="input-name">{{number}}</span>
-                                </label>
-                            </div>
-                        </div>
+                <!-- MODES -->
+                <div id="mode" class="mode">
+                    <h2>{{ t('modeTitle') }}</h2>
+                    <div v-for="(mode, i) of lessonType === 'words' ? ['wordTranslation', 'translationWord', 'wordTranslationMPChoice', 'translationWordMPChoice', 'random'] : ['wordTranslation', 'translationWord', 'wordTranslationMPChoice', 'translationWordMPChoice', 'sentenceWordTranslation', 'sentenceTranslationWord', 'random']" :key="i" class="mode-radio" tabindex="0">
+                        <label>
+                            <input
+                            tabindex="-1"
+                            class="sr-only"
+                            type="radio"
+                            name="mode"
+                            @change="modeSelected = mode"
+                                />
+                            <span class="radio-bg"></span>
+                            <span class="input-name">{{mapModeNames(mode)}}</span>
+                        </label>
                     </div>
+                </div>
 
-                    <!-- MODES -->
-                    <div id="mode">
-                        <h2>Select a learning mode (default is <span>all types</span>)</h2>
-                        <div v-for="(mode, i) of lessonType === 'words' ? ['wordTranslation', 'translationWord', 'wordTranslationMPChoice', 'translationWordMPChoice', 'random'] : ['wordTranslation', 'translationWord', 'wordTranslationMPChoice', 'translationWordMPChoice', 'sentenceWordTranslation', 'sentenceTranslationWord', 'random']" :key="i" class="mode-radio" tabindex="0">
+
+                <!-- NUMBER OF Qs -->
+                <template v-if="numQuestions && numQuestions.length">
+                    <div id="number-of-q" class="number-of-q">
+                        <h2>Select a number of questions: (default is <span>5</span>)</h2>
+                        <div v-for="(number, key) of numQuestions" :key="`number-of-q-key-${key}`" class="num-of-q-checkbox" tabindex="0">
                             <label>
                                 <input
                                 tabindex="-1"
                                 class="sr-only"
                                 type="radio"
-                                name="mode"
-                                @change="modeSelected = mode"
-                                    />
+                                name="number-of-q"
+                                @change="numQuestionsSelected = number"
+                                />
                                 <span class="radio-bg"></span>
-                                <span class="input-name">{{mapModeNames(mode)}}</span>
+                                <span class="input-name">{{number}}</span>
                             </label>
                         </div>
                     </div>
+                </template>
 
-                    <button class="custom-button-link" @click="store.setLessonStarted(true)" :disabled="selectedTenses.every(el => !el)">
-                        Start
-                    </button>
+                <button class="custom-button-link" @click="store.setLessonStarted(true)" :disabled="selectedTenses.every(el => !el)">
+                    Start
+                </button>
+            </template>
+        </template>
+
+        <template v-if="store.lessonStarted">
+            <p :class="[`min-h-[35px] text-center flex justify-center items-center ${isCorrect(currentQuestion, userAnswer) ? 'correct-answer' : 'incorrect-answer'}`]">
+                <template v-if="currentQuestionAnswered">
+                    {{isCorrect(currentQuestion, userAnswer) ? "Correct!" : "Incorrect, correct answer is: " + currentQuestion?.qAnswer}}
+                </template>
+            </p>
+
+            <div class="my-4">
+                <div>Question number is {{currentQuestionNum}} out of {{lessonData?.length}}</div>
+                <div class="font-bold border-solid border-black">Question: {{currentQuestion.question}}</div>
+                <div class="font-bold">Your answer:</div>
+                <div class="min-h-[40px]">{{userAnswer}}</div>
+
+                <!--MODE: Write text -->
+                <div class="my-3" v-if="currentQuestion.mode === 'wordTranslation' || currentQuestion.mode === 'translationWord'">
+                    <label>
+                        <input type="text" v-model="userAnswer" class="border border-black p-1" />
+                    </label>
                 </div>
-            </div>
 
-            <div v-if="store.lessonStarted">
-                <div class="min-h-[65px]">
-                    <div v-if="currentQuestionAnswered">
-                        <p v-if="isCorrect(currentQuestion, userAnswer)" class="correct-answer">Correct!</p>
-                        <p v-if="!isCorrect(currentQuestion, userAnswer)" class="incorrect-answer">Incorrect, correct answer is: {{currentQuestion?.qAnswer}}</p>
-                    </div>
-                </div>
-
-                <div>
-                    <div>Question number is {{currentQuestionNum}} out of {{lessonData?.length}}</div>
-                    <div class="font-bold">Question: {{currentQuestion.question}}</div>
-                    <div class="min-h-[50px] break-all">Your answer: {{userAnswer}}</div>
-
-
-                    <!--MODE: Write text -->
-                    <div class="my-3" v-if="currentQuestion.mode === 'wordTranslation' || currentQuestion.mode === 'translationWord'">
-                        <label>
-                            <input type="text" v-model="userAnswer" class="border border-black p-1" />
+                <!--MODE: Multiple Choice -->
+                <div class="my-3" v-if="currentQuestion.mode === 'wordTranslationMPChoice' || currentQuestion.mode === 'translationWordMPChoice'">
+                    <div v-for="(q, key) of currentQuestion.all" :key="`mp-choice-q-key-${key}`" class="num-of-q-checkbox" tabindex="0">
+                        <label :class="[`p-2 border border-black ${currentQuestionAnswered && 'opacity-25'}`]">
+                            <input
+                                tabindex="-1"
+                                class="sr-only"
+                                type="radio"
+                                name="number-of-q"
+                                @click="userAnswer = q"
+                                :disabled="currentQuestionAnswered"
+                            />
+                            <span class="tense-checkbox-bg"></span>
+                            <span class="tense-name">{{q}}</span>
                         </label>
                     </div>
-
-                    <!--MODE: Multiple Choice -->
-                    <div class="my-3" v-if="currentQuestion.mode === 'wordTranslationMPChoice' || currentQuestion.mode === 'translationWordMPChoice'">
-                        <div v-for="(q, key) of currentQuestion.all" :key="`mp-choice-q-key-${key}`" class="num-of-q-checkbox" tabindex="0">
-                            <label :class="[`p-2 border border-black ${currentQuestionAnswered && 'opacity-25'}`]">
-                                <input
-                                    tabindex="-1"
-                                    class="sr-only"
-                                    type="radio"
-                                    name="number-of-q"
-                                    @click="userAnswer = q"
-                                    :disabled="currentQuestionAnswered"
-                                />
-                                <span class="tense-checkbox-bg"></span>
-                                <span class="tense-name">{{q}}</span>
-                            </label>
-                        </div>
-                    </div>
-
-                    <!--MODE: Sentence Builer -->
-                    <div v-if="lessonType !== 'words' && (currentQuestion.mode === 'sentenceWordTranslation' || currentQuestion.mode === 'sentenceTranslationWord')">
-                        <div class="my-3">
-                            <button class="custom-button-link" @click="userAnswer = ''" :disabled="!userAnswer || currentQuestionAnswered">Clear</button>
-                        </div>
-                        <div class="my-5 flex flex-wrap">
-                            <button
-                                @click="userAnswer ? userAnswer = userAnswer + ' ' + word : userAnswer = word"
-                                v-for="(word, key) of currentQuestion.splitted"
-                                :key="`sentence-builer-q-key-${key}`"
-                                class="custom-button-link custom-button-link--mp-choice"
-                                :disabled="currentQuestionAnswered">
-                                {{word}}
-                            </button>
-                        </div>
-                    </div>
                 </div>
 
-                <div class="lesson-btns">
+                <!--MODE: Sentence Builer -->
+                <template v-if="lessonType !== 'words' && (currentQuestion.mode === 'sentenceWordTranslation' || currentQuestion.mode === 'sentenceTranslationWord')">
+                    <div class="my-5 flex justify-center flex-wrap">
+                        <button
+                            @click="userAnswer ? userAnswer = userAnswer + ' ' + word : userAnswer = word"
+                            v-for="(word, key) of currentQuestion.splitted"
+                            :key="`sentence-builer-q-key-${key}`"
+                            class="custom-button-link custom-button-link--mp-choice"
+                            :disabled="currentQuestionAnswered">
+                            {{word}}
+                        </button>
+                    </div>
+                    <button class="custom-button-link" @click="userAnswer = ''" :disabled="!userAnswer || currentQuestionAnswered">Clear</button>
+                </template>
+            </div>
+
+            <ul class="my-12">
+                <li class="lesson-btns">
                     <button class="custom-button-link" @click="check" :disabled="!userAnswer || currentQuestionAnswered">
                         Check
                     </button>
-                </div>
+                </li>
 
-                <div class="lesson-btns">
+
+                <li class="lesson-btns">
                     <button class="custom-button-link" v-if="currentQuestionNum < lessonData?.length" @click="nextQuestion" :disabled="!currentQuestionAnswered">
                         Next Question
                     </button>
-                </div>
+                </li>
+            </ul>
 
-                <div v-if="lessonData?.length === currentQuestionNum && currentQuestionAnswered">
-                    <LessonReport :report="report" />
-                </div>
-            </div>
-        </div>
+            <template v-if="lessonData?.length === currentQuestionNum && currentQuestionAnswered">
+                <LessonReport :report="report" />
+            </template>
+        </template>
     </div>
 </template>
 
@@ -148,6 +149,7 @@ import {WordTranslationArrayOfObj, InitData, Question, InitDataArrayOfObj, Repor
 import { getLesson, getQuestion, isCorrect, mapModeNames } from 'helper/helpers';
 import data from 'helper/data';
 import { useMainStore } from 'store/main';
+const { t, locale } = useI18n({useScope: 'local'})
 
 const props = defineProps({
     lessonType: {
@@ -174,10 +176,10 @@ const allQuestions = computed<WordTranslationArrayOfObj>((): WordTranslationArra
 
 const numQuestions = computed<number[]>(() => {
     return  [
-        allQuestions.value.length >= 10 ? 10 : 0, 
-        allQuestions.value.length >= 20 ? 20 : 0, 
-        allQuestions.value.length >= 30 ? 30 : 0, 
-        Math.round(allQuestions.value.length / 2), 
+        allQuestions.value.length >= 10 ? 10 : 0,
+        allQuestions.value.length >= 20 ? 20 : 0,
+        allQuestions.value.length >= 30 ? 30 : 0,
+        Math.round(allQuestions.value.length / 2),
         allQuestions.value.length
     ]
     .filter(el=>el)
@@ -204,7 +206,7 @@ watch(() => store.lessonStarted, (v) => {
     if (v) {
         lessonData.value = getLesson(modeSelected.value, allQuestions.value).slice(0, numQuestionsSelected.value) as WordTranslationArrayOfObj;
         if (lessonData.value && lessonData.value.length) {
-            
+
             currentQuestion.value = getQuestion(modeSelected.value, lessonData.value, currentQuestionNum.value, props.lessonType);
         }
     } else {
@@ -267,6 +269,13 @@ const nextQuestion = ():void => {
 </script>
 
 <style lang="scss">
+
+.learning-data,
+.mode,
+.number-of-q {
+    @apply py-3;
+}
+
 .lesson-btns {
     @apply min-w-[175px];
 
@@ -275,3 +284,17 @@ const nextQuestion = ():void => {
     }
 }
 </style>
+
+
+<i18n lang="yaml">
+en:
+    selectExercise: 'Select an exercise or multiple exercises:'
+    modeTitle: 'Select a learning mode (default is all types)'
+ru:
+    selectExercise: 'Выберите упражнение или несколько упражнений:'
+    modeTitle: 'Выберите режим обучения (по умолчанию все типы)'
+zh:
+    selectExercise: 'TBD'
+    modeTitle: 'TBD'
+</i18n>
+

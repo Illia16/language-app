@@ -1,7 +1,3 @@
 <template>
-  <div class="page-tenses">
-    <div>
-        <Lesson lessonType="tenses" />
-    </div>
-  </div>
+    <Lesson lessonType="tenses" class="page-tenses"/>
 </template>
