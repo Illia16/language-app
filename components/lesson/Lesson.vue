@@ -33,7 +33,8 @@
                                 class="sr-only"
                                 type="radio"
                                 name="mode"
-                                @change="modeSelected = mode"
+                                :value="mode"
+                                v-model="modeSelected"
                             />
                             <span class="radio-bg"></span>
                             <span class="input-name">{{mapModeNames(mode)}}</span>
@@ -53,7 +54,8 @@
                                     class="sr-only"
                                     type="radio"
                                     name="number-of-q"
-                                    @change="numQuestionsSelected = number"
+                                    :value="number"
+                                    v-model="numQuestionsSelected"
                                 />
                                 <span class="radio-bg"></span>
                                 <span class="input-name">{{number}}</span>
@@ -106,8 +108,9 @@
                                 class="sr-only"
                                 type="radio"
                                 name="number-of-q"
-                                @click="userAnswer = q"
                                 :disabled="currentQuestionAnswered"
+                                :value="q"
+                                v-model="userAnswer"
                             />
                             <span class="tense-checkbox-bg"></span>
                             <span class="tense-name">{{q}}</span>
@@ -187,6 +190,7 @@ const allQuestions = computed<WordTranslationArrayOfObj>((): WordTranslationArra
 
 const numQuestions = computed<number[]>(() => {
     return  [
+        allQuestions.value.length >= 5 ? 5 : 0,
         allQuestions.value.length >= 10 ? 10 : 0,
         allQuestions.value.length >= 20 ? 20 : 0,
         allQuestions.value.length >= 30 ? 30 : 0,
@@ -196,7 +200,10 @@ const numQuestions = computed<number[]>(() => {
     .filter(el=>el)
 }) // number of questions generated based on how many exersises available
 
-const numQuestionsSelected = ref<number>(5) // selected num of questions by user
+const numQuestionsSelected = computed<number>(() => {
+    return allQuestions.value.length;
+}) // num of questions in the lesson selected by user dynamically based on how many questions are available
+
 const modeSelected = ref<string>('random')
 
 // lesson state
@@ -326,7 +333,7 @@ const nextQuestion = ():void => {
 en:
     selectExercise: 'Select an exercise or multiple exercises:'
     modeTitle: 'Select a learning mode (default is all types)'
-    numberQ: 'Select a number of questions: (default is <span>5</span>)'
+    numberQ: 'Select a number of questions:'
     startBtn: 'Start'
     questionNumber: 'Question number is {currentQuestionNum} out of {lessonDataLength}'
     question: 'Question:'
@@ -337,7 +344,7 @@ en:
 ru:
     selectExercise: 'Выберите упражнение или несколько упражнений:'
     modeTitle: 'Выберите режим обучения (по умолчанию все типы)'
-    numberQ: 'Выберите количество вопросов: (по умолчанию <span>5</span>)'
+    numberQ: 'Выберите количество вопросов:'
     startBtn: "Начать"
     questionNumber: 'Номер вопроса {currentQuestionNum} из {lessonDataLength}'
     question: 'Вопрос:'
@@ -348,7 +355,7 @@ ru:
 zh:
     selectExercise: 'TBD'
     modeTitle: 'TBD'
-    numberQ: '选择问题数量：（默认为 <span>5</span>)'
+    numberQ: '选择问题数量:'
     startBtn: "开始"
     questionNumber: '问题编号 {currentQuestionNum} out of {lessonDataLength}'
     question: '问题:'
