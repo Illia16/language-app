@@ -8,7 +8,7 @@
 }
 
 .custom-button-link {
-    @apply border border-black bg-button-bg h-12 text-2xl disabled:opacity-25 flex justify-center items-center min-w-[200px] m-auto;
+    @apply border border-black h-12 text-2xl disabled:opacity-25 flex justify-center items-center min-w-[200px] m-auto;
 
     &.custom-button-link--mp-choice {
         @apply bg-mp-choice py-1 px-2 m-2 min-w-0;
@@ -20,11 +20,11 @@ h2 {
 }
 
 .correct-answer {
-    @apply text-green-500 text-xl font-bold;
+    @apply text-green-500 text-lg font-bold;
 }
 
 .incorrect-answer {
-    @apply text-red-500 text-xl font-bold;
+    @apply text-red-500 text-lg font-bold;
 }
 
 .mode-radio,

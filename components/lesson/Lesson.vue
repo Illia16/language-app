@@ -29,12 +29,12 @@
                     <div v-for="(mode, i) of lessonType === 'words' ? ['wordTranslation', 'translationWord', 'wordTranslationMPChoice', 'translationWordMPChoice', 'random'] : ['wordTranslation', 'translationWord', 'wordTranslationMPChoice', 'translationWordMPChoice', 'sentenceWordTranslation', 'sentenceTranslationWord', 'random']" :key="i" class="mode-radio" tabindex="0">
                         <label>
                             <input
-                            tabindex="-1"
-                            class="sr-only"
-                            type="radio"
-                            name="mode"
-                            @change="modeSelected = mode"
-                                />
+                                tabindex="-1"
+                                class="sr-only"
+                                type="radio"
+                                name="mode"
+                                @change="modeSelected = mode"
+                            />
                             <span class="radio-bg"></span>
                             <span class="input-name">{{mapModeNames(mode)}}</span>
                         </label>
@@ -45,15 +45,15 @@
                 <!-- NUMBER OF Qs -->
                 <template v-if="numQuestions && numQuestions.length">
                     <div id="number-of-q" class="number-of-q">
-                        <h2>Select a number of questions: (default is <span>5</span>)</h2>
+                        <h2 v-html="t('numberQ')"></h2>
                         <div v-for="(number, key) of numQuestions" :key="`number-of-q-key-${key}`" class="num-of-q-checkbox" tabindex="0">
                             <label>
                                 <input
-                                tabindex="-1"
-                                class="sr-only"
-                                type="radio"
-                                name="number-of-q"
-                                @change="numQuestionsSelected = number"
+                                    tabindex="-1"
+                                    class="sr-only"
+                                    type="radio"
+                                    name="number-of-q"
+                                    @change="numQuestionsSelected = number"
                                 />
                                 <span class="radio-bg"></span>
                                 <span class="input-name">{{number}}</span>
@@ -63,23 +63,32 @@
                 </template>
 
                 <button class="custom-button-link" @click="store.setLessonStarted(true)" :disabled="selectedTenses.every(el => !el)">
-                    Start
+                    {{ t('startBtn') }}
                 </button>
             </template>
         </template>
 
         <template v-if="store.lessonStarted">
-            <p :class="[`min-h-[35px] text-center flex justify-center items-center ${isCorrect(currentQuestion, userAnswer) ? 'correct-answer' : 'incorrect-answer'}`]">
+            <p :class="[`min-h-[55px] text-center flex justify-center items-center ${isCorrect(currentQuestion, userAnswer) ? 'correct-answer' : 'incorrect-answer'}`]">
                 <template v-if="currentQuestionAnswered">
                     {{isCorrect(currentQuestion, userAnswer) ? "Correct!" : "Incorrect, correct answer is: " + currentQuestion?.qAnswer}}
                 </template>
             </p>
 
             <div class="my-4">
-                <div>Question number is {{currentQuestionNum}} out of {{lessonData?.length}}</div>
-                <div class="font-bold border-solid border-black">Question: {{currentQuestion.question}}</div>
-                <div class="font-bold">Your answer:</div>
-                <div class="min-h-[40px]">{{userAnswer}}</div>
+                <div class="text-center mb-4">
+                    {{ t('questionNumber', { currentQuestionNum: currentQuestionNum, lessonDataLength: lessonData?.length }) }}
+                </div>
+
+                <div class="text-center mb-4">
+                    {{ t('question') }}
+                    <span class="flex justify-center">
+                        <span :class="!currentQuestionAnswered ? 'animated-text' : 'font-bold'">{{currentQuestion.question}}</span>
+                    </span>
+                </div>
+
+                <div class="text-center">{{ t('yourAnswer') }}</div>
+                <div class="min-h-[40px] text-center font-bold">{{userAnswer}}</div>
 
                 <!--MODE: Write text -->
                 <div class="my-3" v-if="currentQuestion.mode === 'wordTranslation' || currentQuestion.mode === 'translationWord'">
@@ -91,7 +100,7 @@
                 <!--MODE: Multiple Choice -->
                 <div class="my-3" v-if="currentQuestion.mode === 'wordTranslationMPChoice' || currentQuestion.mode === 'translationWordMPChoice'">
                     <div v-for="(q, key) of currentQuestion.all" :key="`mp-choice-q-key-${key}`" class="num-of-q-checkbox" tabindex="0">
-                        <label :class="[`p-2 border border-black ${currentQuestionAnswered && 'opacity-25'}`]">
+                        <label :class="[`inline-block border border-black ${currentQuestionAnswered ? 'opacity-25' : ''}`]">
                             <input
                                 tabindex="-1"
                                 class="sr-only"
@@ -118,21 +127,23 @@
                             {{word}}
                         </button>
                     </div>
-                    <button class="custom-button-link" @click="userAnswer = ''" :disabled="!userAnswer || currentQuestionAnswered">Clear</button>
+                    <button class="custom-button-link" @click="userAnswer = ''" :disabled="!userAnswer || currentQuestionAnswered">
+                        {{ t('clearBtn') }}
+                    </button>
                 </template>
             </div>
 
             <ul class="my-12">
                 <li class="lesson-btns">
                     <button class="custom-button-link" @click="check" :disabled="!userAnswer || currentQuestionAnswered">
-                        Check
+                        {{ t('checkBtn') }}
                     </button>
                 </li>
 
 
                 <li class="lesson-btns">
                     <button class="custom-button-link" v-if="currentQuestionNum < lessonData?.length" @click="nextQuestion" :disabled="!currentQuestionAnswered">
-                        Next Question
+                        {{ t('nextQBtn') }}
                     </button>
                 </li>
             </ul>
@@ -149,7 +160,7 @@ import {WordTranslationArrayOfObj, InitData, Question, InitDataArrayOfObj, Repor
 import { getLesson, getQuestion, isCorrect, mapModeNames } from 'helper/helpers';
 import data from 'helper/data';
 import { useMainStore } from 'store/main';
-const { t, locale } = useI18n({useScope: 'local'})
+const { t } = useI18n({useScope: 'local'})
 
 const props = defineProps({
     lessonType: {
@@ -283,6 +294,31 @@ const nextQuestion = ():void => {
         @apply mt-3 w-full;
     }
 }
+
+.animated-text {
+    @apply font-bold whitespace-nowrap w-0 overflow-hidden;
+    animation: print 3s steps(40) forwards;
+}
+
+@keyframes print {
+    from {
+        @apply w-0;
+    }
+    to {
+        @apply w-full;
+    }
+}
+
+.num-of-q-checkbox {
+
+    .tense-name {
+        @apply flex p-2;
+
+    }
+    input:checked ~ .tense-name {
+        @apply bg-black text-white;
+    }
+}
 </style>
 
 
@@ -290,11 +326,34 @@ const nextQuestion = ():void => {
 en:
     selectExercise: 'Select an exercise or multiple exercises:'
     modeTitle: 'Select a learning mode (default is all types)'
+    numberQ: 'Select a number of questions: (default is <span>5</span>)'
+    startBtn: 'Start'
+    questionNumber: 'Question number is {currentQuestionNum} out of {lessonDataLength}'
+    question: 'Question:'
+    yourAnswer: 'Your answer:'
+    clearBtn: 'Clear'
+    checkBtn: 'Check'
+    nextQBtn: 'Next question'
 ru:
     selectExercise: 'Выберите упражнение или несколько упражнений:'
     modeTitle: 'Выберите режим обучения (по умолчанию все типы)'
+    numberQ: 'Выберите количество вопросов: (по умолчанию <span>5</span>)'
+    startBtn: "Начать"
+    questionNumber: 'Номер вопроса {currentQuestionNum} из {lessonDataLength}'
+    question: 'Вопрос:'
+    yourAnswer: 'Ваш ответ:'
+    clearBtn: 'Очистить'
+    checkBtn: 'Проверить'
+    nextQBtn: 'Следующий вопрос'
 zh:
     selectExercise: 'TBD'
     modeTitle: 'TBD'
+    numberQ: '选择问题数量：（默认为 <span>5</span>)'
+    startBtn: "开始"
+    questionNumber: '问题编号 {currentQuestionNum} out of {lessonDataLength}'
+    question: '问题:'
+    yourAnswer: '你的答案:'
+    clearBtn: '清除'
+    checkBtn: '检查'
+    nextQBtn: '下一个问题'
 </i18n>
-

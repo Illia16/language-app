@@ -1,9 +1,15 @@
 <template>
     <div class="language-app-site">
-        <MainMenu />
+        <MainMenu v-if="!store.lessonStarted" />
         <NuxtPage />
     </div>
 </template>
+
+<script setup lang="ts">
+import { useMainStore } from 'store/main';
+
+const store = useMainStore();
+</script>
 
 <style lang="scss">
     .language-app-site {
