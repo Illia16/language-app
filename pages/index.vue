@@ -18,6 +18,9 @@
                 <li>
                     <NuxtLink :to="localePath({ name: 'words' })" class="custom-button-link">{{ t('words') }}</NuxtLink>
                 </li>
+                <li>
+                    <NuxtLink :to="localePath({ name: 'modal-verbs' })" class="custom-button-link">{{ t('modalVerbs') }}</NuxtLink>
+                </li>
             </ul>
         </template>
     </div>

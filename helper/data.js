@@ -155,4 +155,61 @@ export default {
             ]
         },
     ],
+    modalVerbs: [
+        {
+            value: 'modalVerbs',
+            name: 'Modal Verbs',
+            nameTransladed: 'Модальные глаголы',
+            data: [
+                {
+                    word: 'I should exercise more often (good idea)',
+                    translation: 'Я должен упражняться чаще (хорошая идея)',
+                },
+                {
+                    word: 'I have to exercise every day (obligation)',
+                    translation: 'Я должен упражняться каждый день (обязательно)',
+                },
+                {
+                    word: 'We should eat more vegetables and fruits to be healthy',
+                    translation: 'Мы должны есть больше овощей и фруктов чтобы быть здоровыми',
+                },
+                {
+                    word: 'I can play the guitar',
+                    translation: 'Я могу играть на гитаре',
+                },
+                {
+                    word: 'I might play the guitar later',
+                    translation: 'Я может сыграю на гитаре позже',
+                },
+                {
+                    word: 'I can\'t (cannot) help you right now',
+                    translation: 'Я не могу тебе помочь сейчас',
+                },
+                {
+                    word: 'I couldn\'t (could not) help you yesterday',
+                    translation: 'Я не мог помочь тебе вчера',
+                },
+                {
+                    word: 'I can cook dinner tonight',
+                    translation: 'Я могу приготовить ужин сегодня вечером',
+                },
+                {
+                    word: 'Can you cook breakfast tomorrow?',
+                    translation: 'Ты можешь приготовить завтрак завтра?',
+                },
+                {
+                    word: 'I may cook dinner tonight',
+                    translation: 'Я может приготовлю ужин сегодня вечером',
+                },
+                {
+                    word: 'We may go to the pool tonight',
+                    translation: 'Мы может пойдем в бассейн сегодня вечером',
+                },
+                {
+                    word: 'You may enter the room',
+                    translation: 'Ты можешь войти в комнату',
+                },
+            ]
+        },
+    ],
 }

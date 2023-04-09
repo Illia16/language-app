@@ -8,7 +8,7 @@
 }
 
 .custom-button-link {
-    @apply border border-black h-12 text-2xl disabled:opacity-25 flex justify-center items-center min-w-[200px] m-auto;
+    @apply border border-black h-12 text-2xl disabled:opacity-25 flex justify-center items-center min-w-[250px] m-auto;
 
     &.custom-button-link--mp-choice {
         @apply bg-mp-choice py-1 px-2 m-2 min-w-0;

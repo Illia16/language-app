@@ -26,7 +26,10 @@
                 <!-- MODES -->
                 <div id="mode" class="mode">
                     <h2>{{ t('modeTitle') }}</h2>
-                    <div v-for="(mode, i) of lessonType === 'words' ? ['wordTranslation', 'translationWord', 'wordTranslationMPChoice', 'translationWordMPChoice', 'random'] : ['wordTranslation', 'translationWord', 'wordTranslationMPChoice', 'translationWordMPChoice', 'sentenceWordTranslation', 'sentenceTranslationWord', 'random']" :key="i" class="mode-radio" tabindex="0">
+                    <div v-for="
+                        (mode, i) of lessonType === 'words' 
+                        ? ['wordTranslation', 'translationWord', 'wordTranslationMPChoice', 'translationWordMPChoice', 'random'] 
+                        : ['wordTranslation', 'translationWord', 'wordTranslationMPChoice', 'translationWordMPChoice', 'sentenceWordTranslation', 'sentenceTranslationWord', 'random']" :key="i" class="mode-radio" tabindex="0">
                         <label>
                             <input
                                 tabindex="-1"
@@ -84,7 +87,7 @@
 
                 <div class="text-center mb-4">
                     {{ t('question') }}
-                    <span class="flex justify-center">
+                    <span class="flex justify-center min-h-[50px]">
                         <span :class="!currentQuestionAnswered ? 'animated-text' : 'font-bold'">{{currentQuestion.question}}</span>
                     </span>
                 </div>
@@ -95,7 +98,7 @@
                 <!--MODE: Write text -->
                 <div class="my-3" v-if="currentQuestion.mode === 'wordTranslation' || currentQuestion.mode === 'translationWord'">
                     <label>
-                        <input type="text" v-model="userAnswer" class="border border-black p-1" />
+                        <input type="text" v-model="userAnswer" class="border border-black p-4 w-full text-center" />
                     </label>
                 </div>
 
@@ -304,7 +307,7 @@ const nextQuestion = ():void => {
 
 .animated-text {
     @apply font-bold whitespace-nowrap w-0 overflow-hidden;
-    animation: print 3s steps(40) forwards;
+    animation: print 3s steps(25) forwards;
 }
 
 @keyframes print {
@@ -312,7 +315,7 @@ const nextQuestion = ():void => {
         @apply w-0;
     }
     to {
-        @apply w-full;
+        @apply w-full whitespace-normal;
     }
 }
 

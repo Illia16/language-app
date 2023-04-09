@@ -71,18 +71,22 @@ const config: NuxtConfig = {
                             selectTask: 'Select a task',
                             tenses: "Tenses",
                             words: "Words",
+                            modalVerbs: "Modal verbs",
                         },
                         ru: {
                             welcomeMessage: 'Выберите Ваш родной язык',
                             selectTask: 'Выберите задание',
                             tenses: "Времена",
                             words: "Слова",
+                            modalVerbs: "Модальные глаголы",
+                            
                         },
                         zh: {
                             welcomeMessage: '选择您的母语',
                             selectTask: '选择任务',
                             tenses: "时态",
                             words: "字",
+                            modalVerbs: "情态动词",
                         }
                     }
                 },
