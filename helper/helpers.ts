@@ -1,5 +1,8 @@
 import { WordTranslation, WordTranslationArrayOfObj, SortableArray, Question } from 'types/helperTypes';
 
+// Replaced () and all what's inside with empty string so that the hint is not included in the anwer
+const replaceAllinsideParantheses = new RegExp(/\s*\([^)]*\)/);
+
 export const sortArray = (arr: SortableArray): SortableArray => {
     for (let i = arr.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
@@ -22,7 +25,8 @@ export const getQuestion = (m: string, lessonData: WordTranslationArrayOfObj, cu
         const q = lessonData[currentQuestionNum-1];
 
         questionAnswer.question = q[m === 'wordTranslation' || m === 'wordTranslationMPChoice' || m === 'sentenceWordTranslation' ? 'word' : 'translation'];
-        questionAnswer.qAnswer = q[m === 'wordTranslation' || m === 'wordTranslationMPChoice' || m === 'sentenceWordTranslation' ? 'translation' : 'word'];
+        questionAnswer.qAnswer = q[m === 'wordTranslation' || m === 'wordTranslationMPChoice' || m === 'sentenceWordTranslation' ? 'translation' : 'word'].replace(replaceAllinsideParantheses, '');
+        
         questionAnswer.id = q.id;
         questionAnswer.mode = m;
 
@@ -56,21 +60,24 @@ const getRandomMode = (lessonType: string):string => {
 
 // function to produce 4 MP choices + include 1 correct answer
 export const fillMpChoiceArray = (data: WordTranslationArrayOfObj, correctAnswer:string, mpChoiceType: string): string[] => {
+
     const mpChoices: string[] = data
         .map((el: WordTranslation, i: number): string => {
                 let res: string = '';
-                if (i<=2 && el[mpChoiceType] !== correctAnswer) {
+                const q: string = el[mpChoiceType]?.replace(replaceAllinsideParantheses, '');
+
+                if (i<=2 && q !== correctAnswer) {
                     res = el[mpChoiceType] as string;
                 }
 
-                return res;
+                return res.replace(replaceAllinsideParantheses, '');
             })
         .filter(el=>el);
-    mpChoices.push(correctAnswer);
+    mpChoices.push(correctAnswer);    
     return sortArray(mpChoices) as string[];
 }
 
-export const isCorrect = (currentQuestion: Question, answer: string): boolean => {
+export const isCorrect = (currentQuestion: Question, answer: string): boolean => {   
     return answer.toLowerCase().trim() === currentQuestion.qAnswer.toLowerCase().trim();
 }
 
