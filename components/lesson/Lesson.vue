@@ -67,7 +67,7 @@
                     </div>
                 </template>
 
-                <button class="custom-button-link" @click="store.setLessonStarted(true)" :disabled="selectedTenses.every(el => !el)">
+                <button class="custom-button-link" @click="store.setLessonStarted(true)" :disabled="selectedTenses.every(el => !el) || numQuestionsSelected < 1">
                     {{ t('startBtn') }}
                 </button>
             </template>
@@ -203,9 +203,7 @@ const numQuestions = computed<number[]>(() => {
     .filter(el=>el)
 }) // number of questions generated based on how many exersises available
 
-const numQuestionsSelected = computed<number>(() => {
-    return allQuestions.value.length;
-}) // num of questions in the lesson selected by user dynamically based on how many questions are available
+const numQuestionsSelected = ref<number>(0); // num of questions in the lesson selected by user dynamically based on how many questions are available
 
 const modeSelected = ref<string>('random')
 
