@@ -40,7 +40,7 @@
                                 v-model="modeSelected"
                             />
                             <span class="radio-bg"></span>
-                            <span class="input-name">{{mapModeNames(mode)}}</span>
+                            <span class="input-name">{{ t(mode) }}</span>
                         </label>
                     </div>
                 </div>
@@ -163,7 +163,7 @@
 
 <script lang="ts" setup>
 import {WordTranslationArrayOfObj, InitData, Question, InitDataArrayOfObj, Report, ReportArrayOfObj, RecordUserAnswerDestructured } from 'types/helperTypes'
-import { getLesson, getQuestion, isCorrect, mapModeNames } from 'helper/helpers';
+import { getLesson, getQuestion, isCorrect } from 'helper/helpers';
 import data from 'helper/data';
 import { useMainStore } from 'store/main';
 const { t } = useI18n({useScope: 'local'})
@@ -337,6 +337,13 @@ en:
     selectExercise: 'Select an exercise or multiple exercises:'
     modeTitle: 'Select a learning mode (default is all types)'
     numberQ: 'Select a number of questions:'
+    wordTranslation: 'Word - Translation'
+    translationWord: 'Translation - Word'
+    wordTranslationMPChoice: 'Multiple Choice: Word - Translation'
+    translationWordMPChoice: 'Multiple Choice: Translation - Word'
+    sentenceWordTranslation: 'Sentence: Word - Translation'
+    sentenceTranslationWord: 'Sentence: Translation - Word'
+    random: 'All'
     startBtn: 'Start'
     questionNumber: 'Question number is {currentQuestionNum} out of {lessonDataLength}'
     question: 'Question:'
@@ -348,6 +355,13 @@ ru:
     selectExercise: 'Выберите упражнение или несколько упражнений:'
     modeTitle: 'Выберите режим обучения (по умолчанию все типы)'
     numberQ: 'Выберите количество вопросов:'
+    wordTranslation: 'Слово - Перевод'
+    translationWord: 'Перевод - Слово'
+    wordTranslationMPChoice: 'Несколько вариантов ответа: Слово - Перевод'
+    translationWordMPChoice: 'Несколько вариантов ответа: Перевод - Слово'
+    sentenceWordTranslation: 'Предложение: Слово - Перевод'
+    sentenceTranslationWord: 'Предложение: Перевод - Слово'
+    random: 'Все тренировки'
     startBtn: "Начать"
     questionNumber: 'Номер вопроса {currentQuestionNum} из {lessonDataLength}'
     question: 'Вопрос:'
@@ -359,6 +373,13 @@ zh:
     selectExercise: 'TBD'
     modeTitle: 'TBD'
     numberQ: '选择问题数量:'
+    wordTranslation: '单词 - 翻译'
+    translationWord: '翻译 - 单词'
+    wordTranslationMPChoice: '多选: 单词 - 翻译'
+    translationWordMPChoice: '多选: 翻译 - 单词'
+    sentenceWordTranslation: '句子: 单词 - 翻译'
+    sentenceTranslationWord: '句子: 翻译 - 单词'
+    random: '所有'
     startBtn: "开始"
     questionNumber: '问题编号 {currentQuestionNum} out of {lessonDataLength}'
     question: '问题:'

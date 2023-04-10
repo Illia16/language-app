@@ -91,25 +91,6 @@ const uniqueElements = (array: string[]): string[] => {
     return [...new Set(array)];
 }
 
-export const mapModeNames = (v:string):string => {
-    switch (v) {
-        case 'wordTranslation':
-            return 'Word - Translation'
-        case 'translationWord':
-            return 'Translation - Word'
-        case 'wordTranslationMPChoice':
-            return 'Multiple Choice: Word - Translation'
-        case 'translationWordMPChoice':
-            return 'Multiple Choice: Translation - Word'
-        case 'sentenceWordTranslation':
-            return 'Sentence: Word - Translation'
-        case 'sentenceTranslationWord':
-            return 'Sentence: Translation - Word'
-        default:
-            return 'All' // random mode returns All
-    }
-}
-
 export const mapLanguage = (v:string):string => {
     switch (v) {
         case 'ru':
