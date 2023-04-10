@@ -158,7 +158,7 @@ export default {
     modalVerbs: [
         {
             value: 'modalVerbs',
-            name: 'Modal Verbs',
+            name: 'Can/Should/May/Might/Have to',
             nameTransladed: 'Модальные глаголы',
             data: [
                 {
