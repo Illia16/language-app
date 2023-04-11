@@ -30,10 +30,10 @@ export const getQuestion = (m: string, lessonData: WordTranslationArrayOfObj, cu
         questionAnswer.id = q.id;
         questionAnswer.mode = m;
 
-        if (m === 'wordTranslationMPChoice') {
-            questionAnswer.all = fillMpChoiceArray(lessonData,  questionAnswer.qAnswer, 'translation');
+        if (m === 'wordTranslationMPChoice') {            
+            questionAnswer.all = fillMpChoiceArray(lessonData, q,  questionAnswer.qAnswer, 'translation');
         } else if (m === 'translationWordMPChoice') {
-            questionAnswer.all = fillMpChoiceArray(lessonData,  questionAnswer.qAnswer, 'word');
+            questionAnswer.all = fillMpChoiceArray(lessonData, q,  questionAnswer.qAnswer, 'word');
         } else if (m === 'sentenceWordTranslation' || m === 'sentenceTranslationWord') {
             questionAnswer.splitted = sortArray(uniqueElements(questionAnswer.qAnswer.split(' '))) as string[];
         }
@@ -59,20 +59,30 @@ const getRandomMode = (lessonType: string):string => {
 }
 
 // function to produce 4 MP choices + include 1 correct answer
-export const fillMpChoiceArray = (data: WordTranslationArrayOfObj, correctAnswer:string, mpChoiceType: string): string[] => {
+export const fillMpChoiceArray = (data: WordTranslationArrayOfObj, currentQuestion: WordTranslation, correctAnswer:string, mpChoiceType: string): string[] => {
+    const wrongAnswersKey: string = mpChoiceType === 'translation' ? 'wrongAnswersMotherTongue' : 'wrongAnswersEng';
+    let mpChoices: string[] = [];
 
-    const mpChoices: string[] = data
-        .map((el: WordTranslation, i: number): string => {
-                let res: string = '';
-                const q: string = el[mpChoiceType]?.replace(replaceAllinsideParantheses, '');
+    // check if data has incorrect answers array
+    if (currentQuestion[wrongAnswersKey]) {
+        mpChoices = currentQuestion[wrongAnswersKey] as string[];
+    } else {
+        const randomMpChoices: string[] = data
+            .map((el: WordTranslation, i: number): string => {
+                    let res: string = '';
+                    const q: string = el[mpChoiceType]?.replace(replaceAllinsideParantheses, '');
+    
+                    if (i<=2 && q !== correctAnswer) {
+                        res = el[mpChoiceType] as string;
+                    }
+    
+                    return res.replace(replaceAllinsideParantheses, '');
+                })
+            .filter(el=>el);
+        
+        mpChoices = randomMpChoices;
+    }
 
-                if (i<=2 && q !== correctAnswer) {
-                    res = el[mpChoiceType] as string;
-                }
-
-                return res.replace(replaceAllinsideParantheses, '');
-            })
-        .filter(el=>el);
     mpChoices.push(correctAnswer);    
     return sortArray(mpChoices) as string[];
 }

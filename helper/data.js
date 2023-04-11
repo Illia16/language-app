@@ -1,8 +1,11 @@
 export default {
+    userName: 'User',
+    userId: '1',
+    userMotherLanguage: 'ru',
     tenses: [
         {
             value: 'presentSimple',
-            name: 'Present Simple',
+            name: 'Present Simple (Простое настоящее)',
             nameTransladed: 'Простое настоящее',
             data: [
                 {
@@ -29,7 +32,7 @@ export default {
         },
         {
             value: 'presentContinous',
-            name: 'Present Continuous',
+            name: 'Present Continuous (Продолженное настоящее)',
             nameTransladed: 'Продолженное настоящее',
             data: [
                 {
@@ -56,7 +59,7 @@ export default {
         },
         {
             value: 'presentPerfect',
-            name: 'Present Perfect',
+            name: 'Present Perfect (Настоящее совершенное)',
             nameTransladed: 'Настоящее совершенное',
             data: [
                 {
@@ -85,7 +88,7 @@ export default {
     words: [
         {
             value: 'cooking',
-            name: 'Cooking Words',
+            name: 'Cooking Words (Кулинарные слова)',
             nameTransladed: 'Кулинарные слова',
             data: [
                 {
@@ -154,11 +157,193 @@ export default {
                 },
             ]
         },
+        {
+            value: 'Irregular verbs',
+            name: 'Irregular verbs (Неправильные глаголы)',
+            nameTransladed: 'Неправильные глаголы',
+            data: [
+                {
+                    word: 'Give me a glass of water please', 
+                    translation: 'Дай мне стакан воды пожалуйста',
+                },
+                {
+                    word: 'I gave him a glass of water one hour ago',
+                    translation: 'Я дал ему стакан воды час назад',
+                },
+                {
+                    word: 'Did I give him a glass of water yesterday?',
+                    translation: 'Дал ли я ему стакан воды вчера?',
+                },
+                {
+                    word: 'I\'ve (have) just given him a glass of water', 
+                    translation: 'Я только что дал ему стакан воды',
+                },
+                {
+                    word: 'We all make mistakes',
+                    translation: 'Мы все делаем ошибки',
+                },
+                {
+                    word: 'She made a mistake yesterday',
+                    translation: 'Она сделала ошибку вчера',
+                    wrongAnswersEng: [
+                        'She makes a mistake yesterday',
+                        'She will make a mistake',
+                        'Does she make a mistake every day?',
+                    ],
+                    wrongAnswersMotherTongue: [
+                        'Она сделает ошибку вчера',
+                        'Она будет делать ошибку вчера',
+                        'Она делает ошибку вчера'
+                    ]
+                },
+                {
+                    word: 'I\'ve (have) just made a mistake',
+                    translation: 'Я только что сделал ошибку',
+                },
+                {
+                    word: 'I eat bread every day',
+                    translation: 'Я ем хлеб каждый день',
+                },
+                {
+                    word: 'Do you eat bread every day?',
+                    translation: 'Ты ешь хлеб каждый день?',
+                },
+                {
+                    word: 'I ate potatoes yesterday',
+                    translation: 'Я ел картошку вчера',
+                },
+                {
+                    word: 'Did you eat potatoes yesterday?',
+                    translation: 'Ты ел картошку вчера?',
+                    wrongAnswersEng: [
+                        'I eat potatoes',
+                        'I eaten potatoes',
+                        'Do I eat potatoes yesterday?',
+                    ],
+                    wrongAnswersMotherTongue: [
+                        'Я ем картошку',
+                        'Я буду есть картошку',
+                    ]
+                },
+                {
+                    word: 'I\'ve (have) just eaten potatoes',
+                    translation: 'Я только что съел картошку',
+                    wrongAnswersEng: [
+                        'I ate potatoes',
+                        'I eat potatoes',
+                    ],
+                    wrongAnswersMotherTongue: [
+                        'Я ем картошку',
+                        'Я ел картошку вчера',
+                    ]
+                },
+                {
+                    word: 'I know the answer',
+                    translation: 'Я знаю ответ',
+                    wrongAnswersEng: [
+                        'I knew the answer',
+                        'I knowed the answer',
+                        'I\'ve known the answer'
+                    ],
+                    wrongAnswersMotherTongue: [
+                        'Я знал ответ',
+                        'Я буду знать ответ',
+                    ]
+                },
+                {
+                    word: 'Do you know how to cook it?',
+                    translation: 'Ты знаешь как приготовить это?',
+                    wrongAnswersEng: [
+                        'Does you know how to cook it?',
+                        'Did you know how to cook it?',
+                        'You know how to cook it'
+                    ],
+                    wrongAnswersMotherTongue: [
+                        'Ты знал как это приготовить?',
+                        'Ты будешь знать как это приготовить?',
+                    ]
+                },
+                {
+                    word: 'I knew it',
+                    translation: 'Я знал это',
+                    wrongAnswersEng: [
+                        'I know it',
+                        'Do I know it?',
+                        'Was I know it?',
+                    ],
+                    wrongAnswersMotherTongue: [
+                        'Я знаю это',
+                        'Ты знаешь это',
+                        'Я буду знать это',
+                    ]
+                },
+                {
+                    word: 'I\'ve (have) known you for a long time',
+                    translation: 'Я знаю тебя долгое время',
+                },
+                {
+                    word: 'I think I know the answer',
+                    translation: 'Я думаю что знаю ответ',
+                    wrongAnswersEng: [
+                        'I thought I knew the answer',
+                        'I think I knew the answer',
+                        'Do I think I know the answer?',
+                    ],
+                    wrongAnswersMotherTongue: [
+                        'Я думал что знаю ответ',
+                        'Я думаю что знал ответ',
+                        'Я буду думать что знаю ответ?',
+                    ]
+                },
+                {
+                    word: 'Do you think you know the answer?',
+                    translation: 'Ты думаешь что знаешь ответ?',
+                    wrongAnswersEng: [
+                        'Does you think you know the answer?',
+                        'Do you think you knew the answer?',
+                        'Do you think you\'ve known the answer?',
+                    ],
+                    wrongAnswersMotherTongue: [
+                        'Ты думал что знаешь ответ?',
+                        'Ты не думаешь что знаешь ответ?',
+                        'Ты будешь думать что знаешь ответ?',
+                    ]
+                },
+                {
+                    word: 'I thought I knew the answer',
+                    translation: 'Я думал что знаю ответ',
+                    wrongAnswersEng: [
+                        'I think I knew the answer',
+                        'I\'ve thought I knew the answer',
+                        'I thinked I knew the answer',
+                    ],
+                    wrongAnswersMotherTongue: [
+                        'Я думаю что знаю ответ',
+                        'Я не думал что знаю ответ',
+                        'Я буду думать что знаю ответ',
+                    ]
+                },
+                {
+                    word: 'Didn\'t you think about it?',
+                    translation: 'Ты не думал об этом?',
+                    wrongAnswersEng: [
+                        'Don\'t you think about it?',
+                        'Didn\'t you thought about it?',
+                        'Did you think about it?',
+                    ],
+                    wrongAnswersMotherTongue: [
+                        'Ты не думаешь об этом?',
+                        'Ты не будешь думать об этом?',
+                        'Ты думал об этом?',
+                    ]
+                }
+            ]
+        },
     ],
     modalVerbs: [
         {
             value: 'modalVerbs',
-            name: 'Can/Should/May/Might/Have to',
+            name: 'Can/Should/May/Might/Have to (Модальные глаголы)',
             nameTransladed: 'Модальные глаголы',
             data: [
                 {
@@ -209,6 +394,26 @@ export default {
                     word: 'You may enter the room',
                     translation: 'Ты можешь войти в комнату',
                 },
+                {
+                    word: 'I need to make a phone call',
+                    translation: 'Мне нужно сделать звонок',
+                },
+                {
+                    word: 'Do I need to make a phone call?',
+                    translation: 'Нужно ли мне сделать звонок?',
+                },
+                {
+                    word: 'Don\'t you need to make a phone call?',
+                    translation: 'Тебе не нужно сделать звонок?',
+                },
+                {
+                    word: 'I would like to make a phone call',
+                    translation: 'Я хотел бы сделать звонок',
+                },
+                {
+                    word: 'Would you like to make a phone call?',
+                    translation: 'Ты хотел бы сделать звонок?',
+                }
             ]
         },
     ],

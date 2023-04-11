@@ -1,8 +1,10 @@
 export interface WordTranslation {
     translation: string;
     word: string;
+    wrongAnswersEng?: string[];
+    wrongAnswersMotherTongue?: string[];
     id?: number;
-    [key: string]: string|number|undefined; // id will be number in the future
+    [key: string]: string|number|undefined|Array<string>; // id will be number in the future
 };
 export interface WordTranslationArrayOfObj extends Array<WordTranslation> {};
 
