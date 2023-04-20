@@ -1,27 +1,13 @@
-# Created by .ignore support plugin (hsz.mobi)
-### Node template
 # Logs
-/logs
+logs
 *.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-*policy.json
-s3.config
-s3Test.config
-deploy.config.js
-node_modules
-*.log*
-.nuxt
-.nitro
-.cache
-.output
-.env
-dist
+lerna-debug.log*
 
-
-/backend/values.yml
-___nuxt2
+# Diagnostic reports (https://nodejs.org/api/report.html)
+report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 
 # Runtime data
 pids
@@ -38,7 +24,7 @@ coverage
 # nyc test coverage
 .nyc_output
 
-# Grunt intermediate storage (http://gruntjs.com/creating-plugins#storing-task-files)
+# Grunt intermediate storage (https://gruntjs.com/creating-plugins#storing-task-files)
 .grunt
 
 # Bower dependency directory (https://bower.io/)
@@ -74,6 +60,7 @@ typings/
 
 # dotenv environment variables file
 .env
+.env.test
 
 # parcel-bundler cache (https://parceljs.org/)
 .cache
@@ -84,26 +71,29 @@ typings/
 # nuxt.js build output
 .nuxt
 
-# Nuxt generate
-dist
-
 # vuepress build output
 .vuepress/dist
 
 # Serverless directories
-.serverless
+.serverless/
 
-# IDE / Editor
-.idea
+# FuseBox cache
+.fusebox/
 
-# Service worker
-sw.*
+# DynamoDB Local files
+.dynamodb/
 
-# macOS
-.DS_Store
+# TypeScript output
+dist
+out
 
-# Vim swap files
-*.swp
+# Azure Functions artifacts
+bin
+obj
+appsettings.json
+local.settings.json
 
-
-.vscode
+# Azurite artifacts
+__blobstorage__
+__queuestorage__
+__azurite_db*__.json
