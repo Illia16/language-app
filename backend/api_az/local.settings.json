@@ -1,0 +1,22 @@
+{
+  "IsEncrypted": false,
+  "Values": {
+    "AzureWebJobsStorage": "UseDevelopmentStorage=true",
+    "FUNCTIONS_EXTENSION_VERSION": "~3",
+    "FUNCTIONS_WORKER_RUNTIME": "node",
+    "WEBSITE_NODE_DEFAULT_VERSION": "~14",
+    "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING": "DefaultEndpointsProtocol=https;AccountName=languageappfunctio1f3d93;AccountKey=a2LvD5sn4wJalwoXytJHRJ9FVr2FXUwehPdOB83WRc53u5lnTx08PYabITwKt36eZ92sWTKeulJo+AStqsodDg==;EndpointSuffix=core.windows.net",
+    "WEBSITE_CONTENTSHARE": "languageappfunctiona6d0e2",
+    "WEBSITE_RUN_FROM_PACKAGE": "1",
+    "APPINSIGHTS_INSTRUMENTATIONKEY": "b07fa1cc-5cf3-4d88-8c01-1cec944ec5ec",
+    "AzureWebJobs.HttpExample.Disabled": "true"
+  },
+  "Host": {
+    "LocalHttpPort": 7071,
+    "CORS": "*",
+    "CORSCredentials": false
+  },
+  "ConnectionStrings": {
+    "SQLConnectionString": "<sqlclient-connection-string>"
+  }
+}

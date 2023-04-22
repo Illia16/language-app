@@ -14,13 +14,13 @@ export const sortArray = (arr: SortableArray): SortableArray => {
     return arr;
 };
 
-export const getLesson = (m:string, lessonData: WordTranslationArrayOfObj): WordTranslationArrayOfObj => {
+export const getLesson = (m:string, lessonData: WordTranslationArrayOfObj): WordTranslationArrayOfObj => {    
     return sortArray(lessonData) as WordTranslationArrayOfObj;
 }
 
 export const getQuestion = (m: string, lessonData: WordTranslationArrayOfObj, currentQuestionNum: number, lessonType: string): Question => {
 
-    const handleQuestion = (m: string, lessonData: WordTranslationArrayOfObj, currentQuestionNum: number): Question => {
+    const handleQuestion = (m: string, lessonData: WordTranslationArrayOfObj, currentQuestionNum: number): Question => {        
         const questionAnswer = {} as Question;
         const q = lessonData[currentQuestionNum-1];
 

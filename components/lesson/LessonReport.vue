@@ -1,7 +1,7 @@
 <template>
     <div>
         <h2>Results: {{numOfCorrectAnswers}}/{{ props.report.length }}</h2>
-        <ul>
+        <ul class="list-report">
             
             <li v-for="(q, i) in props.report" :key="`report-${i}`">
                 <span>Question: #{{i+1}} {{q.question}}</span>
@@ -28,7 +28,7 @@ const props = defineProps({
 </script>
 
 <style lang="scss">
-    ul {
+    ul.list-report {
         @apply list-decimal list-inside;
         li {
             @apply border-b border-b-black my-3 list-none;

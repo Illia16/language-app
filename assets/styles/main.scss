@@ -8,10 +8,11 @@
 }
 
 .custom-button-link {
-    @apply border border-black h-12 text-2xl disabled:opacity-25 flex justify-center items-center min-w-[250px] m-auto;
+    @apply bg-[#219f7a] text-white rounded-lg h-12 text-2xl disabled:opacity-25 flex justify-center items-center min-w-[250px] m-auto;
+
 
     &.custom-button-link--mp-choice {
-        @apply bg-mp-choice py-1 px-2 m-2 min-w-0;
+        @apply bg-[#219f7a] py-1 px-2 m-2 min-w-0;
     }
 }
 
@@ -20,7 +21,7 @@ h2 {
 }
 
 .correct-answer {
-    @apply text-green-500 text-lg font-bold;
+    @apply text-[#219f7a] text-lg font-bold;
 }
 
 .incorrect-answer {
@@ -29,7 +30,7 @@ h2 {
 
 .mode-radio,
 .num-of-q-checkbox,
-.tense-checkbox {
+.exercise-checkbox {
     @apply py-3;
     label {
         @apply relative;
