@@ -1,37 +1,37 @@
 <template>
     <div>
-        <h2>Results:</h2>
-        <ol>
-            <li v-for="(q, key) of props.report" :key="`report-${key}`">
-                <span>Question: {{q.question}}</span>
+        <h2>Results: {{numOfCorrectAnswers}}/{{ props.report.length }}</h2>
+        <ul>
+            
+            <li v-for="(q, i) in props.report" :key="`report-${i}`">
+                <span>Question: #{{i+1}} {{q.question}}</span>
                 <span :class="q.userAnswer === q.correctAnswer ? 'correct-answer' : 'incorrect-answer'">My answer: {{q.userAnswer}}</span>
-                <span>Correct answer: {{q.correctAnswer}}</span>
+                <span v-if="!q.isCorrect">Correct answer: {{q.correctAnswer}}</span>
             </li>
-        </ol>
-
-        <button class="custom-button-link" @click="store.setLessonStarted(false)">Exit lesson</button>
+        </ul>
     </div>
 </template>
 
 <script lang="ts" setup>
-import { useMainStore } from 'store/main'
 
 const props = defineProps({
     report: {
         required: true,
         type: Object,
+    },
+    numOfCorrectAnswers: {
+        required: true,
+        type: Number,
     }
 })
-
-const store = useMainStore()
 
 </script>
 
 <style lang="scss">
-    ol {
+    ul {
         @apply list-decimal list-inside;
         li {
-            @apply border-b border-b-black my-3;
+            @apply border-b border-b-black my-3 list-none;
 
             span {
                 @apply block;

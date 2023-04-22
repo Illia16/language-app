@@ -147,16 +147,16 @@
                 </li>
 
 
-                <li class="lesson-btns">
-                    <button class="custom-button-link" v-if="currentQuestionNum < lessonData?.length" @click="nextQuestion" :disabled="!currentQuestionAnswered">
+                <li class="lesson-btns" v-if="currentQuestionNum < lessonData?.length">
+                    <button class="custom-button-link"  @click="nextQuestion" :disabled="!currentQuestionAnswered">
                         {{ t('nextQBtn') }}
                     </button>
                 </li>
             </ul>
 
-            <template v-if="lessonData?.length === currentQuestionNum && currentQuestionAnswered">
-                <LessonReport :report="report" />
-            </template>
+            <Modal v-if="store.modalOpen && store.modalType === 'report'" @closeCallback="store.setLessonStarted(false)">
+                <LessonReport :report="report" :numOfCorrectAnswers="numOfCorrectAnswers" />
+            </Modal>
         </template>
     </div>
 </template>
@@ -248,6 +248,14 @@ watch(currentQuestionNum, function() {
     }
 });
 
+
+// set report modal open
+watch(currentQuestionAnswered, function() {
+    if (lessonData.value.length === currentQuestionNum.value && currentQuestionAnswered.value) {
+        store.setModalOpen(true);
+        store.setModalType('report')
+    }
+});
 
 // handling incorrect, correct answers and if no more questions, stopping the lesson
 const check = ():void => {
