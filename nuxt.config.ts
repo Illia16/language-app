@@ -47,6 +47,7 @@ const config: NuxtConfig = {
             {
                 strategy: 'prefix_except_default',
                 defaultLocale: 'en',
+                fallbackLocale: "en",
                 locales: [
                     {
                         code: 'en',
@@ -65,13 +66,23 @@ const config: NuxtConfig = {
                     }
                 ],
                 vueI18n: {
-                        messages: {
+                    messages: {
                         en: {
                             welcomeMessage: 'Select your mother tongue',
                             selectTask: 'Select a task',
                             tenses: "Tenses",
                             words: "Words",
                             modalVerbs: "Modal verbs",
+                            generalWords: {
+                                noun: 'Noun',
+                                verb: 'Verb',
+                                restOfTheWords: 'the rest of the words',
+                                question: 'Question',
+                                negative: 'Negative',
+                                sentense: 'Sentense',
+                                examples: 'Examples',
+                                howToBuild: 'How to build',
+                            }
                         },
                         ru: {
                             welcomeMessage: 'Выберите Ваш родной язык',
@@ -79,7 +90,16 @@ const config: NuxtConfig = {
                             tenses: "Времена",
                             words: "Слова",
                             modalVerbs: "Модальные глаголы",
-                            
+                            generalWords: {
+                                noun: 'Имя существительное',
+                                verb: 'Глагол',
+                                restOfTheWords: 'Остальные слова',
+                                question: 'Вопросительное',
+                                negative: 'Отрицающее',
+                                sentense: 'Предложение',
+                                examples: 'Примеры',
+                                howToBuild: 'Как построить',
+                            },
                         },
                         zh: {
                             welcomeMessage: '选择您的母语',
@@ -87,6 +107,16 @@ const config: NuxtConfig = {
                             tenses: "时态",
                             words: "字",
                             modalVerbs: "情态动词",
+                            generalWords: {
+                                noun: 'Имя существительное',
+                                verb: 'Глагол',
+                                restOfTheWords: 'Остальные слова',
+                                question: 'Вопросительное',
+                                negative: 'Отрицающее',
+                                sentense: 'Предложение',
+                                examples: 'Примеры',
+                                howToBuild: 'Как построить',
+                            },
                         }
                     }
                 },

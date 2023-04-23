@@ -19,7 +19,8 @@ export const getLesson = (m:string, lessonData: WordTranslationArrayOfObj): Word
 }
 
 export const getQuestion = (m: string, lessonData: WordTranslationArrayOfObj, currentQuestionNum: number, lessonType: string): Question => {
-
+    console.log('lessonData', lessonData);
+    
     const handleQuestion = (m: string, lessonData: WordTranslationArrayOfObj, currentQuestionNum: number): Question => {        
         const questionAnswer = {} as Question;
         const q = lessonData[currentQuestionNum-1];
@@ -29,6 +30,7 @@ export const getQuestion = (m: string, lessonData: WordTranslationArrayOfObj, cu
         
         questionAnswer.id = q.id;
         questionAnswer.mode = m;
+        questionAnswer.rule = q.rule;
 
         if (m === 'wordTranslationMPChoice') {            
             questionAnswer.all = fillMpChoiceArray(lessonData, q,  questionAnswer.qAnswer, 'translation');
@@ -38,6 +40,7 @@ export const getQuestion = (m: string, lessonData: WordTranslationArrayOfObj, cu
             questionAnswer.splitted = sortArray(uniqueElements(questionAnswer.qAnswer.split(' '))) as string[];
         }
 
+        console.log('questionAnswer', questionAnswer);
         return questionAnswer;
     }
 

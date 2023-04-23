@@ -1,6 +1,7 @@
 export interface WordTranslation {
     translation: string;
     word: string;
+    rule: string;
     wrongAnswersEng?: string[];
     wrongAnswersMotherTongue?: string[];
     id?: number;
@@ -17,13 +18,14 @@ export interface Question {
     qAnswer: string;
     question: string;
     splitted:  string[];
+    rule: string;
 };
 
 export interface InitData {
     data: WordTranslationArrayOfObj;
     name: string;
     nameTransladed: string;
-    value: string;
+    val: string;
 };
 export interface InitDataArrayOfObj extends Array<InitData> {};
 

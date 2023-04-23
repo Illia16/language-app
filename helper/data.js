@@ -4,7 +4,7 @@ export default {
     userMotherLanguage: 'ru',
     tenses: [
         {
-            value: 'presentSimple',
+            val: 'presentSimple',
             name: 'Present Simple (Простое настоящее)',
             nameTransladed: 'Простое настоящее',
             data: [
@@ -31,7 +31,7 @@ export default {
             ]
         },
         {
-            value: 'presentContinous',
+            val: 'presentContinuous',
             name: 'Present Continuous (Продолженное настоящее)',
             nameTransladed: 'Продолженное настоящее',
             data: [
@@ -58,7 +58,7 @@ export default {
             ]
         },
         {
-            value: 'presentPerfect',
+            val: 'presentPerfect',
             name: 'Present Perfect (Настоящее совершенное)',
             nameTransladed: 'Настоящее совершенное',
             data: [
@@ -87,7 +87,7 @@ export default {
     ],
     words: [
         {
-            value: 'cooking',
+            val: 'cooking',
             name: 'Cooking Words (Кулинарные слова)',
             nameTransladed: 'Кулинарные слова',
             data: [
@@ -158,7 +158,7 @@ export default {
             ]
         },
         {
-            value: 'Irregular verbs',
+            val: 'Irregular verbs',
             name: 'Irregular verbs (Неправильные глаголы)',
             nameTransladed: 'Неправильные глаголы',
             data: [
@@ -342,7 +342,7 @@ export default {
     ],
     modalVerbs: [
         {
-            value: 'modalVerbs',
+            val: 'modalVerbs',
             name: 'Can/Should/May/Might/Have to (Модальные глаголы)',
             nameTransladed: 'Модальные глаголы',
             data: [
