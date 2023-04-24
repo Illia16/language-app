@@ -18,9 +18,7 @@ export const getLesson = (m:string, lessonData: WordTranslationArrayOfObj): Word
     return sortArray(lessonData) as WordTranslationArrayOfObj;
 }
 
-export const getQuestion = (m: string, lessonData: WordTranslationArrayOfObj, currentQuestionNum: number, lessonType: string): Question => {
-    console.log('lessonData', lessonData);
-    
+export const getQuestion = (m: string, lessonData: WordTranslationArrayOfObj, currentQuestionNum: number, lessonType: string): Question => {    
     const handleQuestion = (m: string, lessonData: WordTranslationArrayOfObj, currentQuestionNum: number): Question => {        
         const questionAnswer = {} as Question;
         const q = lessonData[currentQuestionNum-1];
@@ -40,7 +38,6 @@ export const getQuestion = (m: string, lessonData: WordTranslationArrayOfObj, cu
             questionAnswer.splitted = sortArray(uniqueElements(questionAnswer.qAnswer.split(' '))) as string[];
         }
 
-        console.log('questionAnswer', questionAnswer);
         return questionAnswer;
     }
 

@@ -3,20 +3,21 @@
         <h3 class="grammar-rules--title">Present Simple ({{t('presentSimple')}})</h3>
         <ul class="grammar-rules--description">
             <li>{{t('presentSimpleDescription1')}}</li>
-            <li>{{t('presentSimpleDescription2')}}</li>
-            <li>{{ t('presentSimpleDescription2A') }}</li>
-            <li>{{ t('presentSimpleDescription2B') }}</li>
-            <li>{{ t('presentSimpleDescription2C') }}</li>
-            <li>{{t('presentSimpleDescription3')}}</li>
+            <li>{{t('presentSimpleDescription2')}}:</li>
+            <ul class="grammar-rules--description">
+                <li>{{ t('presentSimpleDescription2A') }}</li>
+                <li>{{ t('presentSimpleDescription2B') }} (Often, every year, from time to time, seldom, rare, usually)</li>
+                <li>{{ t('presentSimpleDescription2C') }}</li>
+            </ul>
         </ul>
 
-        <h4>{{t('presentSimpleDescription3')}}</h4>
-        <ul class="grammar-rules--form">
-            <li>{{t('presentSimpleDescription3A')}} (come<span class="green-bolded">s</span>, eat<span class="green-bolded">s</span>, walk<span class="green-bolded">s</span>)</li>
-            <li>{{t('presentSimpleDescription3B')}} (watch<span class="green-bolded">es</span>, wash<span class="green-bolded">es</span>, mix<span class="green-bolded">es</span>)</li>
-            <li>{{t('presentSimpleDescription3C')}} (hurr<span class="green-bolded">ies</span>, stud<span class="green-bolded">ies</span>, repl<span class="green-bolded">ies</span>)</li>
-            <li>{{t('presentSimpleDescription3D')}} (pay<span class="green-bolded">s</span>, enjoy<span class="green-bolded">s</span>)</li>
-            <li>{{t('presentSimpleDescription3E')}} (has, goes, does, is (be)</li>
+        <h4>{{t('presentSimpleSpecifics')}}</h4>
+        <ul class="grammar-rules--specifics">
+            <li>{{t('presentSimpleSpecifics1')}} (come<span class="green-bolded">s</span>, eat<span class="green-bolded">s</span>, walk<span class="green-bolded">s</span>)</li>
+            <li>{{t('presentSimpleSpecifics2')}} (watch<span class="green-bolded">es</span>, wash<span class="green-bolded">es</span>, mix<span class="green-bolded">es</span>)</li>
+            <li>{{t('presentSimpleSpecifics3')}} (hurr<span class="green-bolded">ies</span>, stud<span class="green-bolded">ies</span>, repl<span class="green-bolded">ies</span>)</li>
+            <li>{{t('presentSimpleSpecifics4')}} (pay<span class="green-bolded">s</span>, enjoy<span class="green-bolded">s</span>)</li>
+            <li>{{t('presentSimpleSpecifics5')}} (has, goes, does, is (be)</li>
         </ul>
 
         <h4>{{t('generalWords.howToBuild')}}</h4>
@@ -67,12 +68,12 @@ const { t } = useI18n()
         presentSimpleDescription2A: Things that are true in general
         presentSimpleDescription2B: Things that happen regularly or repeatedly
         presentSimpleDescription2C: Things that happen in the future, if they are planned or arranged
-        presentSimpleDescription3: When to add +s or +es to the verb
-        presentSimpleDescription3A: For most verbs we add -s to the base form
-        presentSimpleDescription3B: When the verb ends in -ch, -ss, -sh, -x or -zz, we add -es
-        presentSimpleDescription3C: When the verb ends in a consonant + -y we change y to i and add -es
-        presentSimpleDescription3D: But when the verb ends in a vowel + -y we just add -s
-        presentSimpleDescription3E: Have, go, do and be are irregular verbs
+        presentSimpleSpecifics: When to add +s or +es to the verb
+        presentSimpleSpecifics1: For most verbs we add -s to the base form
+        presentSimpleSpecifics2: When the verb ends in -ch, -ss, -sh, -x or -zz, we add -es
+        presentSimpleSpecifics3: When the verb ends in a consonant + -y we change y tow i and add -es
+        presentSimpleSpecifics4: But when the verb ends in a vowel + -y we just add -s
+        presentSimpleSpecifics5: Have, go, do and be are irregular verbs
     ru:
         presentSimple: Настоящее простое
         presentSimpleDescription1: Настоящее простое время образуется с помощью основной формы глагола (например, go, eat, drink, play, etc.)
@@ -80,12 +81,12 @@ const { t } = useI18n()
         presentSimpleDescription2A: Вещах, которые правдивы в общем
         presentSimpleDescription2B: Вещах, которые происходят регулярно или повторяются
         presentSimpleDescription2C: Вещах, которые запланированы или организованы (даже если в будущем)
-        presentSimpleDescription3: Когда добавлять +s или +es к глаголу
-        presentSimpleDescription3A: Для большинства глаголов мы добавляем -s к основной форме
-        presentSimpleDescription3B: Когда глагол заканчивается на -ch, -ss, -sh, -x или -zz, мы добавляем -es
-        presentSimpleDescription3C: Когда глагол заканчивается на согласную + -y мы меняем y на i и добавляем -es
-        presentSimpleDescription3D: Но когда глагол заканчивается на гласную + -y мы просто добавляем -s
-        presentSimpleDescription3E: Have, go, do и be - это неправильные глаголы
+        presentSimpleSpecifics: Когда добавлять +s или +es к глаголу
+        presentSimpleSpecifics1: Для большинства глаголов мы добавляем -s к основной форме
+        presentSimpleSpecifics2: Когда глагол заканчивается на -ch, -ss, -sh, -x или -zz, мы добавляем -es
+        presentSimpleSpecifics3: Когда глагол заканчивается на согласную + -y мы меняем y на i и добавляем -es
+        presentSimpleSpecifics4: Но когда глагол заканчивается на гласную + -y мы просто добавляем -s
+        presentSimpleSpecifics5: Have, go, do и be - это неправильные глаголы
     zh:
         presentSimple: 现在时
 </i18n>

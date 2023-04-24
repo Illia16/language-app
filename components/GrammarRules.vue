@@ -1,7 +1,7 @@
 <template>
     <div class="grammar-rules">
         <PresentSimple v-if="props.rule === 'presentSimple'" :class="props.rule" />
-        <PresentContinuous v-if="props.rule === 'presentContinuous'" />
+        <PresentContinuous v-if="props.rule === 'presentContinuous'" :class="props.rule" />
         <!-- <PresentPerfect v-if="props.rule === 'presentPerfect'" /> -->
     </div>
 </template>
@@ -16,9 +16,6 @@ const props = defineProps({
         type: String,
     },
 })
-
-console.log(props.rule);
-
 </script>
 
 <style lang="scss">
@@ -39,7 +36,7 @@ console.log(props.rule);
             }
         }
 
-        ul.grammar-rules--form {
+        ul.grammar-rules--specifics {
             @apply pl-4;
             li {
                 @apply relative py-3;

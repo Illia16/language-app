@@ -9,6 +9,32 @@
             <li>{{ t('presentContinuousDescription5') }}</li>
         </ul>
 
+        <h4>{{t('presentContinuousamisare')}}</h4>
+        <ul class="grammar-rules--amisare">
+            <li>
+                <span>
+                    <span>I</span>
+                </span>
+                <span>am</span>
+            </li>
+            <li>
+                <span>
+                    <span>you</span>
+                    <span>we</span>
+                    <span>they</span>
+                </span>
+                <span>are</span>
+            </li>
+            <li>
+                <span>
+                    <span>he</span>
+                    <span>she</span>
+                    <span>it</span>
+                </span>
+                <span>is</span>
+            </li>
+        </ul>
+
         <h4>{{t('generalWords.howToBuild')}}</h4>
         <ul class="grammar-rules--how-to-build">
             <li>
@@ -68,6 +94,36 @@ const { t } = useI18n()
 
 </script>
 
+<style lang="scss">
+.presentContinuous {
+    ul.grammar-rules--amisare {
+        @apply py-3;
+        li {
+            display: flex;
+            > span {
+                @apply text-center flex-1 ;
+
+                &:nth-child(1) {
+                    @apply border-t-mainGreen border-t-2 border-r-mainGreen border-r-2 border-l-2 border-l-mainGreen flex flex-col;
+                }
+
+                &:nth-child(2) {
+                    @apply border-t-mainGreen border-t-2 border-r-mainGreen border-r-2 flex justify-center items-center;
+                }
+            }
+
+            &:last-child {
+                > span {
+                    &:nth-child(1) :last-child,
+                    &:nth-child(2) {
+                        @apply border-b-mainGreen border-b-2;
+                    }
+                }
+            }
+        }
+    }
+}
+</style>
 
 <i18n lang="yaml">
     en:
@@ -77,6 +133,7 @@ const { t } = useI18n()
         presentContinuousDescription3: We use the present continuous to describe actions which are repeated or regular, but which we believe to be temporary
         presentContinuousDescription4: We use the present continuous to talk about a gradual change
         presentContinuousDescription5: We use the present continuous to refer to the future when we talk about plans and arrangements that have already been made
+        presentContinuousamisare: When to use am/is/are?
     ru:
         presentContinuous: Настоящее время
         presentContinuousDescription1: Мы используем настоящее время, чтобы говорить о событиях, которые в происходят настоящий момент 
@@ -84,6 +141,7 @@ const { t } = useI18n()
         presentContinuousDescription3: Мы используем настоящее время, чтобы описывать действия, которые повторяются или регулярны, но мы считаем их временными
         presentContinuousDescription4: Мы используем настоящее время, чтобы говорить о постепенном изменении
         presentContinuousDescription5: Мы используем настоящее время, чтобы говорить о будущем, когда мы говорим о планах и намерениях, которые уже сделаны
+        presentContinuousamisare: Когда использовать am/is/are?
     zh:
         presentContinuous: 现在时
 </i18n>
