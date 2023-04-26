@@ -5,20 +5,20 @@
         </div>
 
         <template v-if="!store.lessonStarted">
-            <!-- TENSES -->
+            <!-- Exercise -->
             <template v-if="initData && initData.length && !store.lessonStarted">
                 <div id="learning-data" class="learning-data">
                     <h2>{{ t('selectExercise') }}</h2>
-                    <div v-for="(tense, i) of initData" :key="i" class="tense-checkbox" tabindex="0">
+                    <div v-for="(exercise, i) of initData" :key="i" class="exercise-checkbox" tabindex="0">
                         <label>
                             <input
                                 tabindex="-1"
                                 class="sr-only"
                                 type="checkbox"
-                                :name="tense.name"
-                                v-model="v_selectedTenses[i]" />
+                                :name="exercise.name"
+                                v-model="v_selectedExercise[i]" />
                             <span class="checkbox-bg"></span>
-                            <span class="input-name">{{tense.name}}</span>
+                            <span class="input-name">{{exercise.name}}</span>
                         </label>
                     </div>
                 </div>
@@ -67,7 +67,7 @@
                     </div>
                 </template>
 
-                <button class="custom-button-link" @click="store.setLessonStarted(true)" :disabled="selectedTenses.every(el => !el) || numQuestionsSelected < 1">
+                <button class="custom-button-link" @click="store.setLessonStarted(true)" :disabled="selectedExercises.every(el => !el) || numQuestionsSelected < 1">
                     {{ t('startBtn') }}
                 </button>
             </template>
@@ -83,6 +83,10 @@
             <div class="my-4">
                 <div class="text-center mb-4">
                     {{ t('questionNumber', { currentQuestionNum: currentQuestionNum, lessonDataLength: lessonData?.length }) }}
+                </div>
+
+                <div class="text-center">
+                    <button @click="store.setModalOpen(true); store.setModalType('grammar')" class="bg-mainGreen text-white py-1 px-3">{{ t('rules') }}</button>
                 </div>
 
                 <div class="text-center mb-4">
@@ -105,7 +109,7 @@
                 <!--MODE: Multiple Choice -->
                 <div class="my-3" v-if="currentQuestion.mode === 'wordTranslationMPChoice' || currentQuestion.mode === 'translationWordMPChoice'">
                     <div v-for="(q, key) of currentQuestion.all" :key="`mp-choice-q-key-${key}`" class="num-of-q-checkbox" tabindex="0">
-                        <label :class="[`inline-block border border-black ${currentQuestionAnswered ? 'opacity-25' : ''}`]">
+                        <label :class="[`inline-block border border-mainGreen ${currentQuestionAnswered ? 'opacity-25' : ''}`]">
                             <input
                                 tabindex="-1"
                                 class="sr-only"
@@ -115,7 +119,7 @@
                                 :value="q"
                                 v-model="userAnswer"
                             />
-                            <span class="tense-checkbox-bg"></span>
+                            <span></span>
                             <span class="tense-name">{{q}}</span>
                         </label>
                     </div>
@@ -147,16 +151,19 @@
                 </li>
 
 
-                <li class="lesson-btns">
-                    <button class="custom-button-link" v-if="currentQuestionNum < lessonData?.length" @click="nextQuestion" :disabled="!currentQuestionAnswered">
+                <li class="lesson-btns" v-if="currentQuestionNum < lessonData?.length">
+                    <button class="custom-button-link"  @click="nextQuestion" :disabled="!currentQuestionAnswered">
                         {{ t('nextQBtn') }}
                     </button>
                 </li>
             </ul>
 
-            <template v-if="lessonData?.length === currentQuestionNum && currentQuestionAnswered">
-                <LessonReport :report="report" />
-            </template>
+            <Modal v-if="store.modalOpen && store.modalType === 'grammar'">
+                <GrammarRules :rule="currentQuestion.rule" />
+            </Modal>
+            <Modal v-if="store.modalOpen && store.modalType === 'report'" @closeCallback="store.setLessonStarted(false)">
+                <LessonReport :report="report" :numOfCorrectAnswers="numOfCorrectAnswers" />
+            </Modal>
         </template>
     </div>
 </template>
@@ -178,16 +185,16 @@ const props = defineProps({
 const store = useMainStore();
 
 // lesson menu states
-const v_selectedTenses = ref([]) // v-model for selected checkboxes
-const selectedTenses = computed<InitDataArrayOfObj>((): InitDataArrayOfObj => {
+const v_selectedExercise = ref([]) // v-model for selected checkboxes
+const selectedExercises = computed<InitDataArrayOfObj>((): InitDataArrayOfObj => {
     return initData.value
-        .map((el, i) => v_selectedTenses.value[i] ? el : null)
+        .map((el, i) => v_selectedExercise.value[i] ? el : null)
         .filter(el => el) as InitDataArrayOfObj;
-}) // selected tenses/words full Object (can be more than 1)
+}) // selected exercises full Object (can be more than 1)
 
-const allQuestions = computed<WordTranslationArrayOfObj>((): WordTranslationArrayOfObj => {
-    return selectedTenses.value.map((el: InitData): WordTranslationArrayOfObj => {
-        return el.data;
+const allQuestions = computed<WordTranslationArrayOfObj>((): WordTranslationArrayOfObj => {    
+    return selectedExercises.value.map((selected: InitData): WordTranslationArrayOfObj => {
+        return selected.data.map(entry => ({...entry, rule: selected.val}));
     }).flat();
 }) // allQuestions in 1 array
 
@@ -249,9 +256,16 @@ watch(currentQuestionNum, function() {
 });
 
 
+// set report modal open
+watch(currentQuestionAnswered, function() {
+    if (lessonData.value.length === currentQuestionNum.value && currentQuestionAnswered.value) {
+        store.setModalOpen(true);
+        store.setModalType('report')
+    }
+});
+
 // handling incorrect, correct answers and if no more questions, stopping the lesson
 const check = ():void => {
-    console.log('checking...');
     if (!isCorrect(currentQuestion.value, userAnswer.value)) {
         console.log('not correct...');
         currentQuestionAnswered.value = true;
@@ -326,7 +340,7 @@ const nextQuestion = ():void => {
 
     }
     input:checked ~ .tense-name {
-        @apply bg-black text-white;
+        @apply bg-mainGreen text-white;
     }
 }
 </style>
@@ -351,6 +365,7 @@ en:
     clearBtn: 'Clear'
     checkBtn: 'Check'
     nextQBtn: 'Next question'
+    rules: 'Rules'
 ru:
     selectExercise: 'Выберите упражнение или несколько упражнений:'
     modeTitle: 'Выберите режим обучения (по умолчанию все типы)'
@@ -369,6 +384,7 @@ ru:
     clearBtn: 'Очистить'
     checkBtn: 'Проверить'
     nextQBtn: 'Следующий вопрос'
+    rules: 'Правила'
 zh:
     selectExercise: 'TBD'
     modeTitle: 'TBD'
@@ -387,4 +403,5 @@ zh:
     clearBtn: '清除'
     checkBtn: '检查'
     nextQBtn: '下一个问题'
+    rules: '规则'
 </i18n>

@@ -13,6 +13,7 @@ export default <Partial<Config>>{
         extend: {
             colors: {
                 "main": '#FFA500',
+                "mainGreen": '#219f7a',
                 "button-bg": '#f5deb3',
                 "white": '#fff',
                 "mp-choice": '#f0f8ff',

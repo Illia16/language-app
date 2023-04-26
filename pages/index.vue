@@ -1,38 +1,15 @@
 <template>
     <div class="main-page">
-        <template v-if="!store.lang">
-            <h1>{{ t('welcomeMessage') }}</h1>
-            <ul class="list-items">
-                <li v-for="(user_language, i) of ['en', 'ru', 'zh']" :key="i">
-                    <NuxtLink class="custom-button-link" :to="switchLocalePath(user_language)" @click="store.setLang(user_language)">{{mapLanguage(user_language)}}</NuxtLink>
-                </li>
-            </ul>
-        </template>
-
-        <template v-if="store.lang">
-            <h1>{{ t('selectTask') }}</h1>
-            <ul class="list-items">
-                <li>
-                    <NuxtLink :to="localePath({ name: 'tenses' })" class="custom-button-link">{{ t('tenses') }}</NuxtLink>
-                </li>
-                <li>
-                    <NuxtLink :to="localePath({ name: 'words' })" class="custom-button-link">{{ t('words') }}</NuxtLink>
-                </li>
-                <li>
-                    <NuxtLink :to="localePath({ name: 'modal-verbs' })" class="custom-button-link">{{ t('modalVerbs') }}</NuxtLink>
-                </li>
-            </ul>
-        </template>
+        <!-- <Auth /> -->
+        <ListLanguages v-if="!store.lang" />
+        <ListExercises v-if="store.lang" />
     </div>
 </template>
 
 <script lang="ts" setup>
 import { useMainStore } from 'store/main';
-import { mapLanguage } from 'helper/helpers';
 const store = useMainStore();
-const { t, locale } = useI18n()
-const localePath = useLocalePath()
-const switchLocalePath = useSwitchLocalePath()
+const { locale } = useI18n()
 
 useHead({
     title: 'Language App',
