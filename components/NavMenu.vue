@@ -3,12 +3,12 @@
         <li v-if="$route.path !== '/'">
             <NuxtLink :to="localePath('/')">
                 <span class="sr-only">{{t('goToHome')}}</span>
-                <img src="../../assets/images/lesson-icon.svg" width="40" height="25" alt="" />
+                <img src="../assets/images/lesson-icon.svg" width="40" height="25" alt="" />
             </NuxtLink>
         </li>
         <li v-if="store.lang">
             <button @click="store.setLang(''), navigateTo('/')" :aria-label="t('languageMenu')">
-                <img src="../../assets/images/english-icon.svg" width="40" height="25" alt="" />
+                <img src="../assets/images/english-icon.svg" width="40" height="25" alt="" />
             </button>
         </li>
     </ul>

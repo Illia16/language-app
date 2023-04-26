@@ -1,6 +1,6 @@
 <template>
     <div class="language-app-site">
-        <MainMenu v-if="!store.lessonStarted" />
+        <NavMenu v-if="!store.lessonStarted" />
         <NuxtPage />
     </div>
 </template>
