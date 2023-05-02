@@ -72,7 +72,7 @@ const config: NuxtConfig = {
                             selectTask: 'Select a task',
                             tenses: "Tenses",
                             words: "Words",
-                            modalVerbs: "Modal verbs",
+                            'modal-verbs': "Modal verbs",
                             generalWords: {
                                 noun: 'Noun',
                                 verb: 'Verb',
@@ -89,7 +89,7 @@ const config: NuxtConfig = {
                             selectTask: 'Выберите задание',
                             tenses: "Времена",
                             words: "Слова",
-                            modalVerbs: "Модальные глаголы",
+                            'modal-verbs': "Модальные глаголы",
                             generalWords: {
                                 noun: 'Имя существительное',
                                 verb: 'Глагол',
@@ -106,7 +106,7 @@ const config: NuxtConfig = {
                             selectTask: '选择任务',
                             tenses: "时态",
                             words: "字",
-                            modalVerbs: "情态动词",
+                            'modal-verbs': "情态动词",
                             generalWords: {
                                 noun: 'Имя существительное',
                                 verb: 'Глагол',
