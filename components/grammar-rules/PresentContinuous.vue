@@ -75,30 +75,38 @@
         </ul>
 
         <h4>{{t('presentContinuousamisare')}}</h4>
-        <ul class="grammar-rules--amisare">
+        <Table>
             <li>
-                <span>
-                    <span>I</span>
-                </span>
-                <span>am</span>
+                <ul>
+                    <li>I</li>
+                    <li>am</li>
+                </ul>
             </li>
             <li>
-                <span>
-                    <span>you</span>
-                    <span>we</span>
-                    <span>they</span>
-                </span>
-                <span>are</span>
+                <ul>
+                    <li>
+                        <span>you</span>
+                        <span>we</span>
+                        <span>they</span>
+                    </li>
+                    <li>
+                        <span>are</span>
+                    </li>
+                </ul>
             </li>
             <li>
-                <span>
-                    <span>he</span>
-                    <span>she</span>
-                    <span>it</span>
-                </span>
-                <span>is</span>
+                <ul>
+                    <li>
+                        <span>he</span>
+                        <span>she</span>
+                        <span>it</span>
+                    </li>
+                    <li>
+                        <span>is</span>
+                    </li>
+                </ul>
             </li>
-        </ul>
+        </Table>
     </div>
 </template>
 
@@ -106,37 +114,6 @@
 const { t } = useI18n()
 
 </script>
-
-<style lang="scss">
-.presentContinuous {
-    ul.grammar-rules--amisare {
-        @apply py-3;
-        li {
-            display: flex;
-            > span {
-                @apply text-center flex-1 ;
-
-                &:nth-child(1) {
-                    @apply border-t-mainGreen border-t-2 border-r-mainGreen border-r-2 border-l-2 border-l-mainGreen flex flex-col;
-                }
-
-                &:nth-child(2) {
-                    @apply border-t-mainGreen border-t-2 border-r-mainGreen border-r-2 flex justify-center items-center;
-                }
-            }
-
-            &:last-child {
-                > span {
-                    &:nth-child(1) :last-child,
-                    &:nth-child(2) {
-                        @apply border-b-mainGreen border-b-2;
-                    }
-                }
-            }
-        }
-    }
-}
-</style>
 
 <i18n lang="yaml">
     en:
@@ -154,6 +131,6 @@ const { t } = useI18n()
         presentContinuousDescription5: Мы используем настоящее время, чтобы говорить о будущем, когда мы говорим о планах и намерениях, которые уже сделаны
         presentContinuousamisare: Когда использовать am/is/are?
     zh:
-        presentContinuous: 现在时
+        presentContinuousDescription1: 现在时
 </i18n>
 

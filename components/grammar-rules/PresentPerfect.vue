@@ -78,25 +78,29 @@
         </ul>
 
         <h4>{{t('presentPerfecthavehas')}}</h4>
-        <ul class="grammar-rules--hashave">
+        <Table>
             <li>
-                <span>
-                    <span>I</span>
-                    <span>you</span>
-                    <span>we</span>
-                    <span>they</span>
-                </span>
-                <span>have</span>
+                <ul>
+                    <li>
+                        <span>I</span>
+                        <span>you</span>
+                        <span>we</span>
+                        <span>they</span>
+                    </li>
+                    <li>have</li>
+                </ul>
             </li>
             <li>
-                <span>
-                    <span>he</span>
-                    <span>she</span>
-                    <span>it</span>
-                </span>
-                <span>has</span>
+                <ul>
+                    <li>
+                        <span>he</span>
+                        <span>she</span>
+                        <span>it</span>
+                    </li>
+                    <li>has</li>
+                </ul>
             </li>
-        </ul>
+        </Table>
     </div>
 </template>
 
@@ -105,36 +109,6 @@ const { t } = useI18n()
 
 </script>
 
-<style lang="scss">
-.presentPerfect {
-    ul.grammar-rules--hashave {
-        @apply py-3;
-        li {
-            display: flex;
-            > span {
-                @apply text-center flex-1 ;
-
-                &:nth-child(1) {
-                    @apply border-t-mainGreen border-t-2 border-r-mainGreen border-r-2 border-l-2 border-l-mainGreen flex flex-col;
-                }
-
-                &:nth-child(2) {
-                    @apply border-t-mainGreen border-t-2 border-r-mainGreen border-r-2 flex justify-center items-center;
-                }
-            }
-
-            &:last-child {
-                > span {
-                    &:nth-child(1) :last-child,
-                    &:nth-child(2) {
-                        @apply border-b-mainGreen border-b-2;
-                    }
-                }
-            }
-        }
-    }
-}
-</style>
 
 <i18n lang="yaml">
     en:
@@ -152,6 +126,6 @@ const { t } = useI18n()
         presentPerfectDescription5: Со следующими словами - just, yet, never, already, ever, so far, up to now, recently, since, for
         presentPerfecthavehas: Когда использовать have/has?
     zh:
-        presentPerfect: 现在时
+        presentPerfectDescription1: 现在时
 </i18n>
 

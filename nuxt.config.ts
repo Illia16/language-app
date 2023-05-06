@@ -68,8 +68,11 @@ const config: NuxtConfig = {
                 vueI18n: {
                     messages: {
                         en: {
+                            mainMenu: {
+                                look: 'Look',
+                                other: 'Other',
+                            },
                             welcomeMessage: 'Select your mother tongue',
-                            selectRule: 'Grammar rules',
                             selectTask: 'Select a task',
                             tenses: "Tenses",
                             presentSimple: 'Present Simple',
@@ -90,11 +93,20 @@ const config: NuxtConfig = {
                                 sentense: 'Sentense',
                                 examples: 'Rules and examples',
                                 howToBuild: 'How to build',
+                            },
+                            irrgegularVerbs: {
+                                translation: 'Translation',
+                                infinitive: '1st form (Infinitive)',
+                                past: '2nd form (Past)',
+                                pastParticiple: '3rd form (Participle)',
                             }
                         },
                         ru: {
+                            mainMenu: {
+                                look: 'Смотреть',
+                                other: 'Другое',
+                            },
                             welcomeMessage: 'Выберите Ваш родной язык',
-                            selectRule: 'Грамматика',
                             selectTask: 'Выберите задание',
                             tenses: "Времена",
                             presentSimple: 'Настоящее простое',
@@ -116,10 +128,19 @@ const config: NuxtConfig = {
                                 examples: 'Правила и примеры',
                                 howToBuild: 'Как построить',
                             },
+                            irrgegularVerbs: {
+                                translation: 'Перевод',
+                                infinitive: '1 форма (Инфинитив)',
+                                past: '2 форма (Прошедшее)',
+                                pastParticiple: '3 форма (Причастие)',
+                            },
                         },
                         zh: {
+                            mainMenu: {
+                                look: '看看',
+                                other: '其他',
+                            },
                             welcomeMessage: '选择您的母语',
-                            selectRule: '语法规则',
                             selectTask: '选择任务',
                             tenses: "时态",
                             presentSimple: '现在时',
@@ -139,6 +160,12 @@ const config: NuxtConfig = {
                                 sentense: 'Предложение',
                                 examples: 'Примеры',
                                 howToBuild: 'Как построить',
+                            },
+                            irrgegularVerbs: {
+                                translation: '翻译',
+                                infinitive: '1形式 (不定式)',
+                                past: '2形式 (过去式)',
+                                pastParticiple: '3形式 (分词)',
                             },
                         }
                     }

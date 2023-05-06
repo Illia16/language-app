@@ -3,6 +3,7 @@
         <PresentSimple v-if="props.rule === 'presentSimple'" :class="props.rule" />
         <PresentContinuous v-if="props.rule === 'presentContinuous'" :class="props.rule" />
         <PresentPerfect v-if="props.rule === 'presentPerfect'" :class="props.rule"/>
+        <IrregularVerbs v-if="props.rule === 'irregularVerbs'" :class="props.rule"/>
     </div>
 </template>
 
@@ -10,6 +11,7 @@
 import PresentSimple from './grammar-rules/PresentSimple.vue';
 import PresentContinuous from './grammar-rules/PresentContinuous.vue';
 import PresentPerfect from './grammar-rules/PresentPerfect.vue';
+import IrregularVerbs from './grammar-rules/IrregularVerbs.vue';
 
 const props = defineProps({
     rule: {
