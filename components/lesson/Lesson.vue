@@ -18,7 +18,10 @@
                                 :name="exercise.name"
                                 v-model="v_selectedExercise[i]" />
                             <span class="checkbox-bg"></span>
-                            <span class="input-name">{{exercise.name}}</span>
+                            <span class="input-name">
+                                {{t(exercise.val)}}
+                                ({{t(exercise.val, 0, { locale: 'en' })}})
+                            </span>
                         </label>
                     </div>
                 </div>
@@ -27,8 +30,8 @@
                 <div id="mode" class="mode">
                     <h2>{{ t('modeTitle') }}</h2>
                     <div v-for="
-                        (mode, i) of lessonType === 'words' 
-                        ? ['wordTranslation', 'translationWord', 'wordTranslationMPChoice', 'translationWordMPChoice', 'random'] 
+                        (mode, i) of lessonType === 'words'
+                        ? ['wordTranslation', 'translationWord', 'wordTranslationMPChoice', 'translationWordMPChoice', 'random']
                         : ['wordTranslation', 'translationWord', 'wordTranslationMPChoice', 'translationWordMPChoice', 'sentenceWordTranslation', 'sentenceTranslationWord', 'random']" :key="i" class="mode-radio" tabindex="0">
                         <label>
                             <input
@@ -192,7 +195,7 @@ const selectedExercises = computed<InitDataArrayOfObj>((): InitDataArrayOfObj =>
         .filter(el => el) as InitDataArrayOfObj;
 }) // selected exercises full Object (can be more than 1)
 
-const allQuestions = computed<WordTranslationArrayOfObj>((): WordTranslationArrayOfObj => {    
+const allQuestions = computed<WordTranslationArrayOfObj>((): WordTranslationArrayOfObj => {
     return selectedExercises.value.map((selected: InitData): WordTranslationArrayOfObj => {
         return selected.data.map(entry => ({...entry, rule: selected.val}));
     }).flat();

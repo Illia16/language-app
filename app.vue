@@ -21,4 +21,8 @@ const store = useMainStore();
             }
         }
     }
+
+    .lock-scroll {
+        @apply overflow-hidden;
+    }
 </style>

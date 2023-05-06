@@ -18,8 +18,17 @@ const emit = defineEmits(["closeCallback"])
 const closeModal = () => {
     store.setModalOpen(false)
     store.setModalType('')
-    emit("closeCallback");
+    emit("closeCallback")
 }
+
+onMounted(() => {
+    document.body.classList.add('lock-scroll')
+})
+
+onBeforeUnmount(() => {
+    document.body.classList.remove('lock-scroll')
+})
+
 </script>
 
 

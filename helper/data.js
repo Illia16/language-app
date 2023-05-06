@@ -5,7 +5,7 @@ export default {
     tenses: [
         {
             val: 'presentSimple',
-            name: 'Present Simple (Простое настоящее)',
+            name: 'Present Simple',
             nameTransladed: 'Простое настоящее',
             data: [
                 {
@@ -32,7 +32,7 @@ export default {
         },
         {
             val: 'presentContinuous',
-            name: 'Present Continuous (Продолженное настоящее)',
+            name: 'Present Continuous',
             nameTransladed: 'Продолженное настоящее',
             data: [
                 {
@@ -59,7 +59,7 @@ export default {
         },
         {
             val: 'presentPerfect',
-            name: 'Present Perfect (Настоящее совершенное)',
+            name: 'Present Perfect',
             nameTransladed: 'Настоящее совершенное',
             data: [
                 {
@@ -81,14 +81,100 @@ export default {
                 {
                     word: 'They haven\'t (have not) finished cooking',
                     translation: 'Они не закончили готовить',
+                },
+                {
+                    word: 'He has known how to drive a car since the age of 18',
+                    translation: 'Он водит машину с 18 лет',
+                    wrongAnswersEng: [
+                        'He knows how to drive a car since the age of 18',
+                        'He knew how to drive a car since the age of 18',
+                        'Does he know how to drive a car?',
+                    ],
+                    wrongAnswersMotherTongue: [
+                        'Он знает как водить машину',
+                        'Он знал как водить машину с 18 лет',
+                        'Он будет знать как водить машину с 18 лет',
+                    ]
+                },
+                {
+                    word: 'I have watched this movie before',
+                    translation: 'Я раньше видел этот фильм',
+                    wrongAnswersEng: [
+                        'I watched this movie before',
+                        'I watch this movie before',
+                        'Did I watch this movie before?',
+                    ],
+                    wrongAnswersMotherTongue: [
+                        'Я видел этот фильм',
+                        'Я буду видеть этот фильм',
+                        'Я буду видеть этот фильм раньше',
+                    ]
+                },
+                {
+                    word: 'I have (I\'ve) just eaten my breakfast',
+                    translation: 'Я только что поел свой завтрак',
+                    wrongAnswersEng: [
+                        'I ate my breakfast',
+                        'I eat my breakfast',
+                        'Did I eat my breakfast?',
+                    ],
+                    wrongAnswersMotherTongue: [
+                        'Я ел свой завтрак',
+                        'Я буду есть свой завтрак',
+                        'Я буду есть свой завтрак только что',
+                    ]
+                },
+                {
+                    word: 'Because of many intense lessons, I have (I\'ve) learned English very well',
+                    translation: 'Из-за множества интенсивных уроков, я выучил английский очень хорошо',
+                    wrongAnswersEng: [
+                        'Because of many intense lessons, I learned English very well',
+                        'Because of many intense lessons, I learn English very well',
+                        'Because of many intense lessons, did I learn English very well?',
+                    ],
+                    wrongAnswersMotherTongue: [
+                        'Из-за множества интенсивных уроков, я учу английский очень хорошо',
+                        'Из-за множества интенсивных уроков, я буду выучивать английский очень хорошо',
+                        'Из-за множества интенсивных уроков, я буду выучивать английский очень хорошо?',
+                    ]
+                },
+                {
+                    word: 'I have (I\'ve) just finished my work',
+                    translation: 'Я только что закончил свою работу',
+                    wrongAnswersEng: [
+                        'I finished my work',
+                        'I finish my work',
+                        'Did I finish my work?',
+                    ],
+                    wrongAnswersMotherTongue: [
+                        'Я закончиваю свою работу',
+                        'Я буду заканчивать свою работу',
+                        'Я буду заканчивать свою работу только что',
+                    ]
+                },
+                {
+                    word: 'She has not (hasn\'t) finished her work yet',
+                    translation: 'Она еще не закончила свою работу',
+                    wrongAnswersEng: [
+                        'She did not finish her work yet',
+                        'She does not finish her work yet',
+                        'Did she finish her work yet?',
+                    ],
+                    wrongAnswersMotherTongue: [
+                        'Она не закончила свою работу вчера',
+                        'Она не закончит свою работу',
+                        'Она не закончит свою работу сегодня?',
+                    ]
+
                 }
+
             ]
         }
     ],
     words: [
         {
             val: 'cooking',
-            name: 'Cooking Words (Кулинарные слова)',
+            name: 'Cooking Words',
             nameTransladed: 'Кулинарные слова',
             data: [
                 {
@@ -158,12 +244,12 @@ export default {
             ]
         },
         {
-            val: 'Irregular verbs',
-            name: 'Irregular verbs (Неправильные глаголы)',
+            val: 'irregularVerbs',
+            name: 'Irregular verbs',
             nameTransladed: 'Неправильные глаголы',
             data: [
                 {
-                    word: 'Give me a glass of water please', 
+                    word: 'Give me a glass of water please',
                     translation: 'Дай мне стакан воды пожалуйста',
                 },
                 {
@@ -175,7 +261,7 @@ export default {
                     translation: 'Дал ли я ему стакан воды вчера?',
                 },
                 {
-                    word: 'I\'ve (have) just given him a glass of water', 
+                    word: 'I\'ve (have) just given him a glass of water',
                     translation: 'Я только что дал ему стакан воды',
                 },
                 {
@@ -342,8 +428,8 @@ export default {
     ],
     modalVerbs: [
         {
-            val: 'modalVerbs',
-            name: 'Can/Should/May/Might/Have to (Модальные глаголы)',
+            val: 'modal-verbs',
+            name: 'Can/Should/May/Might/Have to',
             nameTransladed: 'Модальные глаголы',
             data: [
                 {

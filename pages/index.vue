@@ -2,6 +2,7 @@
     <div class="main-page">
         <!-- <Auth /> -->
         <ListLanguages v-if="!store.lang" />
+        <ListRules v-if="store.lang" />
         <ListExercises v-if="store.lang" />
     </div>
 </template>
@@ -25,7 +26,11 @@ useHead({
         @apply flex flex-col items-center space-y-20;
 
         h1 {
-            @apply text-4xl text-center;
+            @apply text-4xl;
+        }
+
+        h1, h2 {
+            @apply text-center my-8;
         }
     }
 </style>

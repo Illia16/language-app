@@ -8,7 +8,7 @@
 }
 
 .custom-button-link {
-    @apply bg-mainGreen text-white rounded-lg h-12 text-2xl disabled:opacity-25 flex justify-center items-center min-w-[250px] m-auto;
+    @apply bg-mainGreen text-white rounded-lg min-h-[3rem] text-2xl disabled:opacity-25 flex justify-center items-center min-w-[250px] m-auto;
 
 
     &.custom-button-link--mp-choice {
