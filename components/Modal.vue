@@ -1,5 +1,5 @@
 <template>
-    <div class="modal">
+    <div id="modal">
         <button class="modal-close-btn" @click="closeModal">
             <span class="sr-only">Close modal</span>
         </button>
@@ -34,7 +34,7 @@ onBeforeUnmount(() => {
 
 <style lang="scss">
     .modal-close-btn {
-        @apply absolute top-[12vh] right-[5%] z-20 w-12 h-12 rounded-3xl bg-[#fffaf6] border-solid border-4 border-mainGreen;
+        @apply fixed top-[12vh] right-[5%] z-20 w-12 h-12 rounded-3xl bg-[#fffaf6] border-solid border-4 border-mainGreen;
 
         &:before {
             content: "X";

@@ -53,5 +53,13 @@
                 }
             }
         }
+
+        &.irregular-verbs-table {
+            > li {
+                li {
+                    @apply text-[11px];
+                }
+            }
+        }
     }
 </style>

@@ -1,5 +1,5 @@
 <template>
-    <Table>
+    <Table class="irregular-verbs-table">
         <li>
             <ul>
                 <li>{{t('irrgegularVerbs.translation')}}</li>

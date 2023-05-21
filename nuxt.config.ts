@@ -71,6 +71,7 @@ const config: NuxtConfig = {
                             mainMenu: {
                                 look: 'Look',
                                 other: 'Other',
+                                grammar: 'Grammar',
                             },
                             welcomeMessage: 'Select your mother tongue',
                             selectTask: 'Select a task',
@@ -105,6 +106,7 @@ const config: NuxtConfig = {
                             mainMenu: {
                                 look: 'Смотреть',
                                 other: 'Другое',
+                                grammar: 'Грамматика',
                             },
                             welcomeMessage: 'Выберите Ваш родной язык',
                             selectTask: 'Выберите задание',
@@ -139,6 +141,7 @@ const config: NuxtConfig = {
                             mainMenu: {
                                 look: '看看',
                                 other: '其他',
+                                grammar: '语法',
                             },
                             welcomeMessage: '选择您的母语',
                             selectTask: '选择任务',

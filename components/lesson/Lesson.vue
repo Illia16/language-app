@@ -161,12 +161,17 @@
                 </li>
             </ul>
 
-            <Modal v-if="store.modalOpen && store.modalType === 'grammar'">
-                <GrammarRules :rule="currentQuestion.rule" />
-            </Modal>
-            <Modal v-if="store.modalOpen && store.modalType === 'report'" @closeCallback="store.setLessonStarted(false)">
-                <LessonReport :report="report" :numOfCorrectAnswers="numOfCorrectAnswers" />
-            </Modal>
+            <teleport to="body">
+                <Modal v-if="store.modalOpen && store.modalType === 'grammar'">
+                    <GrammarRules :rule="currentQuestion.rule" />
+                </Modal>
+            </teleport>
+
+            <teleport to="body">
+                <Modal v-if="store.modalOpen && store.modalType === 'report'">
+                    <LessonReport :report="report" :numOfCorrectAnswers="numOfCorrectAnswers" />
+                </Modal>
+            </teleport>
         </template>
     </div>
 </template>
@@ -311,7 +316,7 @@ const nextQuestion = ():void => {
 .learning-data,
 .mode,
 .number-of-q {
-    @apply py-3;
+    @apply pb-12;
 }
 
 .lesson-btns {
@@ -352,7 +357,7 @@ const nextQuestion = ():void => {
 <i18n lang="yaml">
 en:
     selectExercise: 'Select an exercise or multiple exercises:'
-    modeTitle: 'Select a learning mode (default is all types)'
+    modeTitle: 'Select a learning mode'
     numberQ: 'Select a number of questions:'
     wordTranslation: 'Writing: Translation from English'
     translationWord: 'Writing: Translation to English'
@@ -371,7 +376,7 @@ en:
     rules: 'Rules'
 ru:
     selectExercise: 'Выберите упражнение или несколько упражнений:'
-    modeTitle: 'Выберите режим обучения (по умолчанию все типы)'
+    modeTitle: 'Выберите режим обучения'
     numberQ: 'Выберите количество вопросов:'
     wordTranslation: 'Написание: Перевод с английского'
     translationWord: 'Написание: Перевод на английский'
