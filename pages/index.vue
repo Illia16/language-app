@@ -35,7 +35,7 @@
                         </li>
                     </ul>
                 </li>
-                <!-- <li>
+                <li>
                     <ul>
                         <li>Past</li>
                         <li v-for="(tense, i) of ['pastSimple', 'pastContinuous', 'pastPerfect']" :key="tense+i">
@@ -54,7 +54,7 @@
                             </button>
                         </li>
                     </ul>
-                </li> -->
+                </li>
             </Table>
 
             <h2>{{ t('mainMenu.other') }}</h2>

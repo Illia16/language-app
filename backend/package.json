@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "deploy": "serverless deploy"
+    "deploy": "sls deploy"
   },
   "devDependencies": {
     "@silvermine/serverless-plugin-cloudfront-lambda-edge": "^2.2.3"

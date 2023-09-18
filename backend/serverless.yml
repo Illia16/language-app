@@ -10,7 +10,7 @@ provider:
   profile: ${file(./values.yml):profile}
   deploymentBucket:
     name: ${file(./values.yml):deploymentBucket}
-  runtime: nodejs14.x
+  runtime: nodejs18.x
 
 resources:
   - ${file(cloudfront/resources/dist.yml)}
