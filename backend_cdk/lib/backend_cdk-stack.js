@@ -8,6 +8,9 @@ class BackendCdkStack extends cdk.Stack {
   constructor(scope, id, props) {
     super(scope, id, props);
 
+    // const environment = this.node.tryGetContext('env');
+    console.log('environment2', props.env.stage);
+
     // Create an S3 bucket
     const websiteBucket = new s3.Bucket(this, 'personal-project--language-app-prod', {
       removalPolicy: cdk.RemovalPolicy.DESTROY,
