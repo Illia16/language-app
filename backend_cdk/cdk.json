@@ -16,6 +16,7 @@
     ]
   },
   "context": {
+    "account_id": "177749704705",
     "env": "test",
     "@aws-cdk/aws-lambda:recognizeLayerVersion": true,
     "@aws-cdk/core:checkSecretUsage": true,

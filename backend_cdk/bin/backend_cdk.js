@@ -5,7 +5,9 @@ const { BackendCdkStack } = require('../lib/backend_cdk-stack');
 
 const app = new cdk.App();
 const environment = app.node.tryGetContext('env');
+const account_id = app.node.tryGetContext('account_id');
 console.log('environment', environment);
+console.log('account_id', account_id);
 // console.log('app.node.tryGetContext()', app.node.tryGetContext('env:live'));
 
 new BackendCdkStack(app, `stack-personal-project--language-app-${environment}`, {
@@ -19,7 +21,7 @@ new BackendCdkStack(app, `stack-personal-project--language-app-${environment}`, 
 
   /* Uncomment the next line if you know exactly what Account and Region you
    * want to deploy the stack to. */
-  env: { account: '177749704705', region: 'us-east-1', stage: environment },
+  env: { account: account_id, region: 'us-east-1', stage: environment },
 
   /* For more information, see https://docs.aws.amazon.com/cdk/latest/guide/environments.html */
 });

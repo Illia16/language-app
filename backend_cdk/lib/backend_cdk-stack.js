@@ -2,36 +2,50 @@ const cdk = require('aws-cdk-lib');
 const s3 = require('aws-cdk-lib/aws-s3');
 const cloudfront = require('aws-cdk-lib/aws-cloudfront');
 const lambda = require('aws-cdk-lib/aws-lambda');
+const iam = require('aws-cdk-lib/aws-iam');
 const path = require('path')
 
 class BackendCdkStack extends cdk.Stack {
   constructor(scope, id, props) {
     super(scope, id, props);
 
-    // const environment = this.node.tryGetContext('env');
     console.log('environment2', props.env.stage);
 
-    // Create an S3 bucket
-    const websiteBucket = new s3.Bucket(this, 'personal-project--language-app-prod', {
+    const websiteBucket = new s3.Bucket(this, `personal-project--language-app-${props.env.stage}`, {
       removalPolicy: cdk.RemovalPolicy.DESTROY,
-      bucketName: 'personal-project--language-app-prod',
+      bucketName: `personal-project--language-app-${props.env.stage}`,
     });
 
-    const myFunc = new cloudfront.experimental.EdgeFunction(this, 'redirect-personal-project--language-app--prod', {
+    const myFunc = new cloudfront.experimental.EdgeFunction(this, `redirect-personal-project--language-app-${props.env.stage}`, {
       runtime: lambda.Runtime.NODEJS_18_X,
-      functionName: 'redirect-personal-project--language-app--prod',
+      functionName: `redirect-personal-project--language-app-${props.env.stage}`,
       handler: 'index.handler',
       code: lambda.Code.fromAsset(path.join(__dirname, 'redirect')),
     });
 
-    // Create a CloudFront distribution
-    new cloudfront.CloudFrontWebDistribution(this, 'MyNuxtCloudFront', {
+    const oai = new cloudfront.OriginAccessIdentity(this, `oai-personal-project--language-app-${props.env.stage}`, {
+      comment: `oai-personal-project--language-app-${props.env.stage}`,
+    });
+
+
+    // const bucketPolicy = new iam.PolicyStatement({
+    //   sid: `personal-project--language-app-policy-${props.env.stage}`,
+    //   effect: iam.Effect.ALLOW,
+    //   actions: ['s3:GetObject', 's3:ListBucket'],
+    //   resources: [`${websiteBucket.bucketArn}/*`, `${websiteBucket.bucketArn}`],
+    //   principals: [new iam.AccountPrincipal(props.env.account)]
+    // });
+
+    // // websiteBucket.grantRead(oai);
+    // // websiteBucket.grantWrite(oai);
+    // websiteBucket.addToResourcePolicy(bucketPolicy);
+
+    new cloudfront.CloudFrontWebDistribution(this, `cf-personal-project--language-app-${props.env.stage}`, {
       originConfigs: [
         {
           s3OriginSource: {
             s3BucketSource: websiteBucket,
-            // originAccessIdentity: cloudfront.OriginAccessIdentity.fromGeneratedId('origin-access-identity-id'),
-            // originAccessIdentity: cloudfront.OriginAccessIdentity.fromGeneratedId(this, 'MyOriginAccessIdentity'),
+            originAccessIdentity: oai,
           },
           behaviors: [
             { isDefaultBehavior: true,
