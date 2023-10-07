@@ -2,7 +2,6 @@ const cdk = require('aws-cdk-lib');
 const s3 = require('aws-cdk-lib/aws-s3');
 const cloudfront = require('aws-cdk-lib/aws-cloudfront');
 const lambda = require('aws-cdk-lib/aws-lambda');
-const iam = require('aws-cdk-lib/aws-iam');
 const path = require('path')
 
 class BackendCdkStack extends cdk.Stack {
@@ -26,19 +25,6 @@ class BackendCdkStack extends cdk.Stack {
     const oai = new cloudfront.OriginAccessIdentity(this, `oai-personal-project--language-app-${props.env.stage}`, {
       comment: `oai-personal-project--language-app-${props.env.stage}`,
     });
-
-
-    // const bucketPolicy = new iam.PolicyStatement({
-    //   sid: `personal-project--language-app-policy-${props.env.stage}`,
-    //   effect: iam.Effect.ALLOW,
-    //   actions: ['s3:GetObject', 's3:ListBucket'],
-    //   resources: [`${websiteBucket.bucketArn}/*`, `${websiteBucket.bucketArn}`],
-    //   principals: [new iam.AccountPrincipal(props.env.account)]
-    // });
-
-    // // websiteBucket.grantRead(oai);
-    // // websiteBucket.grantWrite(oai);
-    // websiteBucket.addToResourcePolicy(bucketPolicy);
 
     new cloudfront.CloudFrontWebDistribution(this, `cf-personal-project--language-app-${props.env.stage}`, {
       originConfigs: [
