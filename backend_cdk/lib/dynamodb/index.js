@@ -1,5 +1,5 @@
-const { DynamoDBClient } = require("@aws-sdk/client-dynamodb");
-const { GetCommand, PutCommand, UpdateCommand, DeleteCommand, DynamoDBDocumentClient } = require("@aws-sdk/lib-dynamodb");
+const { DynamoDBClient, BatchWriteItemCommand, UpdateItemCommand } = require("@aws-sdk/client-dynamodb");
+const { GetCommand, BatchGetCommand, BatchWriteCommand, QueryCommand, PutCommand, UpdateCommand, DeleteCommand, DynamoDBDocumentClient } = require("@aws-sdk/lib-dynamodb");
 
 const client = new DynamoDBClient({});
 const docClient = DynamoDBDocumentClient.from(client);
@@ -11,74 +11,121 @@ exports.handler = async (event, context) => {
     console.log('context', context);
     console.log('-----------------------------');
 
+    console.log('event.body', event.body);
+    const body = JSON.parse(event.body);
     const env = event.requestContext.stage;
     console.log('env', env);
 
     const response = {
         statusCode: 200,
+        headers: {
+            "Content-Type": "application/json",
+        },
         body: null,
     };
 
     const action = event.httpMethod;
     if (action === 'GET') {
-        const command = new GetCommand({
-            TableName: "dynamoDb-personal-project--language-app-test",
-            Key: {
-                user: event.queryStringParameters.user,
-                languageStudying: event.queryStringParameters.languageStudying,
+        const user = event.queryStringParameters.user;
+        const languageStudying = event.queryStringParameters.languageStudying;
+
+        const params = {
+            TableName: "db-personal-project--language-app-test",
+            ...(languageStudying && { FilterExpression: "contains(languageStudying, :filterExp)" }),
+            KeyConditionExpression:
+              "#userName = :usr",
+            ExpressionAttributeValues: {
+              ":usr": user,
+              ...(languageStudying && { ":filterExp": languageStudying, }),
             },
-        });
-        
+            ExpressionAttributeNames: { "#userName": "user" },
+            ConsistentRead: true,
+        };
+
+        const command = new QueryCommand(params);
         const res = await docClient.send(command);
-        console.log('res GET:', res);
-        response.body = JSON.stringify(res);
+        console.log('res GET QUERY:', res);
+        response.body = JSON.stringify(res.Items);
     }
 
     if (action === 'POST') {
-        const command = new PutCommand({
-            TableName: "dynamoDb-personal-project--language-app-test",
-            Item: {
-                user: event.queryStringParameters.user,
-                languageStudying: event.queryStringParameters.languageStudying,
-            },
-        });
-        
-        const res = await docClient.send(command);
+        const input = {
+            "RequestItems": {
+              "db-personal-project--language-app-test": body.map(el => {
+                return {
+                    PutRequest: {
+                        Item: {
+                            user: { "S": el.user },
+                            itemID: { "S": el.itemID },
+                            item: { "S": el.item },
+                            itemCorrect: { "S": el.itemCorrect },
+                            itemType: { "S": el.itemType },
+                            itemTypeCategory: { "S": el.itemTypeCategory },
+                            languageMortherTongue: { "S": el.languageMortherTongue },
+                            languageStudying: { "S": el.languageStudying },
+                            level: { "S": el.level },
+                        }
+                    }
+                }
+              })
+            }
+        };
+
+        const command = new BatchWriteItemCommand(input);
+        const res = await client.send(command);
         console.log('res POST:', res);
-        response.body = JSON.stringify(res);
+        response.body = JSON.stringify({});
     }
 
     if (action === 'PUT') {
-        const command = new UpdateCommand({
-            TableName: "dynamoDb-personal-project--language-app-test",
+        const input = {
+            TableName: "db-personal-project--language-app-test",
             Key: {
-                user: event.queryStringParameters.user,
-                languageStudying: event.queryStringParameters.languageStudying,
+                user: {
+                    "S": body.user
+                },
+                itemID: {
+                    "S": body.itemID
+                }
+            }, 
+            UpdateExpression: "SET #attributeName = :newValue",
+            ExpressionAttributeNames: {
+                "#attributeName": "level",
             },
-            UpdateExpression: "set newVal = :value",
             ExpressionAttributeValues: {
-                ":value": event.queryStringParameters.level,
+                ":newValue": {
+                    "S": body.level
+                }
             },
-            ReturnValues: "ALL_NEW",
-        });
-        
-        const res = await docClient.send(command);
-        console.log('res PUT:', res);
-        response.body = JSON.stringify(res);
+            ReturnValues: "UPDATED_NEW"
+        };
+
+        const command = new UpdateItemCommand(input);
+        const res = await client.send(command);
+        console.log('res PUT (UPDATE):', res);
+        response.body = JSON.stringify(res.Attributes);
     }
 
     if (action === 'DELETE') {
-        const command = new DeleteCommand({
-            TableName: "dynamoDb-personal-project--language-app-test",
-            Key: {
-                user: event.queryStringParameters.user,
-                languageStudying: event.queryStringParameters.languageStudying,
-            },
-        });
-        
-        const res = await docClient.send(command);
+        const input = {
+            "RequestItems": {
+              "db-personal-project--language-app-test": body.map(el => {
+                return {
+                    DeleteRequest: {
+                        Key: {
+                            user: { "S": el.user },
+                            itemID: { "S": el.itemID }
+                        }
+                    }
+                }
+              })
+            }
+        };
+
+        const command = new BatchWriteItemCommand(input);
+        const res = await client.send(command);
         console.log('res DELETE:', res);
-        response.body = JSON.stringify(res);
+        response.body = JSON.stringify({});
     }
 
     console.log("response: " + JSON.stringify(response))

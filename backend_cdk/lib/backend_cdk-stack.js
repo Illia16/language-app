@@ -50,14 +50,14 @@ class BackendCdkStack extends cdk.Stack {
       ],
     });
 
-    const myTable = new dynamoDb.TableV2(this, `dynamoDb-personal-project--language-app-${props.env.stage}`, {
-      tableName: `dynamoDb-personal-project--language-app-${props.env.stage}`,
+    const myTable = new dynamoDb.TableV2(this, `db-personal-project--language-app-${props.env.stage}`, {
+      tableName: `db-personal-project--language-app-${props.env.stage}`,
       partitionKey: {
         name: 'user',
         type: dynamoDb.AttributeType.STRING
       },
       sortKey: {
-        name: 'languageStudying',
+        name: 'itemID',
         type: dynamoDb.AttributeType.STRING
       }
     });
@@ -79,6 +79,9 @@ class BackendCdkStack extends cdk.Stack {
       proxy: false,
       restApiName: `api-study-items--personal-project--language-app-${props.env.stage}`,
       description: 'API to get/update/post/delete language items of users.',
+      defaultCorsPreflightOptions: {
+        allowOrigins: props.env.stage === 'prod' ? ['d3uhxucz1lwio6.cloudfront.net'] : apiGateway.Cors.ALL_ORIGINS
+      }
     });
 
     const routeStudyItems = myApi.root.addResource('study-items');
@@ -97,8 +100,8 @@ class BackendCdkStack extends cdk.Stack {
     myApi.deploymentStage = props.env.stage;
 
     // user
+    // itemID
     // languageStudying
-    // userId
     // languageMortherTongue
     // item (item to study)
     // itemType (tenses, words, sentanses)
@@ -107,7 +110,7 @@ class BackendCdkStack extends cdk.Stack {
     // level (user mastery lvl for the item)
 
     // test script
-    //aws dynamodb put-item --table-name dynamoDb-personal-project--language-app-test --profile personal --region us-east-1 --item  "{\"user\": {\"S\": \"illia\"}, \"languageStudying\": {\"S\": \"cn\"}, \"userId\": {\"S\": \"live1605\"}, \"languageMortherTongue\": {\"S\": \"ru\"}, \"item\": {\"S\": \"我\"}, \"itemType\": {\"S\": \"word\"}, \"itemTypeCategory\": {\"S\": \"mandarinChar\"}, \"itemCorrect\": {\"S\": \"Я\"}, \"level\": {\"S\": \"0\"}}"
+    //aws dynamodb put-item --table-name db-personal-project--language-app-test --profile personal --region us-east-1 --item  "{\"user\": {\"S\": \"illia\"}, \"itemID\": {\"S\": \"я-21321321\"}, \"languageStudying\": {\"S\": \"cn\"}, \"languageMortherTongue\": {\"S\": \"ru\"}, \"item\": {\"S\": \"我\"}, \"itemType\": {\"S\": \"word\"}, \"itemTypeCategory\": {\"S\": \"mandarinChar\"}, \"itemCorrect\": {\"S\": \"Я\"}, \"level\": {\"S\": \"0\"}}"
   }
 }
 
