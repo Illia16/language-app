@@ -3,6 +3,8 @@ const s3 = require('aws-cdk-lib/aws-s3');
 const cloudfront = require('aws-cdk-lib/aws-cloudfront');
 const lambda = require('aws-cdk-lib/aws-lambda');
 const dynamoDb = require('aws-cdk-lib/aws-dynamodb');
+const apiGateway = require('aws-cdk-lib/aws-apigateway');
+const iam = require('aws-cdk-lib/aws-iam');
 const path = require('path')
 
 class BackendCdkStack extends cdk.Stack {
@@ -59,6 +61,40 @@ class BackendCdkStack extends cdk.Stack {
         type: dynamoDb.AttributeType.STRING
       }
     });
+
+    const lambdaFnDynamoDb = new lambda.Function(this, `lambdaFnDynamoDb-personal-project--language-app-${props.env.stage}`, {
+        runtime: lambda.Runtime.NODEJS_18_X,
+        handler: 'index.handler',
+        code: lambda.Code.fromAsset(path.join(__dirname, 'dynamodb')),
+        functionName: `lambdaFnDynamoDb-personal-project--language-app-${props.env.stage}`,
+        environment: {
+          env: props.env.stage,
+        }
+    });
+
+    myTable.grantReadWriteData(lambdaFnDynamoDb);
+
+    const myApi = new apiGateway.LambdaRestApi(this, `api-study-items--personal-project--language-app-${props.env.stage}`, {
+      handler: lambdaFnDynamoDb,
+      proxy: false,
+      restApiName: `api-study-items--personal-project--language-app-${props.env.stage}`,
+      description: 'API to get/update/post/delete language items of users.',
+    });
+
+    const routeStudyItems = myApi.root.addResource('study-items');
+    routeStudyItems.addMethod('GET')
+    routeStudyItems.addMethod('POST')
+    routeStudyItems.addMethod('PUT')
+    routeStudyItems.addMethod('DELETE')
+
+    const stage = new apiGateway.Stage(this, `apiStage-study-items--personal-project--language-app-${props.env.stage}`, 
+      {
+        deployment: new apiGateway.Deployment(this, `apiDeployment-study-items--personal-project--language-app-${props.env.stage}`, {api: myApi}),
+        stageName: props.env.stage,
+      }
+    );
+
+    myApi.deploymentStage = props.env.stage;
 
     // user
     // languageStudying
