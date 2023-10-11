@@ -78,32 +78,38 @@ exports.handler = async (event, context) => {
     }
 
     if (action === 'PUT') {
-        const input = {
-            TableName: "db-personal-project--language-app-test",
-            Key: {
-                user: {
-                    "S": body.user
-                },
-                itemID: {
-                    "S": body.itemID
-                }
-            }, 
-            UpdateExpression: "SET #attributeName = :newValue",
-            ExpressionAttributeNames: {
-                "#attributeName": "level",
-            },
-            ExpressionAttributeValues: {
-                ":newValue": {
-                    "S": body.level
-                }
-            },
-            ReturnValues: "UPDATED_NEW"
-        };
+        const allEls = await Promise.all(
+            body.map(async (el) => {
+                const input = {
+                    TableName: "db-personal-project--language-app-test",
+                    Key: {
+                        user: {
+                            "S": el.user
+                        },
+                        itemID: {
+                            "S": el.itemID
+                        }
+                    },
+                    UpdateExpression: "SET #attributeName = :newValue",
+                    ExpressionAttributeNames: {
+                        "#attributeName": el.keyToUpdate.name,
+                    },
+                    ExpressionAttributeValues: {
+                        ":newValue": {
+                            "S": el.keyToUpdate.value
+                        }
+                    },
+                    ReturnValues: "ALL_NEW"
+                };
 
-        const command = new UpdateItemCommand(input);
-        const res = await client.send(command);
-        console.log('res PUT (UPDATE):', res);
-        response.body = JSON.stringify(res.Attributes);
+                const command = new UpdateItemCommand(input);
+                const res = await client.send(command);
+                console.log('res PUT (UPDATE):', res);
+                return res.Attributes;
+            })
+        )
+
+        response.body = JSON.stringify(allEls);
     }
 
     if (action === 'DELETE') {
