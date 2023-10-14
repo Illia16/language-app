@@ -13,23 +13,23 @@ class BackendCdkStack extends cdk.Stack {
 
     console.log('environment2', props.env.stage);
 
-    const websiteBucket = new s3.Bucket(this, `personal-project--language-app-${props.env.stage}`, {
+    const websiteBucket = new s3.Bucket(this, `${props.env.projectName}-${props.env.stage}`, {
       removalPolicy: cdk.RemovalPolicy.DESTROY,
-      bucketName: `personal-project--language-app-${props.env.stage}`,
+      bucketName: `${props.env.projectName}-${props.env.stage}`,
     });
 
-    const myFunc = new cloudfront.experimental.EdgeFunction(this, `redirect-personal-project--language-app-${props.env.stage}`, {
+    const myFunc = new cloudfront.experimental.EdgeFunction(this, `redirect-${props.env.projectName}-${props.env.stage}`, {
       runtime: lambda.Runtime.NODEJS_18_X,
-      functionName: `redirect-personal-project--language-app-${props.env.stage}`,
+      functionName: `redirect-${props.env.projectName}-${props.env.stage}`,
       handler: 'index.handler',
       code: lambda.Code.fromAsset(path.join(__dirname, 'redirect')),
     });
 
-    const oai = new cloudfront.OriginAccessIdentity(this, `oai-personal-project--language-app-${props.env.stage}`, {
-      comment: `oai-personal-project--language-app-${props.env.stage}`,
+    const oai = new cloudfront.OriginAccessIdentity(this, `oai-${props.env.projectName}-${props.env.stage}`, {
+      comment: `oai-${props.env.projectName}-${props.env.stage}`,
     });
 
-    new cloudfront.CloudFrontWebDistribution(this, `cf-personal-project--language-app-${props.env.stage}`, {
+    new cloudfront.CloudFrontWebDistribution(this, `cf-${props.env.projectName}-${props.env.stage}`, {
       originConfigs: [
         {
           s3OriginSource: {
@@ -50,8 +50,8 @@ class BackendCdkStack extends cdk.Stack {
       ],
     });
 
-    const myTable = new dynamoDb.TableV2(this, `db-personal-project--language-app-${props.env.stage}`, {
-      tableName: `db-personal-project--language-app-${props.env.stage}`,
+    const myTable = new dynamoDb.TableV2(this, `db-${props.env.projectName}-${props.env.stage}`, {
+      tableName: `db-${props.env.projectName}-${props.env.stage}`,
       partitionKey: {
         name: 'user',
         type: dynamoDb.AttributeType.STRING
@@ -62,26 +62,33 @@ class BackendCdkStack extends cdk.Stack {
       }
     });
 
-    const lambdaFnDynamoDb = new lambda.Function(this, `lambdaFnDynamoDb-personal-project--language-app-${props.env.stage}`, {
+    const lambdaFnDynamoDb = new lambda.Function(this, `lambdaFnDynamoDb-${props.env.projectName}-${props.env.stage}`, {
         runtime: lambda.Runtime.NODEJS_18_X,
         handler: 'index.handler',
         code: lambda.Code.fromAsset(path.join(__dirname, 'dynamodb')),
-        functionName: `lambdaFnDynamoDb-personal-project--language-app-${props.env.stage}`,
+        functionName: `lambdaFnDynamoDb-${props.env.projectName}-${props.env.stage}`,
         environment: {
           env: props.env.stage,
+          projectName: props.env.projectName,
         }
     });
 
     myTable.grantReadWriteData(lambdaFnDynamoDb);
 
-    const myApi = new apiGateway.LambdaRestApi(this, `api-study-items--personal-project--language-app-${props.env.stage}`, {
+    const myApi = new apiGateway.LambdaRestApi(this, `api-study-items--${props.env.projectName}-${props.env.stage}`, {
       handler: lambdaFnDynamoDb,
       proxy: false,
-      restApiName: `api-study-items--personal-project--language-app-${props.env.stage}`,
+      restApiName: `api-study-items--${props.env.projectName}-${props.env.stage}`,
       description: 'API to get/update/post/delete language items of users.',
       defaultCorsPreflightOptions: {
-        allowOrigins: props.env.stage === 'prod' ? ['d3uhxucz1lwio6.cloudfront.net'] : apiGateway.Cors.ALL_ORIGINS
-      }
+        allowOrigins: props.env.stage === 'prod' ? ['https://d3uhxucz1lwio6.cloudfront.net'] : ['http://localhost:3000', 'https://d3uhxucz1lwio6.cloudfront.net'],
+        allowMethods: apiGateway.Cors.ALL_METHODS,
+      },
+      deploy: false,
+    //   change default deploment to test
+    //   deployOptions: {
+    //     stageName: props.env.stage,
+    //   }
     });
 
     const routeStudyItems = myApi.root.addResource('study-items');
@@ -90,9 +97,9 @@ class BackendCdkStack extends cdk.Stack {
     routeStudyItems.addMethod('PUT')
     routeStudyItems.addMethod('DELETE')
 
-    const stage = new apiGateway.Stage(this, `apiStage-study-items--personal-project--language-app-${props.env.stage}`, 
+    const stage = new apiGateway.Stage(this, `apiStage-study-items--${props.env.projectName}-${props.env.stage}`,
       {
-        deployment: new apiGateway.Deployment(this, `apiDeployment-study-items--personal-project--language-app-${props.env.stage}`, {api: myApi}),
+        deployment: new apiGateway.Deployment(this, `apiDeployment-study-items--${props.env.projectName}-${props.env.stage}`, {api: myApi}),
         stageName: props.env.stage,
       }
     );

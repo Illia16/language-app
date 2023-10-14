@@ -18,6 +18,7 @@
   "context": {
     "account_id": "177749704705",
     "env": "test",
+    "projectName": "personal-project--language-app",
     "@aws-cdk/aws-lambda:recognizeLayerVersion": true,
     "@aws-cdk/core:checkSecretUsage": true,
     "@aws-cdk/core:target-partitions": [

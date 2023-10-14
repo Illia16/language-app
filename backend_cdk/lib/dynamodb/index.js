@@ -13,13 +13,17 @@ exports.handler = async (event, context) => {
 
     console.log('event.body', event.body);
     const body = JSON.parse(event.body);
-    const env = event.requestContext.stage;
+    const env = process.env.env;
+    const projectName = process.env.projectName;
     console.log('env', env);
+
+    const allowedOrigins = ["http://localhost:3000", "https://d3uhxucz1lwio6.cloudfront.net"];
+    const origin = event.headers.origin;
 
     const response = {
         statusCode: 200,
         headers: {
-            "Content-Type": "application/json",
+            "Access-Control-Allow-Origin": allowedOrigins.includes(origin) ? origin : null,
         },
         body: null,
     };
@@ -30,7 +34,7 @@ exports.handler = async (event, context) => {
         const languageStudying = event.queryStringParameters.languageStudying;
 
         const params = {
-            TableName: "db-personal-project--language-app-test",
+            TableName: `db-${projectName}-${env}`,
             ...(languageStudying && { FilterExpression: "contains(languageStudying, :filterExp)" }),
             KeyConditionExpression:
               "#userName = :usr",
@@ -51,7 +55,7 @@ exports.handler = async (event, context) => {
     if (action === 'POST') {
         const input = {
             "RequestItems": {
-              "db-personal-project--language-app-test": body.map(el => {
+              [`db-${projectName}-${env}`]: body.map(el => {
                 return {
                     PutRequest: {
                         Item: {
@@ -81,7 +85,7 @@ exports.handler = async (event, context) => {
         const allEls = await Promise.all(
             body.map(async (el) => {
                 const input = {
-                    TableName: "db-personal-project--language-app-test",
+                    TableName: `db-${projectName}-${env}`,
                     Key: {
                         user: {
                             "S": el.user
@@ -115,7 +119,7 @@ exports.handler = async (event, context) => {
     if (action === 'DELETE') {
         const input = {
             "RequestItems": {
-              "db-personal-project--language-app-test": body.map(el => {
+              [`db-${projectName}-${env}`]: body.map(el => {
                 return {
                     DeleteRequest: {
                         Key: {
