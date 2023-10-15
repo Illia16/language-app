@@ -2,10 +2,12 @@
   "private": true,
   "scripts": {
     "build": "nuxt build",
-    "dev": "nuxt dev",
-    "generate": "nuxt generate",
+    "start": "nuxt dev --dotenv .env.test",
+    "generate:test": "nuxt generate --dotenv .env.test",
+    "generate:prod": "nuxt generate --dotenv .env.prod",
     "preview": "nuxt preview",
-    "deploy": "npm run generate && node deploy.js"
+    "deploy:test": "npm run generate:test && node deploy.js",
+    "deploy:prod": "npm run generate:prod && node deploy.js"
   },
   "devDependencies": {
     "@nuxt/postcss8": "^1.1.3",

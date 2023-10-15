@@ -70,7 +70,7 @@
                     <GrammarRules :rule="grammarRule" />
                 </Modal>
             </teleport>
-            
+
             <h2 class="tasks">{{ t('selectTask') }}</h2>
             <ul class="list-items">
                 <li v-for="(task, i) of ['tenses', 'words', 'modal-verbs']" :key="task+i">
@@ -85,6 +85,7 @@
 import { useMainStore } from 'store/main';
 import { mapLanguage } from 'helper/helpers';
 
+const config = useRuntimeConfig();
 const store = useMainStore();
 const { locale, t } = useI18n()
 const switchLocalePath = useSwitchLocalePath()
@@ -103,6 +104,109 @@ const handleClick = (v: string):void => {
     store.setModalType('grammar');
     grammarRule.value = v;
 }
+
+const getUserData = async () => {
+    const res = await fetch(`${config.public.apiUrl}/${config.public.envName}/study-items?user=illia`)
+    .then(res => res.json());
+
+    console.log('res', res);
+}
+
+const postUserData = async () => {
+    const res = await fetch(`${config.public.apiUrl}/${config.public.envName}/study-items?user=illia`, {
+        method: 'POST',
+        body: JSON.stringify([
+            {
+                "user": "illia", 
+                "itemID": "test-1",
+                "item": "你",
+                "itemCorrect": "Ты",
+                "itemType": "word",
+                "itemTypeCategory": "mandarinChar",
+                "languageMortherTongue": "ru",
+                "languageStudying": "cn",
+                "level": "0"
+            },
+            {
+                "user": "illia",
+                "itemID": "test-2",
+                "item": "你",
+                "itemCorrect": "Ты",
+                "itemType": "word",
+                "itemTypeCategory": "mandarinChar",
+                "languageMortherTongue": "ru",
+                "languageStudying": "cn",
+                "level": "0"
+            }
+        ])
+    })
+    .then(res => res.json());
+    console.log('res', res);
+}
+
+const putUserData = async () => {
+    const res = await fetch(`${config.public.apiUrl}/${config.public.envName}/study-items?user=illia`, {
+        method: 'PUT',
+        body: JSON.stringify([
+            {
+                "user": "illia",
+                "itemID": "test-1",
+                "keyToUpdate": {
+                    "name": "level",
+                    "value": "1"
+                }
+            },
+            {
+                "user": "illia",
+                "itemID": "test-2",
+                "keyToUpdate": {
+                    "name": "level",
+                    "value": "1"
+                }
+            }
+        ])
+    })
+    .then(res => res.json());
+    console.log('res', res);
+}
+
+const deleteUserData = async () => {
+    const res = await fetch(`${config.public.apiUrl}/${config.public.envName}/study-items?user=illia`, {
+        method: 'DELETE',
+        body: JSON.stringify([
+            {
+                "user": "illia", 
+                "itemID": "test-1"
+            },
+            {
+                "user": "illia",
+                "itemID": "test-2"
+            }
+        ])
+    })
+    .then(res => res.json());
+    console.log('res', res);
+}
+
+const getUserDataNuxt = async () => {
+    const res = await fetch(`/api/study-items/get?user=viktoria`)
+    .then(res => res.json());
+
+    console.log('res fe', res);
+}
+
+onMounted(() => {
+    console.log('Runtime config API_URL:', config.public.apiUrl)
+    console.log('Runtime config API_KEY:', config.public.apiKey)
+    console.log('Runtime config ENV_NAME:', config.public.envName)
+
+    // getUserDataNuxt();
+    // getUserData();
+    // postUserData();
+    // putUserData();
+    // deleteUserData();
+})
+
 </script>
 
 

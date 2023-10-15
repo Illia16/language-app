@@ -1,12 +1,26 @@
 import { resolve } from 'path'
 import type { NuxtConfig } from '@nuxt/types'
 
+console.log('apiUrl:', process.env.API_URL,);
+console.log('apiKey:', process.env.API_KEY,);
+console.log('envName:', process.env.ENV_NAME,);
+
 const config: NuxtConfig = {
     // typescript: {
     //     // shim: false,
     //     // typeCheck: true,
     //     // strict: true
     // },
+    runtimeConfig: {
+        apiKey: process.env.API_KEY,
+        apiUrl: process.env.API_URL,
+        envName: process.env.ENV_NAME,
+        public: {
+            apiKey: process.env.API_KEY,
+            apiUrl: process.env.API_URL,
+            envName: process.env.ENV_NAME,
+        }
+    },
     app: {
         head: {
             htmlAttrs: {
