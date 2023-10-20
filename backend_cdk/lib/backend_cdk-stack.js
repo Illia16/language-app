@@ -18,11 +18,27 @@ class BackendCdkStack extends cdk.Stack {
       bucketName: `${props.env.projectName}-${props.env.stage}`,
     });
 
-    const myFunc = new cloudfront.experimental.EdgeFunction(this, `redirect-${props.env.projectName}-${props.env.stage}`, {
-      runtime: lambda.Runtime.NODEJS_18_X,
-      functionName: `redirect-${props.env.projectName}-${props.env.stage}`,
-      handler: 'index.handler',
-      code: lambda.Code.fromAsset(path.join(__dirname, 'redirect')),
+    // Basic Auth
+    // const auth = new cloudfront.experimental.EdgeFunction(this, `auth--${props.env.projectName}-${props.env.stage}`, {
+    //     runtime: lambda.Runtime.NODEJS_18_X,
+    //     functionName: `fn_auth--${props.env.projectName}-${props.env.stage}`,
+    //     handler: 'index.handler',
+    //     code: lambda.Code.fromAsset(path.join(__dirname, 'basic_auth')),
+    // })
+
+
+    // const myFunc = new cloudfront.experimental.EdgeFunction(this, `redirect-${props.env.projectName}-${props.env.stage}`, {
+    //   runtime: lambda.Runtime.NODEJS_18_X,
+    //   functionName: `redirect-${props.env.projectName}-${props.env.stage}`,
+    //   handler: 'index.handler',
+    //   code: lambda.Code.fromAsset(path.join(__dirname, 'basic_auth')),
+    // });
+
+    const cfFunction = new cloudfront.Function(this, 'Function', {
+        code: cloudfront.FunctionCode.fromFile({
+            filePath: __dirname + '/basic_auth/index.js',
+        }),
+        functionName: `cfFunction-${props.env.projectName}-${props.env.stage}`,
     });
 
     const oai = new cloudfront.OriginAccessIdentity(this, `oai-${props.env.projectName}-${props.env.stage}`, {
@@ -37,13 +53,18 @@ class BackendCdkStack extends cdk.Stack {
             originAccessIdentity: oai,
           },
           behaviors: [
-            { isDefaultBehavior: true,
-              lambdaFunctionAssociations: [
-                {
-                  eventType: cloudfront.LambdaEdgeEventType.VIEWER_REQUEST,
-                  lambdaFunction: myFunc.currentVersion,
-                },
-              ],
+            {
+                isDefaultBehavior: true,
+                // lambdaFunctionAssociations: [
+                //     {
+                //         eventType: cloudfront.LambdaEdgeEventType.VIEWER_REQUEST,
+                //         lambdaFunction: myFunc.currentVersion,
+                //     },
+                // ],
+                functionAssociations: [{
+                    eventType: cloudfront.FunctionEventType.VIEWER_REQUEST,
+                    function: cfFunction,
+                }],
             },
           ],
         },
