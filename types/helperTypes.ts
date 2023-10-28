@@ -1,8 +1,22 @@
+export interface UserData {
+    level: string;
+    languageStudying: string;
+    itemTypeCategory: string;
+    user: string;
+    itemType: string;
+    languageMortherTongue: string;
+    itemID: string;
+    item: string;
+    itemCorrect: string;
+}
+
+export interface ArrayOfUserData extends Array<UserData> {};
+
 export interface WordTranslation {
     translation: string;
     word: string;
     rule: string;
-    wrongAnswersEng?: string[];
+    wrongAnswers?: string[];
     wrongAnswersMotherTongue?: string[];
     id?: number;
     [key: string]: string|number|undefined|Array<string>; // id will be number in the future

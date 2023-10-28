@@ -1,7 +1,11 @@
 <template>
     <ul class="main-menu">
         <li v-if="$route.path !== '/'">
-            <NuxtLink :to="localePath('/')">
+            <!-- <NuxtLink :to="localePath('/')">
+                <span class="sr-only">{{t('goToHome')}}</span>
+                <img src="../assets/images/lesson-icon.svg" width="40" height="25" alt="" />
+            </NuxtLink> -->
+            <NuxtLink to="/">
                 <span class="sr-only">{{t('goToHome')}}</span>
                 <img src="../assets/images/lesson-icon.svg" width="40" height="25" alt="" />
             </NuxtLink>
@@ -9,6 +13,14 @@
         <li v-if="store.lang">
             <button @click="store.setLang(''), navigateTo('/')" :aria-label="t('languageMenu')">
                 <img src="../assets/images/english-icon.svg" width="40" height="25" alt="" />
+            </button>
+        </li>
+        <li v-if="store.userLangData && store.userLangData.length && $route.path !== '/profile'">
+            <NuxtLink class="custom-button-link" to="/profile">My profile</NuxtLink>
+        </li>
+        <li v-if="store.userLangData && store.userLangData.length">
+            <button @click="store.setUserLangData([])" class="custom-button-link">
+                Logout
             </button>
         </li>
     </ul>

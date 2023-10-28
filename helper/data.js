@@ -85,7 +85,7 @@ export default {
                 {
                     word: 'He has known how to drive a car since the age of 18',
                     translation: 'Он водит машину с 18 лет',
-                    wrongAnswersEng: [
+                    wrongAnswers: [
                         'He knows how to drive a car since the age of 18',
                         'He knew how to drive a car since the age of 18',
                         'Does he know how to drive a car?',
@@ -99,7 +99,7 @@ export default {
                 {
                     word: 'I have watched this movie before',
                     translation: 'Я раньше видел этот фильм',
-                    wrongAnswersEng: [
+                    wrongAnswers: [
                         'I watched this movie before',
                         'I watch this movie before',
                         'Did I watch this movie before?',
@@ -113,7 +113,7 @@ export default {
                 {
                     word: 'I have (I\'ve) just eaten my breakfast',
                     translation: 'Я только что поел свой завтрак',
-                    wrongAnswersEng: [
+                    wrongAnswers: [
                         'I ate my breakfast',
                         'I eat my breakfast',
                         'Did I eat my breakfast?',
@@ -127,7 +127,7 @@ export default {
                 {
                     word: 'Because of many intense lessons, I have (I\'ve) learned English very well',
                     translation: 'Из-за множества интенсивных уроков, я выучил английский очень хорошо',
-                    wrongAnswersEng: [
+                    wrongAnswers: [
                         'Because of many intense lessons, I learned English very well',
                         'Because of many intense lessons, I learn English very well',
                         'Because of many intense lessons, did I learn English very well?',
@@ -141,7 +141,7 @@ export default {
                 {
                     word: 'I have (I\'ve) just finished my work',
                     translation: 'Я только что закончил свою работу',
-                    wrongAnswersEng: [
+                    wrongAnswers: [
                         'I finished my work',
                         'I finish my work',
                         'Did I finish my work?',
@@ -155,7 +155,7 @@ export default {
                 {
                     word: 'She has not (hasn\'t) finished her work yet',
                     translation: 'Она еще не закончила свою работу',
-                    wrongAnswersEng: [
+                    wrongAnswers: [
                         'She did not finish her work yet',
                         'She does not finish her work yet',
                         'Did she finish her work yet?',
@@ -271,7 +271,7 @@ export default {
                 {
                     word: 'She made a mistake yesterday',
                     translation: 'Она сделала ошибку вчера',
-                    wrongAnswersEng: [
+                    wrongAnswers: [
                         'She makes a mistake yesterday',
                         'She will make a mistake',
                         'Does she make a mistake every day?',
@@ -301,7 +301,7 @@ export default {
                 {
                     word: 'Did you eat potatoes yesterday?',
                     translation: 'Ты ел картошку вчера?',
-                    wrongAnswersEng: [
+                    wrongAnswers: [
                         'I eat potatoes',
                         'I eaten potatoes',
                         'Do I eat potatoes yesterday?',
@@ -314,7 +314,7 @@ export default {
                 {
                     word: 'I\'ve (have) just eaten potatoes',
                     translation: 'Я только что съел картошку',
-                    wrongAnswersEng: [
+                    wrongAnswers: [
                         'I ate potatoes',
                         'I eat potatoes',
                     ],
@@ -326,7 +326,7 @@ export default {
                 {
                     word: 'I know the answer',
                     translation: 'Я знаю ответ',
-                    wrongAnswersEng: [
+                    wrongAnswers: [
                         'I knew the answer',
                         'I knowed the answer',
                         'I\'ve known the answer'
@@ -339,7 +339,7 @@ export default {
                 {
                     word: 'Do you know how to cook it?',
                     translation: 'Ты знаешь как приготовить это?',
-                    wrongAnswersEng: [
+                    wrongAnswers: [
                         'Does you know how to cook it?',
                         'Did you know how to cook it?',
                         'You know how to cook it'
@@ -352,7 +352,7 @@ export default {
                 {
                     word: 'I knew it',
                     translation: 'Я знал это',
-                    wrongAnswersEng: [
+                    wrongAnswers: [
                         'I know it',
                         'Do I know it?',
                         'Was I know it?',
@@ -370,7 +370,7 @@ export default {
                 {
                     word: 'I think I know the answer',
                     translation: 'Я думаю что знаю ответ',
-                    wrongAnswersEng: [
+                    wrongAnswers: [
                         'I thought I knew the answer',
                         'I think I knew the answer',
                         'Do I think I know the answer?',
@@ -384,7 +384,7 @@ export default {
                 {
                     word: 'Do you think you know the answer?',
                     translation: 'Ты думаешь что знаешь ответ?',
-                    wrongAnswersEng: [
+                    wrongAnswers: [
                         'Does you think you know the answer?',
                         'Do you think you knew the answer?',
                         'Do you think you\'ve known the answer?',
@@ -398,7 +398,7 @@ export default {
                 {
                     word: 'I thought I knew the answer',
                     translation: 'Я думал что знаю ответ',
-                    wrongAnswersEng: [
+                    wrongAnswers: [
                         'I think I knew the answer',
                         'I\'ve thought I knew the answer',
                         'I thinked I knew the answer',
@@ -412,7 +412,7 @@ export default {
                 {
                     word: 'Didn\'t you think about it?',
                     translation: 'Ты не думал об этом?',
-                    wrongAnswersEng: [
+                    wrongAnswers: [
                         'Don\'t you think about it?',
                         'Didn\'t you thought about it?',
                         'Did you think about it?',

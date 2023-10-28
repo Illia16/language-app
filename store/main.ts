@@ -1,4 +1,5 @@
 import { defineStore } from "pinia";
+import { UserData, ArrayOfUserData } from 'types/helperTypes';
 
 export const useMainStore = defineStore('main-store', {
     state: () => ({
@@ -7,6 +8,8 @@ export const useMainStore = defineStore('main-store', {
         lang: '',
         lessonType: "123",
         lessonStarted: false,
+        currentUserName: '',
+        userLangData: [] as ArrayOfUserData, 
     }),
     actions: {
         setModalType(v: string) {
@@ -23,6 +26,12 @@ export const useMainStore = defineStore('main-store', {
         },
         setLessonStarted(v: boolean) {
             this.lessonStarted = v;
+        },
+        setCurrentUserName(v: string) {
+            this.currentUserName = v;
+        },
+        setUserLangData(v: ArrayOfUserData) {
+            this.userLangData = v;
         },
     },
     // persist: true,

@@ -3,6 +3,16 @@
 @import "tailwindcss/utilities";
 
 
+.form_el {
+    label {
+
+    }
+
+    input {
+        @apply border border-black p-4 w-full text-center;
+    }
+}
+
 .list-items {
     @apply space-y-12 mb-4;
 }

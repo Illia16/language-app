@@ -180,6 +180,7 @@
 import {WordTranslationArrayOfObj, InitData, Question, InitDataArrayOfObj, Report, ReportArrayOfObj, RecordUserAnswerDestructured } from 'types/helperTypes'
 import { getLesson, getQuestion, isCorrect } from 'helper/helpers';
 import data from 'helper/data';
+import GrammarRules from 'components/english/GrammarRules.vue';
 import { useMainStore } from 'store/main';
 const { t } = useI18n({useScope: 'local'})
 

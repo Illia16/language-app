@@ -23,21 +23,24 @@ export const getQuestion = (m: string, lessonData: WordTranslationArrayOfObj, cu
         const questionAnswer = {} as Question;
         const q = lessonData[currentQuestionNum-1];
 
-        questionAnswer.question = q[m === 'wordTranslation' || m === 'wordTranslationMPChoice' || m === 'sentenceWordTranslation' ? 'word' : 'translation'];
-        questionAnswer.qAnswer = q[m === 'wordTranslation' || m === 'wordTranslationMPChoice' || m === 'sentenceWordTranslation' ? 'translation' : 'word'].replace(replaceAllinsideParantheses, '');
+        console.log('q', q);
         
-        questionAnswer.id = q.id;
+        questionAnswer.question = q[m === 'wordTranslation' || m === 'wordTranslationMPChoice' || m === 'sentenceWordTranslation' ? 'item' : 'itemCorrect'];
+        questionAnswer.qAnswer = q[m === 'wordTranslation' || m === 'wordTranslationMPChoice' || m === 'sentenceWordTranslation' ? 'itemCorrect' : 'item'].replace(replaceAllinsideParantheses, '');
+        
+        questionAnswer.id = q.itemID;
         questionAnswer.mode = m;
-        questionAnswer.rule = q.rule;
+        questionAnswer.rule = q.itemTypeCategory;
 
         if (m === 'wordTranslationMPChoice') {            
-            questionAnswer.all = fillMpChoiceArray(lessonData, q,  questionAnswer.qAnswer, 'translation');
+            questionAnswer.all = fillMpChoiceArray(lessonData, q,  questionAnswer.qAnswer, 'itemCorrect');
         } else if (m === 'translationWordMPChoice') {
-            questionAnswer.all = fillMpChoiceArray(lessonData, q,  questionAnswer.qAnswer, 'word');
+            questionAnswer.all = fillMpChoiceArray(lessonData, q,  questionAnswer.qAnswer, 'item');
         } else if (m === 'sentenceWordTranslation' || m === 'sentenceTranslationWord') {
             questionAnswer.splitted = sortArray(uniqueElements(questionAnswer.qAnswer.split(' '))) as string[];
         }
 
+        console.log('questionAnswer', questionAnswer);
         return questionAnswer;
     }
 
@@ -60,25 +63,26 @@ const getRandomMode = (lessonType: string):string => {
 
 // function to produce 4 MP choices + include 1 correct answer
 export const fillMpChoiceArray = (data: WordTranslationArrayOfObj, currentQuestion: WordTranslation, correctAnswer:string, mpChoiceType: string): string[] => {
-    const wrongAnswersKey: string = mpChoiceType === 'translation' ? 'wrongAnswersMotherTongue' : 'wrongAnswersEng';
+    const wrongAnswersKey: string = mpChoiceType === 'itemCorrect' ? 'wrongAnswersMotherTongue' : 'wrongAnswers';
     let mpChoices: string[] = [];
 
     // check if data has incorrect answers array
     if (currentQuestion[wrongAnswersKey]) {
         mpChoices = currentQuestion[wrongAnswersKey] as string[];
-    } else {
+    } else {        
         const randomMpChoices: string[] = data
             .map((el: WordTranslation, i: number): string => {
                     let res: string = '';
                     const q: string = el[mpChoiceType]?.replace(replaceAllinsideParantheses, '');
-    
-                    if (i<=2 && q !== correctAnswer) {
+                
+                    if (q !== correctAnswer) {
                         res = el[mpChoiceType] as string;
                     }
-    
+                                        
                     return res.replace(replaceAllinsideParantheses, '');
                 })
-            .filter(el=>el);
+            .filter(el=>el)
+            .slice(0, 3);
         
         mpChoices = randomMpChoices;
     }
@@ -87,7 +91,7 @@ export const fillMpChoiceArray = (data: WordTranslationArrayOfObj, currentQuesti
     return sortArray(mpChoices) as string[];
 }
 
-export const isCorrect = (currentQuestion: Question, answer: string): boolean => {   
+export const isCorrect = (currentQuestion: Question, answer: string): boolean => {
     return answer.toLowerCase().trim() === currentQuestion.qAnswer.toLowerCase().trim();
 }
 

@@ -59,7 +59,7 @@ const config: NuxtConfig = {
         [
             '@nuxtjs/i18n',
             {
-                strategy: 'prefix_except_default',
+                strategy: 'no_prefix',
                 defaultLocale: 'en',
                 fallbackLocale: "en",
                 locales: [
@@ -198,7 +198,8 @@ const config: NuxtConfig = {
     alias: {
         'helper': resolve(__dirname, './helper'),
         'store': resolve(__dirname, './store'),
-        'types': resolve(__dirname, './types')
+        'types': resolve(__dirname, './types'),
+        'components': resolve(__dirname, './components')
     }
 };
 
