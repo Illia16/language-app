@@ -1,6 +1,5 @@
 <template>
     <div class="language-app-site">
-        <!-- <NavMenu v-if="!store.lessonStarted" /> -->
         <NavMenu />
         <NuxtPage />
     </div>
@@ -9,6 +8,15 @@
 <script setup lang="ts">
 import { useMainStore } from 'store/main';
 const store = useMainStore();
+const route = useRoute()
+
+watch(route, function() {
+    // stop lesson if during lesson user navigates anywhere else
+    if (store.lessonStarted) {
+        store.setLessonStarted(false);
+    }
+});
+
 </script>
 
 <style lang="scss">

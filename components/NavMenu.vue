@@ -1,10 +1,6 @@
 <template>
     <ul class="main-menu">
         <li v-if="$route.path !== '/'">
-            <!-- <NuxtLink :to="localePath('/')">
-                <span class="sr-only">{{t('goToHome')}}</span>
-                <img src="../assets/images/lesson-icon.svg" width="40" height="25" alt="" />
-            </NuxtLink> -->
             <NuxtLink to="/">
                 <span class="sr-only">{{t('goToHome')}}</span>
                 <img src="../assets/images/lesson-icon.svg" width="40" height="25" alt="" />

@@ -44,9 +44,6 @@
         <div id="mode" class="mode">
             <h2>{{ t('modeTitle') }}</h2>
             <div v-for="(mode, i) of ['wordTranslation', 'translationWord', 'wordTranslationMPChoice', 'translationWordMPChoice', 'sentenceWordTranslation', 'sentenceTranslationWord', 'random']" :key="`${mode}'_'${i}`" class='mode-radio' tabindex="0">
-                <!-- // (mode, i) of lessonType === 'words'
-                // ? ['wordTranslation', 'translationWord', 'wordTranslationMPChoice', 'translationWordMPChoice', 'random']
-                // : ['wordTranslation', 'translationWord', 'wordTranslationMPChoice', 'translationWordMPChoice', 'sentenceWordTranslation', 'sentenceTranslationWord', 'random']" :key="i" class="mode-radio" tabindex="0"> -->
                 <label>
                     <input
                         tabindex="-1"
@@ -140,7 +137,7 @@
             </div>
 
             <!--MODE: Sentence Builer -->
-            <template v-if="lessonType !== 'words' && (currentQuestion.mode === 'sentenceWordTranslation' || currentQuestion.mode === 'sentenceTranslationWord')">
+            <template v-if="currentQuestion.mode === 'sentenceWordTranslation' || currentQuestion.mode === 'sentenceTranslationWord'">
                 <div class="my-5 flex justify-center flex-wrap">
                     <button
                         @click="userAnswer ? userAnswer = userAnswer + ' ' + word : userAnswer = word"
@@ -234,29 +231,6 @@ const numQuestionsSelected = ref<number>(0); // num of questions in the lesson s
 
 const initData = computed<ArrayOfUserData>((): ArrayOfUserData =>  store.userLangData
     .filter(el => el.languageStudying === route.params.lang)
-    // .filter(el => el) as ArrayOfUserData
-    // .reduce(function (acc, cv, i, arr) {
-    //     const allItemTypes = v_selecteditemType.value[cv.itemType];
-    //     const allItemTypesCategories = v_selecteditemTypeCategory.value[cv.itemTypeCategory];
-    //     console.log('---------------------------');        
-    //     // console.log('allItemTypes', allItemTypes);
-    //     // console.log('allItemTypesCategories', allItemTypesCategories);
-    //     // console.log('acc', acc);
-    //     // console.log('cv.itemTypeCategory', cv.itemTypeCategory);
-    //     // console.log('v_selecteditemType.value', v_selecteditemType.value);
-    //     // console.log('v_selecteditemTypeCategory.value', v_selecteditemTypeCategory.value);
-    //     // console.log('cv', cv);
-    //     // console.log('arr', arr);
-    //     if (allItemTypes && !allItemTypesCategories) {
-    //         acc.push(cv);
-    //     }
-
-    //     if (allItemTypes && allItemTypesCategories) {
-    //         console.log('cv.itemTypeCategory TOP AND BOTTOM', cv.itemTypeCategory);
-    //         acc.push(cv);
-    //     }
-    //     return acc;
-    // }, [])
     .filter((el, i, arr) => {
         return v_selecteditemType.value[el.itemType] && v_selecteditemTypeCategory.value[el.itemTypeCategory] 
         || v_selecteditemType.value[el.itemType] && !v_selecteditemTypeCategory.value[el.itemTypeCategory] && v_selecteditemTypeCategory.value[el.itemTypeCategory]
@@ -271,7 +245,7 @@ const initData = computed<ArrayOfUserData>((): ArrayOfUserData =>  store.userLan
             return el;
         }
     })
-    .filter(el => el)
+    .filter(el => el) as ArrayOfUserData
 );
 
 const numQuestions = computed<number[]>(() => {
