@@ -3,6 +3,7 @@
   "scripts": {
     "build": "nuxt build",
     "start": "nuxt dev --dotenv .env.test",
+    "generate": "nuxt generate --dotenv .env.test",
     "generate:test": "nuxt generate --dotenv .env.test",
     "generate:prod": "nuxt generate --dotenv .env.prod",
     "preview": "nuxt preview",

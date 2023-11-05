@@ -7,6 +7,16 @@
     input {
         @apply border border-black w-full text-center text-xl py-1;
     }
+
+    .field-error {
+        @apply hidden;
+    }
+
+    &.error {
+        .field-error {
+            @apply block text-red-500 font-bold;
+        }
+    }
 }
 
 .list-items {

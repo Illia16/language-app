@@ -2,13 +2,15 @@
     <div class="main-page">        
         <form id="user_login" v-if="!store.userLangData.length">
             <div class="form_el">
-                <label>{{ t('username') }}:</label>
-                <input type="text" v-model="user" />
+                <label for="username">{{ t('username') }}:</label>
+                <input type="text" name="username" v-model="user" />
+                <span class="field-error">{{userErrMsg}}</span>
             </div>
 
             <div class="form_el">
-                <label>{{ t('password') }}:</label>
-                <input type="password" v-model="password" />
+                <label for="password">{{ t('password') }}:</label>
+                <input type="password" name="password" v-model="password" />
+                <span class="field-error">{{ passwordErrMsg }}</span>
             </div>
 
             <button type="button" @click="getUserData" class="custom-button-link">
@@ -46,6 +48,8 @@ useHead({
 
 const user = ref<string>('');
 const password = ref<string>('');
+const userErrMsg = ref<string>('');
+const passwordErrMsg = ref<string>('');
 const userLanguagesInProgress = computed<string[]>(() => store.userLangData.reduce(function (accumulator:string[], currentValue:UserData) {
     if (!accumulator.includes(currentValue.languageStudying)){
         accumulator.push(currentValue.languageStudying)
@@ -54,18 +58,35 @@ const userLanguagesInProgress = computed<string[]>(() => store.userLangData.redu
 }, []))
 
 const getUserData = async () => {
+    document.querySelectorAll('.form_el').forEach(el=>el.classList.remove('error'))
+
     if (!user.value || !password.value) {
+        if (!user.value) {
+            userErrMsg.value = t('userNameEmptyErr')
+            document.querySelector('.form_el input[name="username"')?.parentElement?.classList.add('error')
+        }
+        
+        if (!password.value) {
+            passwordErrMsg.value = t('passwordNameEmptyErr')
+            document.querySelector('.form_el input[name="password"')?.parentElement?.classList.add('error')
+        }
+
         return
     }
-    
+
     const res = await fetch(`${config.public.apiUrl}/${config.public.envName}/study-items?user=${user.value}`)
     .then(res => res.json());
 
     console.log('res', res);
-    store.setUserLangData(res);
-    store.setCurrentUserName(user.value);
-    const userMortherTongue = store.userLangData[0].languageMortherTongue;
-    setLocale(userMortherTongue);
+    if (res && res.length) {
+        store.setUserLangData(res);
+        store.setCurrentUserName(user.value);
+        const userMortherTongue = store.userLangData[0].languageMortherTongue;
+        setLocale(userMortherTongue);
+    } else {
+        userErrMsg.value = t('noUserFoundErr')
+        document.querySelector('.form_el input[name="username"')?.parentElement?.classList.add('error')
+    }
 }
 
 // NUXT SERVER
@@ -116,15 +137,24 @@ onMounted(() => {
         submit: 'Login'
         username: 'Username'
         password: 'Password'
+        userNameEmptyErr: 'Please, enter your username'
+        passwordNameEmptyErr: 'Please, enter your password'
+        noUserFoundErr: 'No user found'
         languageMenuTitle: "Select the language you're learning"
     ru:
         submit: 'Войти'
         username: 'Логин'
         password: 'Пароль'
+        userNameEmptyErr: 'Пожалуйста, введите ваш логин'
+        passwordNameEmptyErr: 'Пожалуйста, введите ваш пароль'
+        noUserFoundErr: 'Пользователь не найден'
         languageMenuTitle: 'Выбирите язык который изучаете'
     zh:
         submit: 'TBD'
         username: 'TBD'
         password: 'TBD'
+        userNameEmptyErr: 'TBD'
+        passwordNameEmptyErr: 'TBD'
+        noUserFoundErr: 'TBD'
         languageMenuTitle: 'TBD'
 </i18n>
