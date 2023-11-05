@@ -4,7 +4,7 @@
             <span class="sr-only">Close modal</span>
         </button>
         <div class="modal-shadow"></div>
-        <div class="modal-content">
+        <div  ref="modalRef" class="modal-content">
             <slot />
         </div>
     </div>
@@ -14,6 +14,7 @@
 import { useMainStore } from 'store/main'
 const store = useMainStore()
 const emit = defineEmits(["closeCallback"])
+const modalRef = ref<HTMLElement>(null);
 
 const closeModal = () => {
     store.setModalOpen(false)
@@ -23,18 +24,22 @@ const closeModal = () => {
 
 onMounted(() => {
     document.body.classList.add('lock-scroll')
+    document.addEventListener('mousedown', clickOutside);
 })
 
 onBeforeUnmount(() => {
     document.body.classList.remove('lock-scroll')
+    document.removeEventListener('mousedown', clickOutside);
 })
 
+const clickOutside = (e: Event):void => {    
+    if (!modalRef.value.contains(e.target as HTMLElement)) store.setModalOpen(false)
+}
 </script>
-
 
 <style lang="scss">
     .modal-close-btn {
-        @apply fixed top-[12vh] right-[5%] z-20 w-12 h-12 rounded-3xl bg-[#fffaf6] border-solid border-4 border-mainGreen;
+        @apply fixed top-[8vh] right-[5%] z-20 w-12 h-12 rounded-3xl bg-[#fffaf6] border-solid border-4 border-mainGreen;
 
         &:before {
             content: "X";
@@ -45,7 +50,11 @@ onBeforeUnmount(() => {
         @apply fixed bg-slate-300 opacity-75 inset-0;
     }
     .modal-content {
-        @apply fixed bg-[#fffaf6] border-solid border-8 border-mainGreen top-[15vh] p-3 rounded-3xl overflow-y-scroll max-h-[70vh] w-[90%] right-[5%];
+        @apply fixed bg-[#fffaf6] border-solid border-8 border-mainGreen top-[10vh] p-3 rounded-3xl overflow-y-scroll max-h-[80vh] w-[90%] right-[5%];
+    }
+
+    .lock-scroll {
+        @apply overflow-hidden;
     }
 </style>
 

@@ -1,32 +1,33 @@
 <template>
-    <ul class="main-menu">
-        <li v-if="$route.path !== '/'">
-            <NuxtLink to="/" class="custom-button-link-secondary">
-                {{t('goToHome')}}
-            </NuxtLink>
-        </li>
-        <li v-if="store.userLangData && store.userLangData.length && $route.path !== '/profile'">
-            <NuxtLink class="custom-button-link-secondary" to="/profile">{{t('myProfile')}}</NuxtLink>
-        </li>
-        <li v-if="isLogoutLinkShown">
-            <button @click="store.setUserLangData([]), navigateTo('/')" class="custom-button-link-secondary">
-                {{ t('logout') }}
-            </button>
-        </li>
-    </ul>
+    <nav>
+        <ul v-if="!store.lessonStarted" class="main-menu">
+            <li v-if="$route.path !== '/'">
+                <NuxtLink to="/" class="custom-button-link-secondary">
+                    {{t('goToHome')}}
+                </NuxtLink>
+            </li>
+            <li v-if="store.userLangData && store.userLangData.length && $route.path !== '/profile'">
+                <NuxtLink class="custom-button-link-secondary" to="/profile">{{t('myProfile')}}</NuxtLink>
+            </li>
+            <li v-if="isLogoutLinkShown">
+                <button @click="store.setUserLangData([]), navigateTo('/')" class="custom-button-link-secondary">
+                    {{ t('logout') }}
+                </button>
+            </li>
+        </ul>
+    </nav>
 </template>
 
 <script lang="ts" setup>
 import { useMainStore } from 'store/main';
 const route = useRoute()
-const localePath = useLocalePath()
 const { t } = useI18n({
   useScope: 'local'
 })
 const store = useMainStore();
 
-const isLogoutLinkShown = computed<boolean>(() => {
-    return store.userLangData && store.userLangData.length && (route.path === '/' || route.path === '/profile');
+const isLogoutLinkShown = computed<boolean>(():boolean => {
+    return store.userLangData && store.userLangData.length > 0 && (route.path === '/' || route.path === '/profile');
 })
 
 </script>

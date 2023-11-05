@@ -1,5 +1,5 @@
 <template>
-    <div id="grammar">
+    <section id="grammar">
         <h2>{{ t('tenses') }}</h2>
         <Table class="grammar-table">
             <li>
@@ -55,7 +55,7 @@
                 <GrammarRules :rule="grammarRule" />
             </Modal>
         </teleport>
-    </div>
+    </section>
 </template>
 
 

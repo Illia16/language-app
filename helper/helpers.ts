@@ -18,7 +18,7 @@ export const getLesson = (m:string, lessonData: WordTranslationArrayOfObj): Word
     return sortArray(lessonData) as WordTranslationArrayOfObj;
 }
 
-export const getQuestion = (m: string, lessonData: WordTranslationArrayOfObj, currentQuestionNum: number, lessonType: string): Question => {    
+export const getQuestion = (m: string, lessonData: WordTranslationArrayOfObj, currentQuestionNum: number): Question => {    
     const handleQuestion = (m: string, lessonData: WordTranslationArrayOfObj, currentQuestionNum: number): Question => {        
         const questionAnswer = {} as Question;
         const q = lessonData[currentQuestionNum-1];
@@ -31,6 +31,7 @@ export const getQuestion = (m: string, lessonData: WordTranslationArrayOfObj, cu
         questionAnswer.id = q.itemID;
         questionAnswer.mode = m;
         questionAnswer.rule = q.itemTypeCategory;
+        questionAnswer.level = q.level;
 
         if (m === 'wordTranslationMPChoice') {            
             questionAnswer.all = fillMpChoiceArray(lessonData, q,  questionAnswer.qAnswer, 'itemCorrect');
@@ -47,14 +48,14 @@ export const getQuestion = (m: string, lessonData: WordTranslationArrayOfObj, cu
     if (m !== 'random') {
         return handleQuestion(m, lessonData, currentQuestionNum);
     } else {
-        const randomMode = getRandomMode(lessonType);
+        const randomMode = getRandomMode(m);
         return handleQuestion(randomMode, lessonData, currentQuestionNum);
     }
 }
 
 // function to get a random mode
-const getRandomMode = (lessonType: string):string => {
-    const allModes: string[] = lessonType === 'words'
+const getRandomMode = (mode: string):string => {
+    const allModes: string[] = mode === 'words'
         ? ['wordTranslation', 'translationWord', 'wordTranslationMPChoice', 'translationWordMPChoice']
         : ['wordTranslation', 'translationWord', 'wordTranslationMPChoice', 'translationWordMPChoice', 'sentenceWordTranslation', 'sentenceTranslationWord'];
     const randomIndex:number = Math.floor(Math.random()*allModes.length);

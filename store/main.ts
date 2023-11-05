@@ -1,12 +1,10 @@
 import { defineStore } from "pinia";
-import { UserData, ArrayOfUserData } from 'types/helperTypes';
+import { ArrayOfUserData } from 'types/helperTypes';
 
 export const useMainStore = defineStore('main-store', {
     state: () => ({
         modalType: '',
         modalOpen: false,
-        lang: '',
-        lessonType: "123",
         lessonStarted: false,
         currentUserName: '',
         userLangData: [] as ArrayOfUserData, 
@@ -17,12 +15,6 @@ export const useMainStore = defineStore('main-store', {
         },
         setModalOpen(v: boolean) {
             this.modalOpen = v;
-        },
-        setLang(lang: string) {
-            this.lang = lang;
-        },
-        setLessonType(i: string) {
-            this.lessonType = i;
         },
         setLessonStarted(v: boolean) {
             this.lessonStarted = v;

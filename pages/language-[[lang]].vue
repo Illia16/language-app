@@ -1,66 +1,63 @@
 <template>
-    <p>{{ $route.params.lang }}</p>
-
     <template v-if="!store.lessonStarted">
         <Grammar v-if="$route.params.lang === 'en'" />
-        <div id="learning-data" class="learning-data">
-            <h2>{{ t('selectExercise') }}</h2>
-            <div v-for="(itemTypeEl, i) of itemType" :key="i" class="exercise-checkbox" tabindex="0">
-                <label>
-                    <input
+        <section class="learning-data">
+            <div class="learning-data--itemType">
+                <h2>{{ t('selectExercise') }}</h2>
+                <div v-for="(itemTypeEl, i) of itemType" :key="i" class="exercise-checkbox" tabindex="0">
+                    <label>
+                        <input
                         tabindex="-1"
                         class="sr-only"
                         type="checkbox"
                         :name="itemTypeEl"
                         v-model="v_selecteditemType[itemTypeEl]" />
-                    <span class="checkbox-bg"></span>
-                    <span class="input-name">
-                        {{itemTypeEl}}
-                        <!-- {{t(exercise.val)}}
-                        ({{t(exercise.val, 0, { locale: 'en' })}}) -->
-                    </span>
-                </label>
+                        <span class="checkbox-bg"></span>
+                        <span class="input-name">
+                            {{itemTypeEl}}
+                        </span>
+                    </label>
+                </div>
             </div>
             
-            <h2>{{ t('selectSubExercise') }}</h2>
-            <div v-for="(itemTypeCategoryEl, i) of itemTypeCategory" :key="i" class="exercise-checkbox" tabindex="0">
-                <label>
-                    <input
-                        tabindex="-1"
-                        class="sr-only"
-                        type="checkbox"
-                        :name="itemTypeCategoryEl"
-                        v-model="v_selecteditemTypeCategory[itemTypeCategoryEl]" />
-                    <span class="checkbox-bg"></span>
-                    <span class="input-name">
-                        {{itemTypeCategoryEl}}
-                        <!-- {{t(exercise.val)}}
-                        ({{t(exercise.val, 0, { locale: 'en' })}}) -->
-                    </span>
-                </label>
+            <div class="learning-data--itemTypeCategory">
+                <h2>{{ t('selectSubExercise') }}</h2>
+                <div v-for="(itemTypeCategoryEl, i) of itemTypeCategory" :key="i" class="exercise-checkbox" tabindex="0">
+                    <label>
+                        <input
+                            tabindex="-1"
+                            class="sr-only"
+                            type="checkbox"
+                            :name="itemTypeCategoryEl"
+                            v-model="v_selecteditemTypeCategory[itemTypeCategoryEl]" 
+                        />
+                        <span class="checkbox-bg"></span>
+                        <span class="input-name">
+                            {{itemTypeCategoryEl}}
+                        </span>
+                    </label>
+                </div>
             </div>
-        </div>
 
-        <div id="mode" class="mode">
-            <h2>{{ t('modeTitle') }}</h2>
-            <div v-for="(mode, i) of ['wordTranslation', 'translationWord', 'wordTranslationMPChoice', 'translationWordMPChoice', 'sentenceWordTranslation', 'sentenceTranslationWord', 'random']" :key="`${mode}'_'${i}`" class='mode-radio' tabindex="0">
-                <label>
-                    <input
-                        tabindex="-1"
-                        class="sr-only"
-                        type="radio"
-                        name="mode"
-                        :value="mode"
-                        v-model="modeSelected"
-                    />
-                    <span class="radio-bg"></span>
-                    <span class="input-name">{{ t(mode) }}</span>
-                </label>
+            <div class="learning-data--mode">
+                <h2>{{ t('modeTitle') }}</h2>
+                <div v-for="(mode, i) of ['wordTranslation', 'translationWord', 'wordTranslationMPChoice', 'translationWordMPChoice', 'sentenceWordTranslation', 'sentenceTranslationWord', 'random']" :key="`${mode}'_'${i}`" class='mode-radio' tabindex="0">
+                    <label>
+                        <input
+                            tabindex="-1"
+                            class="sr-only"
+                            type="radio"
+                            name="mode"
+                            :value="mode"
+                            v-model="modeSelected"
+                        />
+                        <span class="radio-bg"></span>
+                        <span class="input-name">{{ t(mode) }}</span>
+                    </label>
+                </div>
             </div>
-        </div>
 
-        <template v-if="numQuestions && numQuestions.length">
-            <div id="number-of-q" class="number-of-q">
+            <div v-if="numQuestions && numQuestions.length" class="learning-data--numQuestions">
                 <h2 v-html="t('numberQ')"></h2>
                 <div v-for="(number, key) of numQuestions" :key="`number-of-q-key-${key}`" class="num-of-q-checkbox" tabindex="0">
                     <label>
@@ -77,49 +74,50 @@
                     </label>
                 </div>
             </div>
-        </template>
+        </section>
 
         <button class="custom-button-link" @click="store.setLessonStarted(true)" :disabled="initData.every(el => !el) || numQuestionsSelected < 1">
             {{ t('startBtn') }}
         </button>
     </template>
 
-    <template v-if="store.lessonStarted">
-        <p :class="[`min-h-[55px] text-center flex justify-center items-center ${isCorrect(currentQuestion, userAnswer) ? 'correct-answer' : 'incorrect-answer'}`]">
+    <section v-if="store.lessonStarted" class="lesson-started">
+        <p :class="[`${isCorrect(currentQuestion, userAnswer) ? 'correct-answer' : 'incorrect-answer'}`]">
             <template v-if="currentQuestionAnswered">
                 {{isCorrect(currentQuestion, userAnswer) ? "Correct!" : "Incorrect, correct answer is: " + currentQuestion?.qAnswer}}
             </template>
         </p>
 
-        <div class="my-4">
-            <div class="text-center mb-4">
-                {{ t('questionNumber', { currentQuestionNum: currentQuestionNum, lessonDataLength: lessonData?.length }) }}
-            </div>
-
-            <div class="text-center">
-                <button @click="store.setModalOpen(true); store.setModalType('grammar')" class="bg-mainGreen text-white py-1 px-3">{{ t('rules') }}</button>
+        <div>
+            <div class="flex flex-col items-center text-center mb-8 space-y-2">
+                <span>
+                    {{ t('questionNumber', { currentQuestionNum: currentQuestionNum, lessonDataLength: lessonData?.length }) }}
+                </span>
+                <button @click="store.setModalOpen(true); store.setModalType('grammar')" class="bg-mainGreen text-white py-1 px-1">{{ t('rules') }}</button>
             </div>
 
             <div class="text-center mb-4">
                 {{ t('question') }}
-                <span class="flex justify-center min-h-[50px]">
+                <span class="flex justify-center text-2xl">
                     <span :class="!currentQuestionAnswered ? 'animated-text' : 'font-bold'">{{currentQuestion.question}}</span>
                 </span>
             </div>
 
-            <div class="text-center">{{ t('yourAnswer') }}</div>
-            <div class="min-h-[40px] text-center font-bold">{{userAnswer}}</div>
+            <!-- <div class="text-center mb-4">
+                <div class="text-center">{{ t('yourAnswer') }}</div>
+                <div class="min-h-[40px] text-center font-bold text-2xl">{{userAnswer}}</div>
+            </div> -->
 
             <!--MODE: Write text -->
-            <div class="my-3" v-if="currentQuestion.mode === 'wordTranslation' || currentQuestion.mode === 'translationWord'">
+            <div class="form_el" v-if="currentQuestion.mode === 'wordTranslation' || currentQuestion.mode === 'translationWord'">
                 <label>
-                    <input type="text" v-model="userAnswer" class="border border-black p-4 w-full text-center" />
+                    <input type="text" v-model="userAnswer" class="border border-black p-4 w-full text-center" :placeholder="t('yourAnswer')" />
                 </label>
             </div>
 
             <!--MODE: Multiple Choice -->
             <div class="my-3" v-if="currentQuestion.mode === 'wordTranslationMPChoice' || currentQuestion.mode === 'translationWordMPChoice'">
-                <div v-for="(q, key) of currentQuestion.all" :key="`mp-choice-q-key-${key}`" class="num-of-q-checkbox" tabindex="0">
+                <div v-for="(q, key) of currentQuestion.all" :key="`mp-choice-q-key-${key}`" class="mp-choice-checkbox" tabindex="0">
                     <label :class="[`inline-block border border-mainGreen ${currentQuestionAnswered ? 'opacity-25' : ''}`]">
                         <input
                             tabindex="-1"
@@ -148,7 +146,7 @@
                         {{word}}
                     </button>
                 </div>
-                <button class="custom-button-link" @click="userAnswer = ''" :disabled="!userAnswer || currentQuestionAnswered">
+                <button class="custom-button-link-secondary" @click="userAnswer = ''" :disabled="!userAnswer || currentQuestionAnswered">
                     {{ t('clearBtn') }}
                 </button>
             </template>
@@ -169,11 +167,6 @@
             </li>
         </ul>
 
-
-        <button class="custom-button-link" @click="store.setLessonStarted(false)">
-            End lesson.
-        </button>
-
         <teleport to="body">
             <Modal v-if="store.modalOpen && store.modalType === 'grammar'">
                 <GrammarRules :rule="currentQuestion.rule" />
@@ -185,7 +178,7 @@
                 <LessonReport :report="report" :numOfCorrectAnswers="numOfCorrectAnswers" />
             </Modal>
         </teleport>
-    </template>
+    </section>
 </template>
 
 
@@ -250,12 +243,10 @@ const initData = computed<ArrayOfUserData>((): ArrayOfUserData => store.userLang
 
 const numQuestions = computed<number[]>(() => {
     return  [
-        initData.value.length >= 5 ? 5 : 0,
+        initData.value.length < 5 && initData.value.length >= 3 ? 3 : 0,
+        initData.value.length >= 5 ? 5 : 0, 
         initData.value.length >= 10 ? 10 : 0,
-        initData.value.length >= 20 ? 20 : 0,
-        initData.value.length >= 30 ? 30 : 0,
-        Math.round(initData.value.length / 2),
-        initData.value.length
+        initData.value.length >= 15 ? 15 : 0,
     ]
     .filter(el=>el)
 }) // number of questions generated based on how many exersises available
@@ -277,7 +268,7 @@ onMounted(() => {
 
 watch(currentQuestionNum, function() {
     if (lessonData.value && lessonData.value.length) {
-        currentQuestion.value = getQuestion(modeSelected.value, lessonData.value, currentQuestionNum.value, modeSelected.value);
+        currentQuestion.value = getQuestion(modeSelected.value, lessonData.value, currentQuestionNum.value);
     }
 });
 
@@ -321,6 +312,8 @@ const check = ():void => {
         recordUserAnswer(false, userAnswer.value, currentQuestion.value);
     } else {
         console.log('correct...');
+        console.log('currentQuestion', currentQuestion.value);
+        
         currentQuestionAnswered.value = true;
         recordUserAnswer(true, userAnswer.value, currentQuestion.value);
         numOfCorrectAnswers.value = numOfCorrectAnswers.value + 1;
@@ -328,12 +321,13 @@ const check = ():void => {
 };
 
 // recording answers, their correctness for report at the end and updating API.
-const recordUserAnswer = (correct: boolean, userAnswer: string, { qAnswer, question, id }:RecordUserAnswerDestructured ):void => {
+const recordUserAnswer = (correct: boolean, userAnswer: string, { qAnswer, question, id, level }:RecordUserAnswerDestructured ):void => {
     const r:Report = {} as Report;
     r.question = question;
     r.userAnswer = userAnswer;
     r.correctAnswer = qAnswer;
     r.id = id;
+    r.level = level;
 
     if (correct) {
         r.isCorrect = true;
@@ -358,7 +352,7 @@ watch(() => store.lessonStarted, (v) => {
         console.log('__lessonData.value', lessonData.value);
         
         if (lessonData.value && lessonData.value.length) {
-            currentQuestion.value = getQuestion(modeSelected.value, lessonData.value, currentQuestionNum.value, modeSelected.value);
+            currentQuestion.value = getQuestion(modeSelected.value, lessonData.value, currentQuestionNum.value);
         }
     } else {
         lessonData.value = [];
@@ -374,11 +368,30 @@ watch(() => store.lessonStarted, (v) => {
 </script>
 
 <style lang="scss">
+section {
+    @apply w-full my-4;
 
-.learning-data,
-.mode,
-.number-of-q {
-    @apply pb-12;
+    &#grammar {
+        @apply space-y-4;
+
+        h2 {
+            @apply text-center;
+        }
+    }
+
+    &.learning-data {
+        h2 {
+            @apply mb-4;
+        }
+    }
+
+    &.lesson-started {
+        @apply my-0;
+
+        p {
+            @apply min-h-[55px] text-center flex justify-center items-center;
+        }
+    }
 }
 
 .lesson-btns {
@@ -390,23 +403,28 @@ watch(() => store.lessonStarted, (v) => {
 }
 
 .animated-text {
-    @apply font-bold whitespace-nowrap w-0 overflow-hidden;
-    animation: print 3s steps(25) forwards;
+    @apply font-bold;
+    animation: show 2s;
 }
 
-@keyframes print {
+@keyframes show {
     from {
-        @apply w-0;
+        @apply opacity-0;
     }
     to {
-        @apply w-full whitespace-normal;
+        @apply opacity-100;
     }
 }
 
-.num-of-q-checkbox {
+.mp-choice-checkbox {
+    @apply mb-2;
+
+    label {
+        @apply w-full;
+    }
 
     .tense-name {
-        @apply flex p-2;
+        @apply flex p-2 w-full;
 
     }
     input:checked ~ .tense-name {
@@ -432,14 +450,14 @@ watch(() => store.lessonStarted, (v) => {
         startBtn: 'Start'
         questionNumber: 'Question number is {currentQuestionNum} out of {lessonDataLength}'
         question: 'Question:'
-        yourAnswer: 'Your answer:'
+        yourAnswer: 'Your answer'
         clearBtn: 'Clear'
         checkBtn: 'Check'
         nextQBtn: 'Next question'
-        rules: 'Rules'
+        rules: 'Hint'
     ru:
         selectExercise: 'Выберите упражнение или несколько упражнений:'
-        selectSubExercise: 'TBD'
+        selectSubExercise: 'Выберите под-секцию:'
         modeTitle: 'Выберите режим обучения'
         numberQ: 'Выберите количество вопросов:'
         wordTranslation: 'Написание: Перевод с английского'
@@ -452,11 +470,11 @@ watch(() => store.lessonStarted, (v) => {
         startBtn: "Начать"
         questionNumber: 'Номер вопроса {currentQuestionNum} из {lessonDataLength}'
         question: 'Вопрос:'
-        yourAnswer: 'Ваш ответ:'
+        yourAnswer: 'Ваш ответ'
         clearBtn: 'Очистить'
         checkBtn: 'Проверить'
         nextQBtn: 'Следующий вопрос'
-        rules: 'Правила'
+        rules: 'Подсказка'
     zh:
         selectExercise: 'TBD'
         selectSubExercise: 'TBD'
@@ -472,10 +490,10 @@ watch(() => store.lessonStarted, (v) => {
         startBtn: "开始"
         questionNumber: '问题编号 {currentQuestionNum} out of {lessonDataLength}'
         question: '问题:'
-        yourAnswer: '你的答案:'
+        yourAnswer: '你的答案'
         clearBtn: '清除'
         checkBtn: '检查'
         nextQBtn: '下一个问题'
-        rules: '规则'
+        rules: 'TBD'
 </i18n>
     

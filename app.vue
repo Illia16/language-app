@@ -29,8 +29,4 @@ watch(route, function() {
             }
         }
     }
-
-    .lock-scroll {
-        @apply overflow-hidden;
-    }
 </style>

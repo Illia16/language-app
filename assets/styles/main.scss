@@ -4,12 +4,8 @@
 
 
 .form_el {
-    label {
-
-    }
-
     input {
-        @apply border border-black w-full text-center text-xl;
+        @apply border border-black w-full text-center text-xl py-1;
     }
 }
 
@@ -25,8 +21,10 @@
         @apply bg-mainGreen py-1 px-2 m-2 min-w-0;
     }
 
-    &:hover {
-        @apply bg-transparent text-mainGreen border-mainGreen border-2;
+    &:not([disabled]) {
+        &:hover {
+            @apply bg-transparent text-mainGreen border-mainGreen border-2;
+        }
     }
 }
 
@@ -52,37 +50,32 @@ h2 {
 }
 
 .mode-radio,
+.mp-choice-checkbox,
+.exercise-checkbox {
+    label {
+        @apply h-10;
+    }
+}
+
+.mode-radio,
 .num-of-q-checkbox,
 .exercise-checkbox {
-    @apply py-3;
+    @apply mb-2;
+
     label {
-        @apply relative;
+        @apply relative flex items-center;
 
         input {
             ~ .radio-bg,
             ~ .checkbox-bg {
                 &::before {
                     content: '';
-                    position: absolute;
-                    left: 0;
-                    top: 0;
-                    width: 20px;
-                    height: 20px;
-                    border: 1px solid #000;
-                    background: #fff;
+                    @apply absolute left-0 top-0 w-10 h-10 border-mainGreen border bg-white;
                 }
 
                 &::after {
                     content: '';
-                    width: 14px;
-                    height: 14px;
-                    background: #000;
-                    position: absolute;
-                    top: 3px;
-                    left: 3px;
-                    -webkit-transition: all 0.2s ease;
-                    transition: all 0.2s ease;
-                    opacity: 0;
+                    @apply w-8 h-8 bg-mainGreen absolute top-[calc(2.5rem/2-2rem/2)] left-[calc(2.5rem/2-2rem/2)] opacity-0;
                 }
             }
 
@@ -97,7 +90,7 @@ h2 {
         }
 
         .input-name {
-            @apply pl-7;
+            @apply pl-14;
         }
     }
 }

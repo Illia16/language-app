@@ -18,8 +18,8 @@ export interface WordTranslation {
     rule: string;
     wrongAnswers?: string[];
     wrongAnswersMotherTongue?: string[];
-    id?: number;
-    [key: string]: string|number|undefined|Array<string>; // id will be number in the future
+    id: string;
+    [key: string]: string|number|undefined|Array<string>;
 };
 export interface WordTranslationArrayOfObj extends Array<WordTranslation> {};
 
@@ -27,12 +27,13 @@ export interface SortableArray extends Array<string | WordTranslation> {};
 
 export interface Question {
     all: string[];
-    id: number | undefined; // id will be number in the future
+    id: string;
     mode: string;
     qAnswer: string;
     question: string;
     splitted:  string[];
     rule: string;
+    level: string; 
 };
 
 export interface InitData {
@@ -45,16 +46,17 @@ export interface InitDataArrayOfObj extends Array<InitData> {};
 
 export interface Report {
     correctAnswer: string;
-    id: number | undefined; // id will be number in the future
+    id: string;
     isCorrect: boolean;
     question: string;
     userAnswer: string;
+    level: string; 
 };
 export interface ReportArrayOfObj extends Array<Report> {};
-
 
 export interface RecordUserAnswerDestructured {
     qAnswer: string;
     question: string;
-    id?: number | undefined;
+    id: string;
+    level: string;
 };

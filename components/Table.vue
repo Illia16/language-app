@@ -9,7 +9,7 @@
 
 <style lang="scss">
     ul.table {
-        @apply py-3 w-full;
+        @apply w-full;
         > li {
             > ul {
                 @apply text-center flex;
