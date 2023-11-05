@@ -229,9 +229,9 @@ const modeSelected = ref<string>('translationWordMPChoice');
 const numQuestionsSelected = ref<number>(0); // num of questions in the lesson selected by user dynamically based on how many questions are available
 
 
-const initData = computed<ArrayOfUserData>((): ArrayOfUserData =>  store.userLangData
+const initData = computed<ArrayOfUserData>((): ArrayOfUserData => store.userLangData
     .filter(el => el.languageStudying === route.params.lang)
-    .filter((el, i, arr) => {
+    .filter((el, i, arr) => {        
         return v_selecteditemType.value[el.itemType] && v_selecteditemTypeCategory.value[el.itemTypeCategory] 
         || v_selecteditemType.value[el.itemType] && !v_selecteditemTypeCategory.value[el.itemTypeCategory] && v_selecteditemTypeCategory.value[el.itemTypeCategory]
     })

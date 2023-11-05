@@ -1,22 +1,16 @@
 <template>
     <ul class="main-menu">
         <li v-if="$route.path !== '/'">
-            <NuxtLink to="/">
-                <span class="sr-only">{{t('goToHome')}}</span>
-                <img src="../assets/images/lesson-icon.svg" width="40" height="25" alt="" />
+            <NuxtLink to="/" class="custom-button-link-secondary">
+                {{t('goToHome')}}
             </NuxtLink>
         </li>
-        <li v-if="store.lang">
-            <button @click="store.setLang(''), navigateTo('/')" :aria-label="t('languageMenu')">
-                <img src="../assets/images/english-icon.svg" width="40" height="25" alt="" />
-            </button>
-        </li>
         <li v-if="store.userLangData && store.userLangData.length && $route.path !== '/profile'">
-            <NuxtLink class="custom-button-link" to="/profile">My profile</NuxtLink>
+            <NuxtLink class="custom-button-link-secondary" to="/profile">{{t('myProfile')}}</NuxtLink>
         </li>
-        <li v-if="store.userLangData && store.userLangData.length">
-            <button @click="store.setUserLangData([])" class="custom-button-link">
-                Logout
+        <li v-if="isLogoutLinkShown">
+            <button @click="store.setUserLangData([]), navigateTo('/')" class="custom-button-link-secondary">
+                {{ t('logout') }}
             </button>
         </li>
     </ul>
@@ -24,17 +18,22 @@
 
 <script lang="ts" setup>
 import { useMainStore } from 'store/main';
+const route = useRoute()
 const localePath = useLocalePath()
 const { t } = useI18n({
   useScope: 'local'
 })
 const store = useMainStore();
 
+const isLogoutLinkShown = computed<boolean>(() => {
+    return store.userLangData && store.userLangData.length && (route.path === '/' || route.path === '/profile');
+})
+
 </script>
 
 <style lang="scss">
     .main-menu {
-        @apply flex space-x-12;
+        @apply flex space-x-4;
 
         li {
             @apply flex items-center;
@@ -45,12 +44,18 @@ const store = useMainStore();
 
 <i18n lang="yaml">
     en:
-        goToHome: 'To all lessons'
+        myProfile: 'My profile'
+        logout: 'Logout'
+        goToHome: 'Homepage'
         languageMenu: 'Language menu'
     ru:
-        goToHome: 'Все уроки'
+        myProfile: 'Мой профиль'
+        logout: 'Выйти'
+        goToHome: 'Домашняя страница'
         languageMenu: 'Языковое меню'
     zh:
-        goToHome: '返回首页'
+        myProfile: 'TBD'
+        logout: 'TBD'
+        goToHome: 'TBD'
         languageMenu: '语言菜单'
 </i18n>

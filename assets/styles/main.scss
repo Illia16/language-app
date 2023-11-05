@@ -9,7 +9,7 @@
     }
 
     input {
-        @apply border border-black p-4 w-full text-center;
+        @apply border border-black w-full text-center text-xl;
     }
 }
 
@@ -23,6 +23,19 @@
 
     &.custom-button-link--mp-choice {
         @apply bg-mainGreen py-1 px-2 m-2 min-w-0;
+    }
+
+    &:hover {
+        @apply bg-transparent text-mainGreen border-mainGreen border-2;
+    }
+}
+
+.custom-button-link-secondary {
+    @apply underline;
+
+    &:hover,
+    &:focus {
+        @apply no-underline;
     }
 }
 

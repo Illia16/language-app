@@ -114,7 +114,13 @@ const config: NuxtConfig = {
                                 infinitive: '1st form (Infinitive)',
                                 past: '2nd form (Past)',
                                 pastParticiple: '3rd form (Participle)',
-                            }
+                            },
+                            get: 'Get',
+                            add: 'Add',
+                            update: 'Update',
+                            delete: 'Delete',
+                            confirm: 'Confirm',
+                            cancel: 'Cancel',
                         },
                         ru: {
                             mainMenu: {
@@ -150,6 +156,12 @@ const config: NuxtConfig = {
                                 past: '2 форма (Прошедшее)',
                                 pastParticiple: '3 форма (Причастие)',
                             },
+                            get: 'Найти',
+                            add: 'Добавить',
+                            update: 'Обновить',
+                            delete: 'Удалить',
+                            confirm: 'Подтвердить',
+                            cancel: 'Отменить',
                         },
                         zh: {
                             mainMenu: {
@@ -184,6 +196,12 @@ const config: NuxtConfig = {
                                 past: '2形式 (过去式)',
                                 pastParticiple: '3形式 (分词)',
                             },
+                            get: 'TBD',
+                            add: 'TBD',
+                            update: 'TBD',
+                            delete: 'TBD',
+                            confirm: 'TBD',
+                            cancel: 'TBD',
                         }
                     }
                 },

@@ -1,6 +1,6 @@
 import { WordTranslation, WordTranslationArrayOfObj, SortableArray, Question } from 'types/helperTypes';
 
-// Replaced () and all what's inside with empty string so that the hint is not included in the anwer
+// Replaced () and all what's inside with empty string so that the hint OR transcription is not included in the answer
 const replaceAllinsideParantheses = new RegExp(/\s*\([^)]*\)/);
 
 export const sortArray = (arr: SortableArray): SortableArray => {
