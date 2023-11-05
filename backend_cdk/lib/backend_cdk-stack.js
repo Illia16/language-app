@@ -18,6 +18,11 @@ class BackendCdkStack extends cdk.Stack {
       bucketName: `${props.env.projectName}-${props.env.stage}`,
     });
 
+    const myIam = new iam.Role(this, `iam-${props.env.projectName}-${props.env.stage}`, {
+        assumedBy: new iam.ServicePrincipal('lambda.amazonaws.com'),
+        roleName: `iam-${props.env.projectName}-${props.env.stage}`,
+    })
+
     // Basic Auth
     // const auth = new cloudfront.experimental.EdgeFunction(this, `auth--${props.env.projectName}-${props.env.stage}`, {
     //     runtime: lambda.Runtime.NODEJS_18_X,
@@ -83,18 +88,44 @@ class BackendCdkStack extends cdk.Stack {
       }
     });
 
+    myIam.attachInlinePolicy(new iam.Policy(this, `iamPolicy-${props.env.projectName}-${props.env.stage}`, {
+            statements: [
+                new iam.PolicyStatement({
+                    actions: ['dynamodb:Query', 'dynamodb:BatchWriteItem', 'dynamodb:UpdateItem'],
+                    // dynamodb:*
+                    // dynamodb:BatchGetItem
+                    // dynamodb:BatchWriteItem
+                    // dynamodb:ConditionCheckItem
+                    // dynamodb:DeleteItem
+                    // dynamodb:DescribeTable
+                    // dynamodb:GetItem
+                    // dynamodb:GetRecords
+                    // dynamodb:GetShardIterator
+                    // dynamodb:PutItem
+                    // dynamodb:Query
+                    // dynamodb:Scan
+                    // dynamodb:UpdateItem
+                    resources: [myTable.tableArn],
+                    effect: iam.Effect.ALLOW,
+                }),
+            ],
+        })
+    )
+
     const lambdaFnDynamoDb = new lambda.Function(this, `lambdaFnDynamoDb-${props.env.projectName}-${props.env.stage}`, {
         runtime: lambda.Runtime.NODEJS_18_X,
         handler: 'index.handler',
         code: lambda.Code.fromAsset(path.join(__dirname, 'dynamodb')),
         functionName: `lambdaFnDynamoDb-${props.env.projectName}-${props.env.stage}`,
+        role: myIam,
         environment: {
           env: props.env.stage,
           projectName: props.env.projectName,
         }
     });
 
-    myTable.grantReadWriteData(lambdaFnDynamoDb);
+    // the below line attaches all dynamodb actions to the created by default iam role. we don't want that.
+    // myTable.grantReadWriteData(lambdaFnDynamoDb);
 
     const myApi = new apiGateway.LambdaRestApi(this, `api-study-items--${props.env.projectName}-${props.env.stage}`, {
       handler: lambdaFnDynamoDb,
