@@ -50,6 +50,17 @@ class BackendCdkStack extends cdk.Stack {
       comment: `oai-${props.env.projectName}-${props.env.stage}`,
     });
 
+    websiteBucket.addToResourcePolicy(
+      new iam.PolicyStatement({
+        resources: [
+          websiteBucket.bucketArn, 
+          `${websiteBucket.bucketArn}/*`
+        ],
+        actions: ["s3:GetObject", "s3:ListBucket"],
+        principals: [new iam.ArnPrincipal('arn:aws:iam::cloudfront:user/CloudFront Origin Access Identity ELUW0TL0CILLB')],
+      })
+    )
+
     new cloudfront.CloudFrontWebDistribution(this, `cf-${props.env.projectName}-${props.env.stage}`, {
       originConfigs: [
         {
@@ -74,6 +85,18 @@ class BackendCdkStack extends cdk.Stack {
           ],
         },
       ],
+      errorConfigurations: [
+        {
+          errorCode: 404,
+          responseCode: 404,
+          responsePagePath: '/404.html'
+        },
+        {
+          errorCode: 403,
+          responseCode: 403,
+          responsePagePath: '/404.html'
+        }
+      ]
     });
 
     const myTable = new dynamoDb.TableV2(this, `db-${props.env.projectName}-${props.env.stage}`, {
