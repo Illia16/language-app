@@ -1,6 +1,6 @@
 <template>
     <template v-if="!store.lessonStarted">
-        <Grammar v-if="$route.params.lang === 'en'" />
+        <GrammarEng v-if="$route.params.lang === 'en'" />
         <section class="learning-data">
             <div class="learning-data--itemType">
                 <h2>{{ t('selectExercise') }}</h2>
@@ -88,79 +88,82 @@
             </template>
         </p>
 
-        <div>
-            <div class="flex flex-col items-center text-center mb-8 space-y-2">
-                <span>
-                    {{ t('questionNumber', { currentQuestionNum: currentQuestionNum, lessonDataLength: lessonData?.length }) }}
-                </span>
-                <button @click="store.setModalOpen(true); store.setModalType('grammar')" class="bg-mainGreen text-white py-1 px-1">{{ t('rules') }}</button>
-            </div>
-
-            <div class="text-center mb-4">
-                {{ t('question') }}
-                <span class="flex justify-center text-2xl">
-                    <span :class="!currentQuestionAnswered ? 'animated-text' : 'font-bold'">{{currentQuestion.question}}</span>
-                </span>
-            </div>
-
-            <!-- <div class="text-center mb-4">
-                <div class="text-center">{{ t('yourAnswer') }}</div>
-                <div class="min-h-[40px] text-center font-bold text-2xl">{{userAnswer}}</div>
-            </div> -->
-
-            <!--MODE: Write text -->
-            <div class="form_el" v-if="currentQuestion.mode === 'wordTranslation' || currentQuestion.mode === 'translationWord'">
-                <label>
-                    <input type="text" v-model="userAnswer" class="border border-black p-4 w-full text-center" :placeholder="t('yourAnswer')" />
-                </label>
-            </div>
-
-            <!--MODE: Multiple Choice -->
-            <div class="my-3" v-if="currentQuestion.mode === 'wordTranslationMPChoice' || currentQuestion.mode === 'translationWordMPChoice'">
-                <div v-for="(q, key) of currentQuestion.all" :key="`mp-choice-q-key-${key}`" class="mp-choice-checkbox" tabindex="0">
-                    <label :class="[`inline-block border border-mainGreen ${currentQuestionAnswered ? 'opacity-25' : ''}`]">
-                        <input
-                            tabindex="-1"
-                            class="sr-only"
-                            type="radio"
-                            name="number-of-q"
-                            :disabled="currentQuestionAnswered"
-                            :value="q"
-                            v-model="userAnswer"
-                        />
-                        <span></span>
-                        <span class="tense-name">{{q}}</span>
-                    </label>
-                </div>
-            </div>
-
-            <!--MODE: Sentence Builer -->
-            <template v-if="currentQuestion.mode === 'sentenceWordTranslation' || currentQuestion.mode === 'sentenceTranslationWord'">
-                <div class="my-5 flex justify-center flex-wrap">
-                    <button
-                        @click="userAnswer ? userAnswer = userAnswer + ' ' + word : userAnswer = word"
-                        v-for="(word, key) of currentQuestion.splitted"
-                        :key="`sentence-builer-q-key-${key}`"
-                        class="custom-button-link custom-button-link--mp-choice"
-                        :disabled="currentQuestionAnswered">
-                        {{word}}
-                    </button>
-                </div>
-                <button class="custom-button-link-secondary" @click="userAnswer = ''" :disabled="!userAnswer || currentQuestionAnswered">
-                    {{ t('clearBtn') }}
-                </button>
-            </template>
+        <div class="lesson-started--qNumHint">
+            <span>
+                {{ t('questionNumber', { currentQuestionNum: currentQuestionNum, lessonDataLength: lessonData?.length }) }}
+            </span>
+            <button @click="store.setModalOpen(true); store.setModalType('grammar')">{{ t('rules') }}</button>
         </div>
 
-        <ul class="my-12">
-            <li class="lesson-btns">
+        <div class="lesson-started--question">
+            <span>
+                {{ t('question') }}
+            </span>
+            <span class="lesson-started--question-text">
+                <span :class="!currentQuestionAnswered ? 'animated-text' : 'font-bold'">{{currentQuestion.question}}</span>
+            </span>
+        </div>
+
+        <!--MODE: Write text -->
+        <div class="form_el" v-if="currentQuestion.mode === 'wordTranslation' || currentQuestion.mode === 'translationWord'">
+            <label>
+                <input type="text" v-model="userAnswer" :placeholder="t('yourAnswer')" />
+            </label>
+        </div>
+
+        <!--MODE: Multiple Choice -->
+        <div class="lesson-started-mp-choice" v-if="currentQuestion.mode === 'wordTranslationMPChoice' || currentQuestion.mode === 'translationWordMPChoice'">
+            <div v-for="(q, key) of currentQuestion.all" :key="`mp-choice-q-key-${key}`" class="mp-choice-checkbox" tabindex="0">
+                <label :class="[`${currentQuestionAnswered ? 'lesson-started-mp-choice-answered' : ''}`]">
+                    <input
+                        tabindex="-1"
+                        class="sr-only"
+                        type="radio"
+                        name="number-of-q"
+                        :disabled="currentQuestionAnswered"
+                        :value="q"
+                        v-model="userAnswer"
+                    />
+                    <!-- <span></span> -->
+                    <span class="tense-name">{{q}}</span>
+                </label>
+            </div>
+        </div>
+
+        <!--MODE: Sentence Builer -->
+        <template v-if="currentQuestion.mode === 'sentenceWordTranslation' || currentQuestion.mode === 'sentenceTranslationWord'">
+            <div class="lesson-started--sentenceBuiler">
+                <button
+                    @click="userAnswer ? userAnswer = userAnswer + ' ' + word : userAnswer = word"
+                    v-for="(word, key) of currentQuestion.splitted"
+                    :key="`sentence-builer-q-key-${key}`"
+                    class="custom-button-link custom-button-link--mp-choice"
+                    :disabled="currentQuestionAnswered">
+                    {{word}}
+                </button>
+            </div>
+
+            <div class="lesson-started--sentenceBuiler-userAnswer">
+                <h4>{{ t('yourAnswer') }}</h4>
+                <div class="lesson-started--sentenceBuiler-userAnswer-dynamic">{{userAnswer}}</div>
+
+                <div class="lesson-started--sentenceBuiler-userAnswer-clearBtn">
+                    <button class="custom-button-link-secondary" @click="userAnswer = ''" :disabled="!userAnswer || currentQuestionAnswered">
+                        {{ t('clearBtn') }}
+                    </button>
+                </div>
+            </div>
+        </template>
+
+        <ul class="lesson-started--checkBtn-nextQBtn">
+            <li>
                 <button class="custom-button-link" @click="check" :disabled="!userAnswer || currentQuestionAnswered">
                     {{ t('checkBtn') }}
                 </button>
             </li>
 
 
-            <li class="lesson-btns" v-if="currentQuestionNum < lessonData?.length">
+            <li v-if="currentQuestionNum < lessonData?.length">
                 <button class="custom-button-link"  @click="nextQuestion" :disabled="!currentQuestionAnswered">
                     {{ t('nextQBtn') }}
                 </button>
@@ -169,7 +172,7 @@
 
         <teleport to="body">
             <Modal v-if="store.modalOpen && store.modalType === 'grammar'">
-                <GrammarRules :rule="currentQuestion.rule" />
+                <GrammarRulesEng v-if="$route.params.lang === 'en'" :rule="currentQuestion.rule" />
             </Modal>
         </teleport>
 
@@ -183,8 +186,8 @@
 
 
 <script lang="ts" setup>
-import Grammar from 'components/english/Grammar.vue';
-import GrammarRules from 'components/english/GrammarRules.vue';
+import GrammarEng from 'components/english/GrammarEng.vue';
+import GrammarRulesEng from 'components/english/GrammarRulesEng.vue';
 import { useMainStore } from 'store/main';
 import { getLesson, getQuestion, isCorrect } from 'helper/helpers';
 import { ArrayOfUserData, UserData , WordTranslationArrayOfObj, Question, ReportArrayOfObj, RecordUserAnswerDestructured, Report} from 'types/helperTypes'
@@ -243,7 +246,7 @@ const initData = computed<ArrayOfUserData>((): ArrayOfUserData => store.userLang
 
 const numQuestions = computed<number[]>(() => {
     return  [
-        initData.value.length < 5 && initData.value.length >= 3 ? 3 : 0,
+        initData.value.length < 5 && initData.value.length >= 1 ? 1 : 0,
         initData.value.length >= 5 ? 5 : 0, 
         initData.value.length >= 10 ? 10 : 0,
         initData.value.length >= 15 ? 15 : 0,
@@ -365,6 +368,13 @@ watch(() => store.lessonStarted, (v) => {
     }
 });
 
+onBeforeMount(() => {
+    document.body.classList.add(`language-learning--${route.params.lang}`)
+})
+
+onBeforeUnmount(() => {
+    document.body.classList.remove(`language-learning--${route.params.lang}`)
+})
 </script>
 
 <style lang="scss">
@@ -394,16 +404,7 @@ section {
     }
 }
 
-.lesson-btns {
-    @apply min-w-[175px];
-
-    button {
-        @apply mt-3 w-full;
-    }
-}
-
 .animated-text {
-    @apply font-bold;
     animation: show 2s;
 }
 
@@ -416,19 +417,97 @@ section {
     }
 }
 
-.mp-choice-checkbox {
-    @apply mb-2;
+.language-learning--en,
+.language-learning--zh {
+    .lesson-started {
+        .lesson-started--qNumHint {
+            @apply flex flex-col items-center text-center mb-8 space-y-2;
 
-    label {
-        @apply w-full;
+            button {
+                @apply bg-mainGreen text-white py-1 px-1;
+            }
+        }
+
+        .lesson-started--question {
+            @apply text-center mb-8;
+
+            .lesson-started--question-text {
+                @apply flex justify-center text-2xl;
+            }
+        }
+
+        // .form_el {
+        //     @apply border border-black p-4 w-full text-center;
+        // }
+
+        .lesson-started-mp-choice {
+            @apply my-3;
+
+            label {
+                @apply inline-block border border-mainGreen;
+                &.lesson-started-mp-choice-answered {
+                    @apply opacity-25;
+                }
+            }
+
+            .mp-choice-checkbox {
+                @apply mb-2;
+
+                label {
+                    @apply w-full;
+                }
+
+                .tense-name {
+                    @apply flex p-2 w-full;
+
+                }
+                input:checked ~ .tense-name {
+                    @apply bg-mainGreen text-white;
+                }
+            }
+        }
+
+        .lesson-started--sentenceBuiler {
+            @apply my-5 flex justify-center flex-wrap;
+        }
+
+        .lesson-started--sentenceBuiler-userAnswer {
+            @apply text-center mb-4;
+
+            h4 {
+                @apply text-center;
+            }
+
+            .lesson-started--sentenceBuiler-userAnswer-dynamic {
+                @apply min-h-[40px] text-center font-bold text-2xl;
+            }
+
+            .lesson-started--sentenceBuiler-userAnswer-clearBtn {
+                @apply text-center;
+            }
+        }
+
+        .lesson-started--checkBtn-nextQBtn {
+            @apply my-12;
+
+            li {
+                @apply min-w-[175px];
+
+                button {
+                    @apply mt-3 w-full;
+                }
+            }
+        }
     }
+}
 
-    .tense-name {
-        @apply flex p-2 w-full;
-
-    }
-    input:checked ~ .tense-name {
-        @apply bg-mainGreen text-white;
+.language-learning--zh {
+    .lesson-started {
+        .lesson-started--question {
+            .lesson-started--question-text {
+                @apply  text-6xl leading-normal;
+            }
+        }
     }
 }
 </style>

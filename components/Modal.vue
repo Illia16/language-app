@@ -47,10 +47,10 @@ const clickOutside = (e: Event):void => {
         }
     }
     .modal-shadow {
-        @apply fixed bg-slate-300 opacity-75 inset-0;
+        @apply fixed bg-slate-300 opacity-75 inset-0 z-[5];
     }
     .modal-content {
-        @apply fixed bg-[#fffaf6] border-solid border-8 border-mainGreen top-[10vh] p-3 rounded-3xl overflow-y-scroll max-h-[80vh] w-[90%] right-[5%];
+        @apply fixed z-10 bg-[#fffaf6] border-solid border-8 border-mainGreen top-[10vh] p-3 rounded-3xl overflow-y-scroll max-h-[80vh] w-[90%] right-[5%];
     }
 
     .lock-scroll {

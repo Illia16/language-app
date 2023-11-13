@@ -1,16 +1,12 @@
 <template>
     <div class="grammar-rules">
-        <PresentSimple v-if="props.rule === 'presentSimple'" :class="props.rule" />
-        <PresentContinuous v-if="props.rule === 'presentContinuous'" :class="props.rule" />
-        <PresentPerfect v-if="props.rule === 'presentPerfect'" :class="props.rule"/>
-        <IrregularVerbs v-if="props.rule === 'irregularVerbs'" :class="props.rule"/>
+        <Tenses v-if="isTenses" :tense="props.rule" :class="props.rule" />
+        <IrregularVerbs v-if="props.rule === 'irregularVerbs'" :class="props.rule"/> 
     </div>
 </template>
 
 <script lang="ts" setup>
-import PresentSimple from './grammar-rules/PresentSimple.vue';
-import PresentContinuous from './grammar-rules/PresentContinuous.vue';
-import PresentPerfect from './grammar-rules/PresentPerfect.vue';
+import Tenses from './grammar-rules/Tenses.vue';
 import IrregularVerbs from './grammar-rules/IrregularVerbs.vue';
 
 const props = defineProps({
@@ -19,6 +15,10 @@ const props = defineProps({
         type: String,
     },
 })
+
+const isTenses = computed<boolean>(():boolean => {
+    return ['presentSimple', 'presentContinuous', 'presentPerfect', 'pastSimple', 'pastContinuous', 'pastPerfect', 'futureSimple', 'futureContinuous', 'futurePerfect'].includes(props.rule);
+});
 </script>
 
 <style lang="scss">

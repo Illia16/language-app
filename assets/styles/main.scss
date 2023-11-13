@@ -24,7 +24,7 @@
 }
 
 .custom-button-link {
-    @apply bg-mainGreen text-white rounded-lg min-h-[3rem] text-2xl disabled:opacity-25 flex justify-center items-center min-w-[250px] m-auto;
+    @apply bg-mainGreen text-white rounded-lg min-h-[3rem] text-2xl disabled:opacity-25 flex justify-center items-center min-w-[250px] m-auto border border-transparent;
 
 
     &.custom-button-link--mp-choice {
@@ -60,10 +60,9 @@ h2 {
 }
 
 .mode-radio,
-.mp-choice-checkbox,
 .exercise-checkbox {
     label {
-        @apply h-10;
+        @apply min-h-[2.5rem];
     }
 }
 

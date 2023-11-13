@@ -4,7 +4,7 @@
         <Table class="grammar-table">
             <li>
                 <ul>
-                    <li></li>
+                    <li><span class="sr-only">table column</span></li>
                     <li>Simple</li>
                     <li>Continuous</li>
                     <li>Perfect</li>
@@ -24,7 +24,7 @@
                 <ul>
                     <li>Past</li>
                     <li v-for="(tense, i) of ['pastSimple', 'pastContinuous', 'pastPerfect']" :key="tense+i">
-                        <button @click="() => handleClick(tense)">
+                        <button @click="() => handleClick(tense)" class="underline font-bold">
                             {{t('mainMenu.look')}}
                         </button>
                     </li>
@@ -34,7 +34,7 @@
                 <ul>
                     <li>Future</li>
                     <li v-for="(tense, i) of ['futureSimple', 'futureContinuous', 'futurePerfect']" :key="tense+i">
-                        <button @click="() => handleClick(tense)">
+                        <button @click="() => handleClick(tense)" class="underline font-bold">
                             {{t('mainMenu.look')}}
                         </button>
                     </li>
@@ -43,16 +43,21 @@
         </Table>
 
         <h2>{{ t('mainMenu.other') }}</h2>
-        <ul class="list-items">
+        <Table class="irregular-verbs-table">
             <li>
-                <button @click="() => handleClick('irregularVerbs')" class="custom-button-link">
-                    {{t('irregularVerbs')}}
-                </button>
+                <ul>
+                    <li>
+                        <button @click="() => handleClick('irregularVerbs')">
+                            {{t('irregularVerbs')}}
+                        </button>
+                    </li>
+                </ul>
             </li>
-        </ul>
+        </Table>
+
         <teleport to="body">
             <Modal v-if="store.modalOpen && store.modalType === 'grammar'">
-                <GrammarRules :rule="grammarRule" />
+                <GrammarRulesEng :rule="grammarRule" />
             </Modal>
         </teleport>
     </section>
@@ -63,7 +68,7 @@
 
 import { useMainStore } from 'store/main';
 const store = useMainStore();
-import GrammarRules from 'components/english/GrammarRules.vue';
+import GrammarRulesEng from 'components/english/GrammarRulesEng.vue';
 const { t } = useI18n({useScope: 'local'})
 
 const grammarRule = ref<string>("");
