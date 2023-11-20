@@ -41,6 +41,7 @@ export const getQuestion = (m: string, lessonData: UserDataArrayOfObj, currentQu
         questionAnswer.rule = camelCaseString(q.itemTypeCategory);
         questionAnswer.level = q.level;
         questionAnswer.fileUrl = q.fileUrl;
+        questionAnswer.item = q.item;
         questionAnswer.itemTranscription = q.itemTranscription;
 
         if (m === mapModes.wordTranslationMPChoice) {            

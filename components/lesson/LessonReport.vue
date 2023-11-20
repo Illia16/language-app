@@ -56,6 +56,7 @@ const updateUserData = async () => {
     .filter((el: Report) => el.isCorrect && Number(el.level) < 10)
     .map((el: Report) => {
         return  {
+            "item": el.item,
             "user": store.currentUserName,
             "itemID": el.id,
             "keyToUpdate": {
@@ -65,7 +66,7 @@ const updateUserData = async () => {
         }
     })
 
-    await fetch(`${config.public.apiUrl}/${config.public.envName}/study-items?user=${store.currentUserName}`, {
+    await fetch(`${config.public.apiUrl}/${config.public.envName}/study-items`, {
         method: 'PUT',
         body: JSON.stringify(payload),
     })

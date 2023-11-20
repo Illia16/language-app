@@ -32,6 +32,7 @@ export interface Question {
     all: MpChoicesArrayOfObj;
     splitted:  string[];
     itemTranscription: string | null;
+    item: string;
 };
 
 export interface Report {
@@ -40,7 +41,8 @@ export interface Report {
     isCorrect: boolean;
     question: string;
     userAnswer: string;
-    level: string; 
+    level: string;
+    item: string;
 };
 export interface ReportArrayOfObj extends Array<Report> {};
 
@@ -49,4 +51,5 @@ export interface RecordUserAnswerDestructured {
     question: string;
     id: string;
     level: string;
+    item: string;
 };

@@ -276,7 +276,7 @@ const initData = computed<UserDataArrayOfObj>((): UserDataArrayOfObj => store.us
 
 const numQuestions = computed<number[]>(() => {
     return  [
-        initData.value.length < 5 && initData.value.length >= 1 ? 1 : 0,
+        initData.value.length <= 5 && initData.value.length >= 1 ? 1 : 0,
         initData.value.length >= 5 ? 5 : 0, 
         initData.value.length >= 10 ? 10 : 0,
         initData.value.length >= 15 ? 15 : 0,
@@ -354,13 +354,14 @@ const check = ():void => {
 };
 
 // recording answers, their correctness for report at the end and updating API.
-const recordUserAnswer = (correct: boolean, userAnswer: string, { qAnswer, question, id, level }:RecordUserAnswerDestructured ):void => {
+const recordUserAnswer = (correct: boolean, userAnswer: string, { qAnswer, question, id, level, item }:RecordUserAnswerDestructured ):void => {
     const r:Report = {} as Report;
     r.question = question;
     r.userAnswer = userAnswer;
     r.correctAnswer = qAnswer;
     r.id = id;
     r.level = level;
+    r.item = item;
 
     if (correct) {
         r.isCorrect = true;
@@ -369,6 +370,7 @@ const recordUserAnswer = (correct: boolean, userAnswer: string, { qAnswer, quest
     }
 
     report.value = [...report.value, r];
+    console.log('report', report);
 };
 
 const nextQuestion = ():void => {
