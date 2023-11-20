@@ -2,6 +2,12 @@
 @import "tailwindcss/components";
 @import "tailwindcss/utilities";
 
+button,
+a {
+    > * {
+        @apply pointer-events-none;
+    }
+}
 
 .form_el {
     input {

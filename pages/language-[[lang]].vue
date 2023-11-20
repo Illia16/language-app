@@ -41,7 +41,7 @@
 
             <div class="learning-data--mode">
                 <h2>{{ t('modeTitle') }}</h2>
-                <div v-for="(mode, i) of ['wordTranslation', 'translationWord', 'wordTranslationMPChoice', 'translationWordMPChoice', 'sentenceWordTranslation', 'sentenceTranslationWord', 'random']" :key="`${mode}'_'${i}`" class='mode-radio' tabindex="0">
+                <div v-for="(mode, i) of [mapModes.wordTranslation, mapModes.translationWord, mapModes.wordTranslationMPChoice, mapModes.translationWordMPChoice, mapModes.sentenceWordTranslation, mapModes.sentenceTranslationWord, mapModes.random]" :key="`${mode}'_'${i}`" class='mode-radio' tabindex="0">
                     <label>
                         <input
                             tabindex="-1"
@@ -100,25 +100,32 @@
                 {{ t('question') }}
             </span>
             <AudioPlayer
-                v-if="currentQuestion.fileUrl && ['wordTranslation', 'wordTranslationMPChoice', 'sentenceWordTranslation'].includes(currentQuestion.mode)"
+                v-if="currentQuestion.fileUrl && [mapModes.wordTranslation, mapModes.wordTranslationMPChoice, mapModes.sentenceWordTranslation].includes(currentQuestion.mode)"
                 :file="currentQuestion.fileUrl" 
                 :playRightAway="true"
             >
             </AudioPlayer>
             <span class="lesson-started--question-text">
                 <span :class="!currentQuestionAnswered ? 'animated-text' : 'font-bold'">{{currentQuestion.question}}</span>
+                <span
+                    v-if="currentQuestion.itemTranscription
+                    && [mapModes.wordTranslation, mapModes.wordTranslationMPChoice, mapModes.sentenceWordTranslation].includes(currentQuestion.mode)"
+                    class="lesson-started--question-text-transcription"
+                >
+                    ({{ currentQuestion.itemTranscription }})
+                </span>
             </span>
         </div>
 
         <!--MODE: Write text -->
-        <div class="form_el" v-if="currentQuestion.mode === 'wordTranslation' || currentQuestion.mode === 'translationWord'">
+        <div class="form_el" v-if="currentQuestion.mode === mapModes.wordTranslation || currentQuestion.mode === mapModes.translationWord">
             <label>
                 <input type="text" v-model="userAnswer" :placeholder="t('yourAnswer')" />
             </label>
         </div>
 
         <!--MODE: Multiple Choice -->
-        <div class="lesson-started-mp-choice" v-if="currentQuestion.mode === 'wordTranslationMPChoice' || currentQuestion.mode === 'translationWordMPChoice'">
+        <div class="lesson-started-mp-choice" v-if="currentQuestion.mode === mapModes.wordTranslationMPChoice || currentQuestion.mode === mapModes.translationWordMPChoice">
             <div v-for="(q, key) of currentQuestion.all" :key="`mp-choice-q-key-${key}`" class="mp-choice-checkbox" tabindex="0">
                 <label :class="[`${currentQuestionAnswered ? 'lesson-started-mp-choice-answered' : ''}`]">
                     <input
@@ -127,17 +134,26 @@
                         type="radio"
                         name="number-of-q"
                         :disabled="currentQuestionAnswered"
-                        :value="q"
+                        :value="q.item"
                         v-model="userAnswer"
                     />
-                    <!-- <span></span> -->
-                    <span class="tense-name">{{q}}</span>
+                    <span class="tense-name">
+                        <span>
+                            {{q.item}}
+                        </span>
+                        <span
+                            v-if="q.itemTranscription 
+                            && [mapModes.translationWord, mapModes.translationWordMPChoice, mapModes.sentenceTranslationWord].includes(currentQuestion.mode)"
+                        >
+                            ({{ q.itemTranscription }})
+                        </span>
+                    </span>
                 </label>
             </div>
         </div>
 
         <!--MODE: Sentence Builer -->
-        <template v-if="currentQuestion.mode === 'sentenceWordTranslation' || currentQuestion.mode === 'sentenceTranslationWord'">
+        <template v-if="currentQuestion.mode === mapModes.sentenceWordTranslation || currentQuestion.mode === mapModes.sentenceTranslationWord">
             <div class="lesson-started--sentenceBuiler">
                 <button
                     @click="userAnswer ? userAnswer = userAnswer + ' ' + word : userAnswer = word"
@@ -203,8 +219,8 @@
 import GrammarEng from 'components/english/GrammarEng.vue';
 import GrammarRulesEng from 'components/english/GrammarRulesEng.vue';
 import { useMainStore } from 'store/main';
-import { getLesson, getQuestion, isCorrect } from 'helper/helpers';
-import { ArrayOfUserData, UserData , WordTranslationArrayOfObj, Question, ReportArrayOfObj, RecordUserAnswerDestructured, Report} from 'types/helperTypes'
+import { getLesson, getQuestion, isCorrect, mapModes } from 'helper/helpers';
+import { UserDataArrayOfObj, UserData , Question, ReportArrayOfObj, RecordUserAnswerDestructured, Report} from 'types/helperTypes'
 const store = useMainStore();
 const { t } = useI18n({useScope: 'local'})
 const route = useRoute()
@@ -235,27 +251,27 @@ const itemTypeCategory = computed<string[]>(() => store.userLangData
 const v_selecteditemType = ref({}) // v-model for selected itemType
 const v_selecteditemTypeCategory = ref({}) // v-model for selected itemTypeCategory
 
-const modeSelected = ref<string>('translationWordMPChoice');
+const modeSelected = ref<string>('');
 const numQuestionsSelected = ref<number>(0); // num of questions in the lesson selected by user dynamically based on how many questions are available
 
 
-const initData = computed<ArrayOfUserData>((): ArrayOfUserData => store.userLangData
+const initData = computed<UserDataArrayOfObj>((): UserDataArrayOfObj => store.userLangData
     .filter(el => el.languageStudying === route.params.lang)
     .filter((el, i, arr) => {        
         return v_selecteditemType.value[el.itemType] && v_selecteditemTypeCategory.value[el.itemTypeCategory] 
         || v_selecteditemType.value[el.itemType] && !v_selecteditemTypeCategory.value[el.itemTypeCategory] && v_selecteditemTypeCategory.value[el.itemTypeCategory]
     })
     .map(el => {
-        if (modeSelected.value === 'sentenceWordTranslation' && el.item.split(' ').length > 1 || 
-            modeSelected.value === 'sentenceTranslationWord' && el.item.split(' ').length > 1) {
+        if (modeSelected.value === mapModes.sentenceWordTranslation && el.item.split(' ').length > 1 || 
+            modeSelected.value === mapModes.sentenceTranslationWord && el.item.split(' ').length > 1) {
             return el;
         }
             
-        if (modeSelected.value !== 'sentenceWordTranslation' && modeSelected.value !== 'sentenceTranslationWord') {
+        if (modeSelected.value !== mapModes.sentenceWordTranslation && modeSelected.value !== mapModes.sentenceTranslationWord) {
             return el;
         }
     })
-    .filter(el => el) as ArrayOfUserData
+    .filter(el => el) as UserDataArrayOfObj
 );
 
 const numQuestions = computed<number[]>(() => {
@@ -270,7 +286,7 @@ const numQuestions = computed<number[]>(() => {
 
 
 // lesson state
-const lessonData = ref<WordTranslationArrayOfObj>([]);
+const lessonData = ref<UserDataArrayOfObj>([]);
 const currentQuestionNum = ref<number>(1);
 const currentQuestion = ref<Question>({} as Question);
 const currentQuestionAnswered = ref<boolean>(false);
@@ -365,7 +381,7 @@ watch(() => store.lessonStarted, (v) => {
     if (v) {
         console.log('numQuestionsSelected.value', numQuestionsSelected.value);
         
-        lessonData.value = getLesson(modeSelected.value, initData.value).slice(0, numQuestionsSelected.value) as WordTranslationArrayOfObj;
+        lessonData.value = getLesson(modeSelected.value, initData.value).slice(0, numQuestionsSelected.value) as UserDataArrayOfObj;
         console.log('__lessonData.value', lessonData.value);
         
         if (lessonData.value && lessonData.value.length) {
@@ -446,7 +462,11 @@ section {
             @apply text-center mb-8 flex flex-col;
 
             .lesson-started--question-text {
-                @apply flex justify-center text-2xl;
+                @apply flex justify-center items-center text-2xl;
+
+                .lesson-started--question-text-transcription {
+                    @apply text-xl;
+                }
             }
         }
 

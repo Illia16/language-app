@@ -1,5 +1,5 @@
 import { defineStore } from "pinia";
-import { ArrayOfUserData } from 'types/helperTypes';
+import { UserDataArrayOfObj } from 'types/helperTypes';
 
 export const useMainStore = defineStore('main-store', {
     state: () => ({
@@ -7,7 +7,7 @@ export const useMainStore = defineStore('main-store', {
         modalOpen: false,
         lessonStarted: false,
         currentUserName: '',
-        userLangData: [] as ArrayOfUserData, 
+        userLangData: [] as UserDataArrayOfObj, 
     }),
     actions: {
         setModalType(v: string) {
@@ -22,7 +22,7 @@ export const useMainStore = defineStore('main-store', {
         setCurrentUserName(v: string) {
             this.currentUserName = v;
         },
-        setUserLangData(v: ArrayOfUserData) {
+        setUserLangData(v: UserDataArrayOfObj) {
             this.userLangData = v;
         },
     },

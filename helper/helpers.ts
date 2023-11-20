@@ -1,4 +1,4 @@
-import { WordTranslation, WordTranslationArrayOfObj, SortableArray, Question } from 'types/helperTypes';
+import { UserData, UserDataArrayOfObj, SortableArray, Question, MpChoices, MpChoicesArrayOfObj } from 'types/helperTypes';
 
 // Replaced () and all what's inside with empty string so that the hint OR transcription is not included in the answer
 const replaceAllinsideParantheses = new RegExp(/\s*\([^)]*\)/);
@@ -14,8 +14,8 @@ export const sortArray = (arr: SortableArray): SortableArray => {
     return arr;
 };
 
-export const getLesson = (m:string, lessonData: WordTranslationArrayOfObj): WordTranslationArrayOfObj => {    
-    return sortArray(lessonData) as WordTranslationArrayOfObj;
+export const getLesson = (m:string, lessonData: UserDataArrayOfObj): UserDataArrayOfObj => {    
+    return sortArray(lessonData) as UserDataArrayOfObj;
 }
 
 export const camelCaseString = (v: string):string => {
@@ -25,27 +25,29 @@ export const camelCaseString = (v: string):string => {
       }).replace(/\s+/g, '');
 }
 
-export const getQuestion = (m: string, lessonData: WordTranslationArrayOfObj, currentQuestionNum: number): Question => {    
-    const handleQuestion = (m: string, lessonData: WordTranslationArrayOfObj, currentQuestionNum: number): Question => {        
+export const getQuestion = (m: string, lessonData: UserDataArrayOfObj, currentQuestionNum: number): Question => {    
+    const q = lessonData[currentQuestionNum-1];
+
+    const handleQuestion = (m: string, lessonData: UserDataArrayOfObj): Question => {        
         const questionAnswer = {} as Question;
-        const q = lessonData[currentQuestionNum-1];
 
         console.log('q', q);
         
-        questionAnswer.question = q[m === 'wordTranslation' || m === 'wordTranslationMPChoice' || m === 'sentenceWordTranslation' ? 'item' : 'itemCorrect'];
-        questionAnswer.qAnswer = q[m === 'wordTranslation' || m === 'wordTranslationMPChoice' || m === 'sentenceWordTranslation' ? 'itemCorrect' : 'item'].replace(replaceAllinsideParantheses, '');
+        questionAnswer.question = q[m === mapModes.wordTranslation || m === mapModes.wordTranslationMPChoice || m === mapModes.sentenceWordTranslation ? 'item' : 'itemCorrect'];
+        questionAnswer.qAnswer = q[m === mapModes.wordTranslation || m === mapModes.wordTranslationMPChoice || m === mapModes.sentenceWordTranslation ? 'itemCorrect' : 'item'].replace(replaceAllinsideParantheses, '');
         
         questionAnswer.id = q.itemID;
         questionAnswer.mode = m;
         questionAnswer.rule = camelCaseString(q.itemTypeCategory);
         questionAnswer.level = q.level;
         questionAnswer.fileUrl = q.fileUrl;
+        questionAnswer.itemTranscription = q.itemTranscription;
 
-        if (m === 'wordTranslationMPChoice') {            
-            questionAnswer.all = fillMpChoiceArray(lessonData, q,  questionAnswer.qAnswer, 'itemCorrect');
-        } else if (m === 'translationWordMPChoice') {
-            questionAnswer.all = fillMpChoiceArray(lessonData, q,  questionAnswer.qAnswer, 'item');
-        } else if (m === 'sentenceWordTranslation' || m === 'sentenceTranslationWord') {
+        if (m === mapModes.wordTranslationMPChoice) {            
+            questionAnswer.all = fillMpChoiceArray(lessonData, questionAnswer.qAnswer, 'itemCorrect');
+        } else if (m === mapModes.translationWordMPChoice) {
+            questionAnswer.all = fillMpChoiceArray(lessonData, questionAnswer.qAnswer, 'item');
+        } else if (m === mapModes.sentenceWordTranslation || m === mapModes.sentenceTranslationWord) {
             questionAnswer.splitted = sortArray(uniqueElements(questionAnswer.qAnswer.split(' '))) as string[];
         }
 
@@ -53,51 +55,51 @@ export const getQuestion = (m: string, lessonData: WordTranslationArrayOfObj, cu
         return questionAnswer;
     }
 
-    if (m !== 'random') {
-        return handleQuestion(m, lessonData, currentQuestionNum);
+    if (m !== mapModes.random) {
+        return handleQuestion(m, lessonData);
     } else {
-        const randomMode = getRandomMode(m);
-        return handleQuestion(randomMode, lessonData, currentQuestionNum);
+        // in Mandarin, there's no space between words ususally. Set different splitter.
+        const isEligibleForSentence = q.languageStudying === 'zh' ? q.item.split("").length >= 2 : q.item.split(" ").length >= 3;
+        const randomMode = getRandomMode(isEligibleForSentence);
+        return handleQuestion(randomMode, lessonData);
     }
 }
 
 // function to get a random mode
-const getRandomMode = (mode: string):string => {
-    const allModes: string[] = mode === 'words'
-        ? ['wordTranslation', 'translationWord', 'wordTranslationMPChoice', 'translationWordMPChoice']
-        : ['wordTranslation', 'translationWord', 'wordTranslationMPChoice', 'translationWordMPChoice', 'sentenceWordTranslation', 'sentenceTranslationWord'];
+const getRandomMode = (isEligibleForSentence: boolean):string => {
+    const allModes: string[] = isEligibleForSentence ? 
+        [mapModes.wordTranslation, mapModes.translationWord, mapModes.wordTranslationMPChoice, mapModes.translationWordMPChoice, mapModes.sentenceWordTranslation, mapModes.sentenceTranslationWord] :
+        [mapModes.wordTranslation, mapModes.translationWord, mapModes.wordTranslationMPChoice, mapModes.translationWordMPChoice];
     const randomIndex:number = Math.floor(Math.random()*allModes.length);
     return allModes[randomIndex];
 }
 
 // function to produce 4 MP choices + include 1 correct answer
-export const fillMpChoiceArray = (data: WordTranslationArrayOfObj, currentQuestion: WordTranslation, correctAnswer:string, mpChoiceType: string): string[] => {
-    const wrongAnswersKey: string = mpChoiceType === 'itemCorrect' ? 'wrongAnswersMotherTongue' : 'wrongAnswers';
-    let mpChoices: string[] = [];
+export const fillMpChoiceArray = (data: UserDataArrayOfObj, correctAnswer:string, mpChoiceType: string): MpChoicesArrayOfObj => {
+    let correctitemTranscription: string | null = "";
 
-    // check if data has incorrect answers array
-    if (currentQuestion[wrongAnswersKey]) {
-        mpChoices = currentQuestion[wrongAnswersKey] as string[];
-    } else {        
-        const randomMpChoices: string[] = data
-            .map((el: WordTranslation, i: number): string => {
-                    let res: string = '';
-                    const q: string = el[mpChoiceType]?.replace(replaceAllinsideParantheses, '');
-                
-                    if (q !== correctAnswer) {
-                        res = el[mpChoiceType] as string;
-                    }
-                                        
-                    return res.replace(replaceAllinsideParantheses, '');
-                })
-            .filter(el=>el)
-            .slice(0, 3);
-        
-        mpChoices = randomMpChoices;
-    }
-
-    mpChoices.push(correctAnswer);    
-    return sortArray(mpChoices) as string[];
+    const mpChoices = data
+        .map((el: UserData, i: number): MpChoices => {
+            console.log('el', el);
+            
+            let res: MpChoices = {} as MpChoices;
+            const q: string = el[mpChoiceType]?.replace(replaceAllinsideParantheses, '');
+            if (q !== correctAnswer) {
+                res = {
+                    item: el[mpChoiceType].replace(replaceAllinsideParantheses, ''),
+                    itemTranscription: el?.itemTranscription,
+                };
+            } else {
+                correctitemTranscription = el?.itemTranscription;
+            }
+                                
+            return res;
+        })
+        .filter(el=>el.item)
+        .slice(0, 3);
+    
+    mpChoices.push({item: correctAnswer, itemTranscription: correctitemTranscription});    
+    return sortArray(mpChoices) as MpChoicesArrayOfObj;
 }
 
 export const isCorrect = (currentQuestion: Question, answer: string): boolean => {
@@ -123,6 +125,16 @@ export const mapLanguage = (v:string):string => {
         default:
             return 'English'
     }
+}
+
+export const mapModes = {
+    wordTranslation: 'wordTranslation',
+    translationWord: 'translationWord',
+    wordTranslationMPChoice: 'wordTranslationMPChoice',
+    translationWordMPChoice: 'translationWordMPChoice',
+    sentenceWordTranslation: 'sentenceWordTranslation',
+    sentenceTranslationWord: 'sentenceTranslationWord',
+    random: 'random',
 }
 
 export const convertFileToBase64 = (file) => {

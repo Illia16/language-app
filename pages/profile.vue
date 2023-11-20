@@ -127,6 +127,10 @@
                     <input type="text" v-model="v_item" />
                 </div>
                 <div class="form_el">
+                    <label>{{t('itemTranscription')}} ({{ t('optional') }})</label>
+                    <input type="text" v-model="v_itemTranscription" />
+                </div>
+                <div class="form_el">
                     <label>{{t('itemCorrect')}}</label>
                     <input type="text" v-model="v_itemCorrect" />
                 </div>
@@ -261,6 +265,10 @@
                 <input type="text" v-model="v_item" />
             </div>
             <div class="form_el">
+                <label>{{t('itemTranscription')}} ({{ t('optional') }})</label>
+                <input type="text" v-model="v_itemTranscription" />
+            </div>
+            <div class="form_el">
                 <label>{{t('itemCorrect')}}</label>
                 <input type="text" v-model="v_itemCorrect" />
             </div>
@@ -354,7 +362,7 @@
 
 <script lang="ts" setup>
 import { useMainStore } from 'store/main';
-import { ArrayOfUserData, UserData } from 'types/helperTypes'
+import { UserDataArrayOfObj, UserData } from 'types/helperTypes'
 import { v4 as uuidv4  } from "uuid";
 
 const { t } = useI18n();
@@ -374,6 +382,7 @@ const v_item = ref<string>('');
 const v_itemID = ref<string>('');
 const v_itemCorrect = ref<string>('');
 const v_file = ref<Object>({});
+const v_itemTranscription = ref<string>('');
 //
 
 // select lists
@@ -410,16 +419,21 @@ onMounted(() => {
 
 
 const closeConfirmModal = (): void => {
+    console.log('closeConfirmModal');
     store.setModalOpen(false);
     store.setModalType('');
 
     v_level.value = '0';
     v_languageStudying.value = 'en';
     v_itemType.value = '';
+    v_newItemType.value = '';
     v_itemTypeCategory.value = '';
+    v_newItemTypeCategory.value = '';
     v_item.value = '';
     v_itemID.value = '';
     v_itemCorrect.value = '';
+    v_itemTranscription.value = '';
+    v_file.value = {};
 }
 
 const openConfirmModal = (item: UserData | null, action: string):void => {
@@ -438,6 +452,7 @@ const openConfirmModal = (item: UserData | null, action: string):void => {
         v_item.value = item.item;
         v_itemID.value = item.itemID
         v_itemCorrect.value = item.itemCorrect;
+        if (item.itemTranscription) v_itemTranscription.value = item.itemTranscription;
         if (item.filePath) {
             filePath.value = item.filePath
         } else {
@@ -470,7 +485,7 @@ const deleteUserData = async () => {
         res.json()
         getUserData()
         // update FE without API call
-        // const newArr: ArrayOfUserData = store.userLangData.filter(el => el.itemID !== v_itemID.value);
+        // const newArr: UserDataArrayOfObj = store.userLangData.filter(el => el.itemID !== v_itemID.value);
         // console.log('newArr', newArr);
         // store.setUserLangData(newArr);
         closeConfirmModal();
@@ -495,6 +510,7 @@ const addUserData = async () => {
             "languageMortherTongue": store.userLangData[0].languageMortherTongue,
             "languageStudying": v_languageStudying.value,
             "level": v_level.value,
+            ...(v_itemTranscription && { "itemTranscription": v_itemTranscription.value }),
             ...(v_file.value.hasOwnProperty('name') && { "file": v_file.value }),
         }
     ]
@@ -507,7 +523,7 @@ const addUserData = async () => {
         res.json()
         getUserData();
         // update FE without API call
-        // const newArr: ArrayOfUserData = store.userLangData.slice();
+        // const newArr: UserDataArrayOfObj = store.userLangData.slice();
         // newArr.push(payload[0])
         // console.log('newArr', newArr);
         // store.setUserLangData(newArr);
@@ -547,6 +563,12 @@ const updateUserData = async () => {
             name: 'itemCorrect',
             value: v_itemCorrect.value
         },
+        ...(v_itemTranscription.value && [
+            {
+                name: 'itemTranscription',
+                value: v_itemTranscription.value
+            }
+        ]),
         ...(v_file.value && [
             {
                 name: 'filePath',
@@ -577,7 +599,7 @@ const updateUserData = async () => {
 
     getUserData();
     // update FE without API call
-    // const newArr: ArrayOfUserData = store.userLangData.map(el => {
+    // const newArr: UserDataArrayOfObj = store.userLangData.map(el => {
     //     if (el.itemID === v_itemID.value) {
     //         el.level = v_level.value;
     //         el.languageStudying = v_languageStudying.value;
@@ -728,6 +750,8 @@ watch(v_file, function() {
         listOfWords: 'A list my words'
         modalTitle: '{activeModalAction} word/sentence:'
         item: 'Word/sentence'
+        itemTranscription: 'Transcription'
+        optional: 'Optional'
         audio: 'Audio'
         itemCorrect: 'Correct translation'
         addNew: 'Add'
@@ -742,6 +766,8 @@ watch(v_file, function() {
         listOfWords: 'Список моих слов/предложений'
         modalTitle: '{activeModalAction} слово/предложение:'
         item: 'Слово/предложение'
+        itemTranscription: 'Транскрипт'
+        optional: 'Необязательно'
         audio: 'Аудио'
         itemCorrect: 'Правильный ответ'
         addNew: 'Добавить'
@@ -756,6 +782,8 @@ watch(v_file, function() {
         listOfWords: 'TBD'
         modalTitle: 'TBD'
         item: 'TBD'
+        itemTranscription: 'TBD'
+        optional: 'TBD'
         audio: 'Audio'
         itemCorrect: 'TBD'
         addNew: 'TBD'

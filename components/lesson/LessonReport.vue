@@ -25,7 +25,7 @@
 
 <script lang="ts" setup>
 import { useMainStore } from 'store/main'
-import { ArrayOfUserData, Report } from 'types/helperTypes'
+import { UserDataArrayOfObj, Report } from 'types/helperTypes'
 const store = useMainStore()
 const config = useRuntimeConfig();
 const { t } = useI18n({useScope: 'local'})
@@ -73,7 +73,7 @@ const updateUserData = async () => {
         res.json();
 
         // update FE only after successfull api call
-        const newArr: ArrayOfUserData = store.userLangData.map(el => {
+        const newArr: UserDataArrayOfObj = store.userLangData.map(el => {
             const itemLvlToUpdateExists:boolean = props.report
             .filter((el: Report) => el.isCorrect)
             .filter((report:Report) => report.id === el.itemID).length > 0

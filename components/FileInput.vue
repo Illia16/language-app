@@ -2,6 +2,7 @@
     <div class="file-input">
         <label htmlFor="attachment">
             {{ t('chooseFile')}}
+            ({{ t('optional') }})
         </label>
         <input
             type="file"
@@ -54,19 +55,22 @@ const deleteFile = () => {
 
 <style lang="scss">
 .file-input {
-    @apply space-y-3;
+    @apply flex flex-col space-y-3;
 }
 </style>
 
 <i18n lang="yaml">
     en:
         chooseFile: 'Choose audio file'
+        optional: 'Optional'
         deleteFile: 'Delete file'
     ru:
         chooseFile: 'Выбрать аудио файл'
+        optional: 'Необязательно'
         deleteFile: 'Удалить файл'
     zh:
         chooseFile: 'TBD'
+        optional: 'TBD'
         deleteFile: 'TBD'
 </i18n>
     
