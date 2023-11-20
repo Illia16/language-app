@@ -69,21 +69,23 @@ const updateUserData = async () => {
         method: 'PUT',
         body: JSON.stringify(payload),
     })
-    .then(res => res.json())
+    .then(res => {
+        res.json();
 
-    // update FE
-    const newArr: ArrayOfUserData = store.userLangData.map(el => {
-        const itemLvlToUpdateExists:boolean = props.report
-        .filter((el: Report) => el.isCorrect)
-        .filter((report:Report) => report.id === el.itemID).length > 0
-        if (itemLvlToUpdateExists && Number(el.level) < 10) {
-            el.level = (Number(el.level) + 1).toString();
-            return el;
-        } else {
-            return el;
-        }
-    });
-    store.setUserLangData(newArr);
+        // update FE only after successfull api call
+        const newArr: ArrayOfUserData = store.userLangData.map(el => {
+            const itemLvlToUpdateExists:boolean = props.report
+            .filter((el: Report) => el.isCorrect)
+            .filter((report:Report) => report.id === el.itemID).length > 0
+            if (itemLvlToUpdateExists && Number(el.level) < 10) {
+                el.level = (Number(el.level) + 1).toString();
+                return el;
+            } else {
+                return el;
+            }
+        });
+        store.setUserLangData(newArr);
+    })
 }
 
 </script>

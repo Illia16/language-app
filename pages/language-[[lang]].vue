@@ -99,6 +99,12 @@
             <span>
                 {{ t('question') }}
             </span>
+            <AudioPlayer
+                v-if="currentQuestion.fileUrl && ['wordTranslation', 'wordTranslationMPChoice', 'sentenceWordTranslation'].includes(currentQuestion.mode)"
+                :file="currentQuestion.fileUrl" 
+                :playRightAway="true"
+            >
+            </AudioPlayer>
             <span class="lesson-started--question-text">
                 <span :class="!currentQuestionAnswered ? 'animated-text' : 'font-bold'">{{currentQuestion.question}}</span>
             </span>
@@ -169,6 +175,14 @@
                 </button>
             </li>
         </ul>
+
+        <!-- play audio once a question is answered whether it's answered right or wrong -->
+        <AudioPlayer
+            class="invisible"
+            v-if="currentQuestion.fileUrl && currentQuestionAnswered"
+            :file="currentQuestion.fileUrl" 
+            :playRightAway="true"
+        ></AudioPlayer>
 
         <teleport to="body">
             <Modal v-if="store.modalOpen && store.modalType === 'grammar'">
@@ -429,7 +443,7 @@ section {
         }
 
         .lesson-started--question {
-            @apply text-center mb-8;
+            @apply text-center mb-8 flex flex-col;
 
             .lesson-started--question-text {
                 @apply flex justify-center text-2xl;

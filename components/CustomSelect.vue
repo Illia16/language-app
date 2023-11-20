@@ -50,7 +50,7 @@ const props = defineProps({
 const customSelectRef = ref<HTMLElement>(null);
 const isOpen = ref<boolean>(false);
 
-const handleSelect = (e: Event):void => {
+const handleSelect = (e: Event):void => {	
 	emit('update:modelValue', (e.target as HTMLButtonElement).value)
 	isOpen.value = false;
 }

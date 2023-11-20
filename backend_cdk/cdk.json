@@ -16,9 +16,10 @@
     ]
   },
   "context": {
-    "account_id": "177749704705",
+    "account": "177749704705",
     "env": "test",
     "projectName": "personal-project--language-app",
+    "admin": "illia",
     "@aws-cdk/aws-lambda:recognizeLayerVersion": true,
     "@aws-cdk/core:checkSecretUsage": true,
     "@aws-cdk/core:target-partitions": [

@@ -8,6 +8,8 @@ export interface UserData {
     itemID: string;
     item: string;
     itemCorrect: string;
+    filePath: string | null;
+    fileUrl: string | null;
 }
 
 export interface ArrayOfUserData extends Array<UserData> {};
@@ -18,8 +20,11 @@ export interface WordTranslation {
     rule: string;
     wrongAnswers?: string[];
     wrongAnswersMotherTongue?: string[];
-    id: string;
-    [key: string]: string|number|undefined|Array<string>;
+    itemID: string;
+    level: string;
+    fileUrl: string | null;
+    itemTypeCategory: string;
+    // [key: string]: string|number|undefined|Array<string>;
 };
 export interface WordTranslationArrayOfObj extends Array<WordTranslation> {};
 
@@ -33,7 +38,8 @@ export interface Question {
     question: string;
     splitted:  string[];
     rule: string;
-    level: string; 
+    level: string;
+    fileUrl: string | null;
 };
 
 export interface InitData {

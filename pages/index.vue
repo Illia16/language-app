@@ -77,9 +77,9 @@ const getUserData = async () => {
     const res = await fetch(`${config.public.apiUrl}/${config.public.envName}/study-items?user=${user.value}`)
     .then(res => res.json());
 
-    console.log('res', res);
-    if (res && res.length) {
-        store.setUserLangData(res);
+    console.log('!!!!res!!!!', res);
+    if (res.data && res.data.length) {
+        store.setUserLangData(res.data);
         store.setCurrentUserName(user.value);
         const userMortherTongue = store.userLangData[0].languageMortherTongue;
         setLocale(userMortherTongue);

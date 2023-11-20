@@ -18,6 +18,13 @@ export const getLesson = (m:string, lessonData: WordTranslationArrayOfObj): Word
     return sortArray(lessonData) as WordTranslationArrayOfObj;
 }
 
+export const camelCaseString = (v: string):string => {
+    // return v.replace(/\s(\w)/g, (match, letter) => letter.toUpperCase()).replace(/\s/g, '').toLowerCase();
+    return v.replace(/(?:^\w|[A-Z]|\b\w)/g, function(word, index) {
+        return index === 0 ? word.toLowerCase() : word.toUpperCase();
+      }).replace(/\s+/g, '');
+}
+
 export const getQuestion = (m: string, lessonData: WordTranslationArrayOfObj, currentQuestionNum: number): Question => {    
     const handleQuestion = (m: string, lessonData: WordTranslationArrayOfObj, currentQuestionNum: number): Question => {        
         const questionAnswer = {} as Question;
@@ -30,8 +37,9 @@ export const getQuestion = (m: string, lessonData: WordTranslationArrayOfObj, cu
         
         questionAnswer.id = q.itemID;
         questionAnswer.mode = m;
-        questionAnswer.rule = q.itemTypeCategory;
+        questionAnswer.rule = camelCaseString(q.itemTypeCategory);
         questionAnswer.level = q.level;
+        questionAnswer.fileUrl = q.fileUrl;
 
         if (m === 'wordTranslationMPChoice') {            
             questionAnswer.all = fillMpChoiceArray(lessonData, q,  questionAnswer.qAnswer, 'itemCorrect');
@@ -116,3 +124,14 @@ export const mapLanguage = (v:string):string => {
             return 'English'
     }
 }
+
+export const convertFileToBase64 = (file) => {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = () => {
+            resolve(reader.result);
+        };
+        reader.onerror = (error) => reject(error);
+    });
+};

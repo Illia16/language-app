@@ -1,10 +1,38 @@
 <template>
     <div v-if="store.userLangData" class="listOfWords">
         <h1>{{ t('listOfWords') }}</h1>
+
+        <ul>
+            <li class="listOfWords-item">
+                <span>{{ t('item') }}:</span>
+            </li>
+            <li class="listOfWords-itemCorrect">
+                <span>{{ t('itemCorrect') }}:</span>
+            </li>
+            <li class="listOfWords-itemType">
+                <span>{{ t('itemType') }}:</span>
+            </li>
+            <li class="listOfWords-itemTypeCategory">
+                <span>{{ t('itemTypeCategory') }}:</span>
+            </li>
+            <li class="listOfWords-languageStudying">
+                <span>{{ t('languageStudying') }}:</span>
+            </li>
+            <li>
+                <span>{{ t('level') }}:</span>
+            </li>
+            <li class="lastLi"></li>
+            <li class="lastLi"></li>
+        </ul>
+
         <ul v-for="(el, i) of store.userLangData" :key="i">
             <li class="listOfWords-item">
                 <span>{{ t('item') }}:</span>
                 <span>{{ el.item }}</span>
+                <span v-if="el.fileUrl" class="listOfWords-item--audio">
+                    <span>{{ t('audio') }}:</span>
+                    <AudioPlayer :file="el.fileUrl"></AudioPlayer>
+                </span>
             </li>
             <li class="listOfWords-itemCorrect">
                 <span>{{ t('itemCorrect') }}:</span>
@@ -26,10 +54,10 @@
                 <span>{{ t('level') }}:</span>
                 <span>{{ el.level }}</span>
             </li>
-            <li class="listOfWords-btn--delete">
+            <li class="listOfWords-btn--delete lastLi">
                 <button type="button" @click="() => openConfirmModal(el, t('delete'))">{{ t('delete') }}</button>
             </li>
-            <li class="listOfWords-btn--update">
+            <li class="listOfWords-btn--update lastLi">
                 <button type="button" @click="() => openConfirmModal(el, t('update'))">{{ t('update') }}</button>
             </li>
         </ul>
@@ -102,10 +130,6 @@
                     <label>{{t('itemCorrect')}}</label>
                     <input type="text" v-model="v_itemCorrect" />
                 </div>
-                <!-- <div class="form_el">
-                    <label>{{t('itemType')}}</label>
-                    <input type="text" v-model="v_itemType" />
-                </div> -->
 
                 <CustomSelect
                     v-model="v_itemType"
@@ -118,7 +142,6 @@
                     ]"
                     state="itemType"
                 >
-                    <!-- <template v-slot:addNew>Add new</template> -->
                     <template v-slot:label>{{t('itemType')}}</template>
                     <template v-slot:field-error>
                         <div class="field-error">Please select a itemType.</div>
@@ -151,11 +174,6 @@
                     <label>{{t('newItemTypeCategory')}}</label>
                     <input type="text" v-model="v_newItemTypeCategory" />
                 </div>
-
-                <!-- <div class="form_el">
-                    <label>{{t('itemTypeCategory')}}</label>
-                    <input type="text" v-model="v_itemTypeCategory" />
-                </div> -->
 
                 <CustomSelect
                     v-model="v_languageStudying"
@@ -229,6 +247,7 @@
                 >
                     <template v-slot:label>{{t('level')}}</template>
                 </CustomSelect>
+                <FileInput v-model="v_file"></FileInput>
             <div class="space-y-4">
                 <button class="custom-button-link" @click="addUserData">{{t('confirm')}}</button>
                 <button @click="closeConfirmModal" class="custom-button-link">{{t('cancel')}}</button>
@@ -324,6 +343,7 @@
             >
                 <template v-slot:label>{{t('level')}}</template>
             </CustomSelect>
+            <FileInput v-model="v_file"></FileInput>
             <div class="space-y-4">
                 <button class="custom-button-link" @click="updateUserData">{{t('confirm')}}</button>
                 <button @click="closeConfirmModal" class="custom-button-link">{{t('cancel')}}</button>
@@ -342,6 +362,7 @@ const store = useMainStore();
 const config = useRuntimeConfig();
 
 const activeModalAction = ref<string>('');
+const filePath = ref<string>('');
 // v-models
 const v_level = ref<string>('0');
 const v_languageStudying = ref<string>('en');
@@ -352,6 +373,7 @@ const v_newItemTypeCategory = ref<string>('')
 const v_item = ref<string>('');
 const v_itemID = ref<string>('');
 const v_itemCorrect = ref<string>('');
+const v_file = ref<Object>({});
 //
 
 // select lists
@@ -378,22 +400,6 @@ onMounted(() => {
     console.log('store.userLangData', store.userLangData);
 })
 
-watch(() => v_itemType.value, (v) => {
-    console.log('v_itemType', v);
-    console.log('itemType', itemType.value);
-    
-    if (v === 'addNew') {
-        
-    }
-});
-
-watch(() => v_itemTypeCategory.value, (v) => {
-    console.log('v_itemTypeCategory', v);
-    if (v === 'addNew') {
-
-    }
-});
-
 // watch(() => itemType, (v) => {
 //     console.log('itemType', v.value);
 // }, {deep: true});
@@ -418,6 +424,7 @@ const closeConfirmModal = (): void => {
 
 const openConfirmModal = (item: UserData | null, action: string):void => {
     console.log('action', action);
+    console.log('item', item);
     
     store.setModalOpen(true);
     store.setModalType(action);
@@ -429,30 +436,46 @@ const openConfirmModal = (item: UserData | null, action: string):void => {
         v_itemType.value = item.itemType;
         v_itemTypeCategory.value = item.itemTypeCategory;
         v_item.value = item.item;
-        v_itemCorrect.value = item.itemCorrect;
         v_itemID.value = item.itemID
-    }
+        v_itemCorrect.value = item.itemCorrect;
+        if (item.filePath) {
+            filePath.value = item.filePath
+        } else {
+            filePath.value = '';
+        }
+    }    
 }
+
+// GET API (in this component for update UI after put/update/delete API calls)
+const getUserData = async () => {
+    const res = await fetch(`${config.public.apiUrl}/${config.public.envName}/study-items?user=${store.currentUserName}`).then(el => el.json())
+    if (res.data && res.data.length) {
+        store.setUserLangData(res.data);
+    }
+} 
 
 // DELETE API
 const deleteUserData = async () => {
-       const res = await fetch(`${config.public.apiUrl}/${config.public.envName}/study-items?user=${store.currentUserName}`, {
+    const res = await fetch(`${config.public.apiUrl}/${config.public.envName}/study-items`, {
         method: 'DELETE',
         body: JSON.stringify([
             {
                 "user": store.currentUserName,
-                "itemID": v_itemID.value
+                "itemID": v_itemID.value,
+                ...(filePath.value && { "filePath": filePath.value }),
             }
         ])
     })
-    .then(res => res.json());
-    console.log('res', res);
-
-    // update FE
-    const newArr: ArrayOfUserData = store.userLangData.filter(el => el.itemID !== v_itemID.value);
-    console.log('newArr', newArr);
-    store.setUserLangData(newArr);
-    closeConfirmModal();
+    .then(res => {
+        res.json()
+        getUserData()
+        // update FE without API call
+        // const newArr: ArrayOfUserData = store.userLangData.filter(el => el.itemID !== v_itemID.value);
+        // console.log('newArr', newArr);
+        // store.setUserLangData(newArr);
+        closeConfirmModal();
+    });
+    console.log('res_DELETE API', res);
 }
 
 // POST API
@@ -464,30 +487,34 @@ const addUserData = async () => {
     const payload = [
         {
             "user": store.currentUserName,
-            "itemID": v_item.value.replace(" ", "_") + "___" + uuidv4(),
+            "itemID": v_item.value.replaceAll(" ", "_") + "___" + uuidv4(),
             "item": v_item.value,
             "itemCorrect": v_itemCorrect.value,
             "itemType": v_itemType.value === 'addNew' ? v_newItemType.value : v_itemType.value,
             "itemTypeCategory": v_itemTypeCategory.value === 'addNew' ? v_newItemTypeCategory.value : v_itemTypeCategory.value,
             "languageMortherTongue": store.userLangData[0].languageMortherTongue,
             "languageStudying": v_languageStudying.value,
-            "level": v_level.value
+            "level": v_level.value,
+            ...(v_file.value.hasOwnProperty('name') && { "file": v_file.value }),
         }
     ]
 
-    const res = await fetch(`${config.public.apiUrl}/${config.public.envName}/study-items?user=${store.currentUserName}`, {
+    const res = await fetch(`${config.public.apiUrl}/${config.public.envName}/study-items`, {
         method: 'POST',
         body: JSON.stringify(payload)
     })
-    .then(res => res.json());
-    console.log('res', res);
+    .then(res => {
+        res.json()
+        getUserData();
+        // update FE without API call
+        // const newArr: ArrayOfUserData = store.userLangData.slice();
+        // newArr.push(payload[0])
+        // console.log('newArr', newArr);
+        // store.setUserLangData(newArr);
+        closeConfirmModal();
+    });
 
-    // update FE
-    const newArr: ArrayOfUserData = store.userLangData.slice();
-    newArr.push(payload[0])
-    console.log('newArr', newArr);
-    store.setUserLangData(newArr);
-    closeConfirmModal();
+    console.log('res_POST API', res);
 }
 
 // PUT API
@@ -519,10 +546,17 @@ const updateUserData = async () => {
         {
             name: 'itemCorrect',
             value: v_itemCorrect.value
-        }
+        },
+        ...(v_file.value && [
+            {
+                name: 'filePath',
+                value: v_file.value
+            }
+        ]),
     ].map(el => {
         return  {
             "user": store.currentUserName,
+            "item": v_item.value,
             "itemID": v_itemID.value,
             "keyToUpdate": {
                 "name": el.name,
@@ -534,30 +568,31 @@ const updateUserData = async () => {
     console.log('payload', payload);
 
 
-    const res = await fetch(`${config.public.apiUrl}/${config.public.envName}/study-items?user=${store.currentUserName}`, {
+    const res = await fetch(`${config.public.apiUrl}/${config.public.envName}/study-items`, {
         method: 'PUT',
         body: JSON.stringify(payload),
     })
     .then(res => res.json());
     console.log('res', res);
 
-    // update FE
-    const newArr: ArrayOfUserData = store.userLangData.map(el => {
-        if (el.itemID === v_itemID.value) {
-            el.level = v_level.value;
-            el.languageStudying = v_languageStudying.value;
-            el.itemType = v_itemType.value;
-            el.itemTypeCategory = v_itemTypeCategory.value;
-            el.item = v_item.value;
-            el.itemCorrect = v_itemCorrect.value;
+    getUserData();
+    // update FE without API call
+    // const newArr: ArrayOfUserData = store.userLangData.map(el => {
+    //     if (el.itemID === v_itemID.value) {
+    //         el.level = v_level.value;
+    //         el.languageStudying = v_languageStudying.value;
+    //         el.itemType = v_itemType.value;
+    //         el.itemTypeCategory = v_itemTypeCategory.value;
+    //         el.item = v_item.value;
+    //         el.itemCorrect = v_itemCorrect.value;
 
-            return el;
-        } else {
-            return el;
-        }
-    });
-    console.log('newArr', newArr);
-    store.setUserLangData(newArr);
+    //         return el;
+    //     } else {
+    //         return el;
+    //     }
+    // });
+    // console.log('newArr', newArr);
+    // store.setUserLangData(newArr);
     closeConfirmModal();
 }
 
@@ -565,6 +600,9 @@ watch(v_languageStudying, function() {
     console.log('v_languageStudying', v_languageStudying.value);    
 });
 
+watch(v_file, function() {
+    console.log('v_file1', v_file.value);    
+});
 </script>
 
 
@@ -627,6 +665,10 @@ watch(v_languageStudying, function() {
 
             &.listOfWords-item {
                 @apply min-w-[9.5rem];
+
+                .listOfWords-item--audio {
+                    @apply self-center flex items-center space-x-2;
+                }
             }
 
             &.listOfWords-itemCorrect {
@@ -653,6 +695,10 @@ watch(v_languageStudying, function() {
                 &:nth-child(2) {
                     @apply font-bold break-all;
                 }
+            }
+
+            &.lastLi {
+                @apply flex-1 min-w-[5.5rem] max-w-[5.5rem];
             }
         }
 
@@ -682,6 +728,7 @@ watch(v_languageStudying, function() {
         listOfWords: 'A list my words'
         modalTitle: '{activeModalAction} word/sentence:'
         item: 'Word/sentence'
+        audio: 'Audio'
         itemCorrect: 'Correct translation'
         addNew: 'Add'
         itemType: 'Category'
@@ -695,6 +742,7 @@ watch(v_languageStudying, function() {
         listOfWords: 'Список моих слов/предложений'
         modalTitle: '{activeModalAction} слово/предложение:'
         item: 'Слово/предложение'
+        audio: 'Аудио'
         itemCorrect: 'Правильный ответ'
         addNew: 'Добавить'
         itemType: 'Категория'
@@ -708,6 +756,7 @@ watch(v_languageStudying, function() {
         listOfWords: 'TBD'
         modalTitle: 'TBD'
         item: 'TBD'
+        audio: 'Audio'
         itemCorrect: 'TBD'
         addNew: 'TBD'
         itemType: 'TBD'
