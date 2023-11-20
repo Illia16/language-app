@@ -499,9 +499,21 @@ const addUserData = async () => {
         }
     ]
 
+    const formData = new FormData();
+    formData.append('file', v_file.value);
+    formData.append("user", store.currentUserName);
+    formData.append("itemID", v_item.value.replaceAll(" ", "_") + "___" + uuidv4());
+    formData.append("item", v_item.value);
+    formData.append("itemCorrect", v_itemCorrect.value);
+    formData.append("itemType", v_itemType.value === 'addNew' ? v_newItemType.value : v_itemType.value);
+    formData.append("itemTypeCategory", v_itemTypeCategory.value === 'addNew' ? v_newItemTypeCategory.value : v_itemTypeCategory.value);
+    formData.append("languageMortherTongue", store.userLangData[0].languageMortherTongue);
+    formData.append("languageStudying", v_languageStudying.value);
+    formData.append("level", v_level.value);
+
     const res = await fetch(`${config.public.apiUrl}/${config.public.envName}/study-items`, {
         method: 'POST',
-        body: JSON.stringify(payload)
+        body: formData,
     })
     .then(res => {
         res.json()

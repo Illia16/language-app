@@ -3,7 +3,8 @@ const { QueryCommand, DynamoDBDocumentClient } = require("@aws-sdk/lib-dynamodb"
 
 const client = new DynamoDBClient({});
 const docClient = DynamoDBDocumentClient.from(client);
-const { s3UploadFile, s3DeleteFile, s3GetSignedUrl, decodeBase64, cleanUpFileName } = require('../helpers');
+const { s3UploadFile, s3DeleteFile, s3GetSignedUrl, decodeBase64, cleanUpFileName, createPresignedUrlWithClient, putFile, parseMultipartFormData} = require('../helpers');
+
 
 module.exports = async (event, context) => {
     console.log('-----------------------------');
@@ -13,13 +14,22 @@ module.exports = async (event, context) => {
     console.log('context', context);
     console.log('-----------------------------');
 
-    const body = JSON.parse(event.body);
+    let body;
+    const action = event.httpMethod;
     const env = process.env.env;
     const projectName = process.env.projectName;
     const admin = process.env.admin;
-
     const allowedOrigins = ["http://localhost:3000", "https://d3uhxucz1lwio6.cloudfront.net"];
     const origin = event.headers.origin;
+
+    if (action === 'POST') {
+        const contentType = event.headers['Content-Type'] || event.headers['content-type'];
+        const boundary = contentType.split('boundary=')[1];
+        body = [parseMultipartFormData(event.body, boundary)];
+        console.log('____formData in the body', body);
+    } else {
+        body = JSON.parse(event.body);
+    }
 
     let response = {
         statusCode: 200,
@@ -29,7 +39,6 @@ module.exports = async (event, context) => {
         body: null,
     };
 
-    const action = event.httpMethod;
     if (action === 'GET') {
         const user = event.queryStringParameters.user;
         const languageStudying = event.queryStringParameters.languageStudying;
@@ -71,14 +80,18 @@ module.exports = async (event, context) => {
             // Save files(if any) to S3
             await Promise.all(
                 body
-                .filter(el => el.file && el.file.name)
+                .filter(el => el.file && el.file.filename)
                 .map(async (el) => {
                     const fileNameCleaned = cleanUpFileName(el.item);
-                    const file_name = fileNameCleaned + '.' + el.file.name.split('.').at(-1);
+                    const file_name = fileNameCleaned + '.' + el.file.filename.split('.').at(-1);
                     const filename_path = (`audio/${fileNameCleaned}/${file_name}`).toLowerCase().trim();
-                    const base64_encoded_data = el.file.base64.split(',')[1];
-                    const fileItself = decodeBase64(base64_encoded_data);
-                    await s3UploadFile(`s3-files-${projectName}-${env}`, filename_path, fileItself);
+                    // const base64_encoded_data = el.file.base64.split(',')[1];
+                    // const fileItself = decodeBase64(base64_encoded_data);
+                    // await s3UploadFile(`s3-files-${projectName}-${env}`, filename_path, fileItself);
+        
+                    console.log('el.file', el.file);
+                    const clientUrl = await createPresignedUrlWithClient(`s3-files-${projectName}-${env}`, filename_path);
+                    await putFile(clientUrl, JSON.stringify(el.file));
                 })
             )
             //
@@ -86,9 +99,9 @@ module.exports = async (event, context) => {
             const input = {
                 "RequestItems": {
                   [`db-${projectName}-${env}`]: body.map(el => {
-                    const hasAttachment = el.file && el.file.name ? true : false;
+                    const hasAttachment = el.file && el.file.filename ? true : false;
                     const fileNameCleaned = cleanUpFileName(el.item);
-                    const file_name = hasAttachment ? fileNameCleaned + '.' + el.file.name.split('.').at(-1) : null;
+                    const file_name = hasAttachment ? fileNameCleaned + '.' + el.file.filename.split('.').at(-1) : null;
                     return {
                         PutRequest: {
                             Item: {

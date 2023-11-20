@@ -36,13 +36,14 @@ const handleFile = async (e: Event) => {
     const element = e.target as HTMLInputElement;
     if (!element.files) return;
     console.log('e.target.files', element.files);
-    const base64 = await convertFileToBase64(element.files[0]);
-    const file = {
-        name: element.files[0].name.replace(/ /g, '_'),
-        size: element.files[0].size,
-        type: element.files[0].type,
-        base64: base64,
-    };
+    // const base64 = await convertFileToBase64(element.files[0]);
+    // const file = {
+    //     name: element.files[0].name.replace(/ /g, '_'),
+    //     size: element.files[0].size,
+    //     type: element.files[0].type,
+    //     base64: base64,
+    // };
+    const file = element.files[0];
     console.log('file', file);
     emit('update:modelValue', file)
 }
