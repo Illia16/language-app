@@ -3,7 +3,7 @@ const { QueryCommand, DynamoDBDocumentClient } = require("@aws-sdk/lib-dynamodb"
 
 const client = new DynamoDBClient({});
 const docClient = DynamoDBDocumentClient.from(client);
-const { s3UploadFile, s3DeleteFile, s3GetSignedUrl, decodeBase64, cleanUpFileName } = require('../helpers');
+const { s3GetFile, s3ListObjects, s3UploadFile, s3DeleteFile, s3GetSignedUrl, decodeBase64, cleanUpFileName } = require('../helpers');
 
 module.exports = async (event, context) => {
     console.log('-----------------------------');
@@ -66,7 +66,6 @@ module.exports = async (event, context) => {
     }
 
     if (action === 'POST') {
-        
         try {
             // Save files(if any) to S3
             await Promise.all(
@@ -85,10 +84,14 @@ module.exports = async (event, context) => {
 
             const input = {
                 "RequestItems": {
-                  [`db-${projectName}-${env}`]: body.map(el => {
+                  [`db-${projectName}-${env}`]: await Promise.all(body.map(async (el) => {
                     const hasAttachment = el.file && el.file.name ? true : false;
                     const fileNameCleaned = cleanUpFileName(el.item);
                     const file_name = hasAttachment ? fileNameCleaned + '.' + el.file.name.split('.').at(-1) : null;
+
+                    const checkIfnoAttachmentButFileExistsInS3 = await s3ListObjects(`s3-files-${projectName}-${env}`, `audio/${fileNameCleaned}`);
+                    const existingFileNameS3 = checkIfnoAttachmentButFileExistsInS3?.Contents?.[0]?.Key;
+
                     return {
                         PutRequest: {
                             Item: {
@@ -101,11 +104,13 @@ module.exports = async (event, context) => {
                                 languageMortherTongue: { "S": el.languageMortherTongue },
                                 languageStudying: { "S": el.languageStudying },
                                 level: { "S": el.level },
+                                ...(el.itemTranscription && { itemTranscription: { "S": el.itemTranscription }}),
                                 ...(hasAttachment && { filePath: { "S": `audio/${fileNameCleaned}/${file_name}`.toLowerCase() } }),
+                                ...(existingFileNameS3 && { filePath: { "S": existingFileNameS3 } }),
                             }
                         }
                     }
-                  })
+                  }))
                 }
             };
     
@@ -127,7 +132,7 @@ module.exports = async (event, context) => {
             // Save files(if any) to S3
             await Promise.all(
                 body
-                .filter(el => el.keyToUpdate.name === 'filePath')
+                .filter(el => el.keyToUpdate.name === 'filePath' && Object.keys(el.keyToUpdate.value).length)
                 .map(async (el) => {
                     const fileNameCleaned = cleanUpFileName(el.item);
                     const file_name = el.keyToUpdate.value ? fileNameCleaned + '.' + el.keyToUpdate.value.name.split('.').at(-1) : null;
@@ -142,7 +147,7 @@ module.exports = async (event, context) => {
             const allEls = await Promise.all(
                 body.map(async (el) => {
                     const fileNameCleaned = cleanUpFileName(el.item);
-                    const hasAttachment = el.keyToUpdate.name === 'filePath' ? true : false;
+                    const hasAttachment = (el.keyToUpdate.name === 'filePath' && Object.keys(el.keyToUpdate.value).length) ? true : false;
                     const file_name = hasAttachment ? fileNameCleaned + '.' + el.keyToUpdate.value.name.split('.').at(-1) : null;
 
                     const input = {
