@@ -12,11 +12,9 @@ export default <Partial<Config>>{
     theme: {
         extend: {
             colors: {
-                "main": '#FFA500',
+                "mainBg": "#ffe6a5",
                 "mainGreen": '#219f7a',
-                "button-bg": '#f5deb3',
                 "white": '#fff',
-                "mp-choice": '#f0f8ff',
             }
         },
     },

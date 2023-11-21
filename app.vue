@@ -21,7 +21,7 @@ watch(route, function() {
 
 <style lang="scss">
     .language-app-site {
-        @apply flex flex-col items-center min-h-screen bg-[#ffe6a5] px-5 py-4;
+        @apply flex flex-col items-center min-h-screen bg-mainBg px-5 py-4;
 
         p {
             &.specialP {

@@ -24,7 +24,6 @@
 						@keypress="(e) => handleSelect(e)">
 						{{ option.name }}
 					</button>
-					<!-- <slot name="addNew" /> -->
 				</div>
 			</div>
 		</div>
@@ -39,9 +38,12 @@ const props = defineProps({
 	modelValue: String,
 	options: Array as PropType<{ name: string, value: string }[]>,
     state: {
+		required: false,
+		default: 'default',
         type: String,
     },
     isDisabled: {
+		required: false,
         default: false,
         type: Boolean,
     }
@@ -137,6 +139,20 @@ onBeforeUnmount(() => {
 
 	& + .field-error {
 		@apply hidden;
+	}
+}
+
+.select-input-interfaceLang {
+	@apply md:max-w-[16rem];
+
+	.select-input-label {
+		@apply text-xs leading-3;
+	}
+
+	.custom-select-container {
+		> button {
+			@apply bg-transparent;
+		}
 	}
 }
 </style>
