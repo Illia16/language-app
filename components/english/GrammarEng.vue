@@ -81,3 +81,26 @@ const handleClick = (v: string):void => {
 
 </script>
 
+<i18n lang="yaml">
+    en:
+        tenses: "Tenses"
+        mainMenu:
+            look: 'Look'
+            other: 'Other'
+            grammar: 'Grammar'
+        irregularVerbs: 'Irregular verbs'
+    ru:
+        tenses: "Времена"
+        mainMenu:
+            look: 'Смотреть'
+            other: 'Другое'
+            grammar: 'Грамматика'
+        irregularVerbs: 'Неправильные глаголы'
+    zh:
+        tenses: "时态"
+        mainMenu:
+            look: '看看'
+            other: '其他'
+            grammar: '语法'
+        irregularVerbs: 'TBD'
+</i18n>

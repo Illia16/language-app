@@ -365,7 +365,7 @@ import { useMainStore } from 'store/main';
 import { UserDataArrayOfObj, UserData } from 'types/helperTypes'
 import { v4 as uuidv4  } from "uuid";
 
-const { t } = useI18n();
+const { t } = useI18n({useScope: 'local'});
 const store = useMainStore();
 const config = useRuntimeConfig();
 
@@ -762,6 +762,11 @@ watch(v_file, function() {
         languageStudying: 'Language'
         level: 'My level'
         addNewItem: 'Add new item'
+        add: 'Add'
+        update: 'Update'
+        delete: 'Delete'
+        confirm: 'Confirm'
+        cancel: 'Cancel'
     ru:
         listOfWords: 'Список моих слов/предложений'
         modalTitle: '{activeModalAction} слово/предложение:'
@@ -778,6 +783,11 @@ watch(v_file, function() {
         languageStudying: 'Язык'
         level: 'Мой уровень'
         addNewItem: 'Добавить новое слово/предложение'
+        add: 'Добавить'
+        update: 'Обновить'
+        delete: 'Удалить'
+        confirm: 'Подтвердить'
+        cancel: 'Отменить' 
     zh:
         listOfWords: 'TBD'
         modalTitle: 'TBD'
@@ -794,4 +804,9 @@ watch(v_file, function() {
         languageStudying: 'TBD'
         level: 'TBD'
         addNewItem: 'TBD'
+        add: 'TBD'
+        update: 'TBD'
+        delete: 'TBD'
+        confirm: 'TBD'
+        cancel: 'TBD'
 </i18n>

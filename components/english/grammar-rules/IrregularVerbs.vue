@@ -20,7 +20,7 @@
 </template>
 
 <script lang="ts" setup>
-const { t } = useI18n()
+const { t } = useI18n({useScope: 'local'})
 
 const irregularVerbs = [
     { translation: 'быть', infinitive: 'be', past: 'was/were', pastParticiple: 'been' },
@@ -52,3 +52,24 @@ const irregularVerbs = [
     { translation: 'писать', infinitive: 'write', past: 'wrote', pastParticiple: 'written'},
 ]
 </script>
+
+<i18n lang="yaml">
+    en:
+        irrgegularVerbs:
+            translation: 'Translation'
+            infinitive: '1st form (Infinitive)'
+            past: '2nd form (Past)'
+            pastParticiple: '3rd form (Participle)'
+    ru:
+        irrgegularVerbs:
+            translation: 'Перевод'
+            infinitive: '1 форма (Инфинитив)'
+            past: '2 форма (Прошедшее)'
+            pastParticiple: '3 форма (Причастие)'
+    zh:
+        irrgegularVerbs:
+            translation: '翻译'
+            infinitive: '1形式 (不定式)'
+            past: '2形式 (过去式)'
+            pastParticiple: '3形式 (分词)'
+</i18n>
