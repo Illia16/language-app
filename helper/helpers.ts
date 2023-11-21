@@ -26,7 +26,7 @@ export const camelCaseString = (v: string):string => {
 }
 
 export const getQuestion = (m: string, lessonData: UserDataArrayOfObj, currentQuestionNum: number): Question => {    
-    const q = lessonData[currentQuestionNum-1];
+    const q = lessonData[currentQuestionNum-1] as UserData;
 
     const handleQuestion = (m: string, lessonData: UserDataArrayOfObj): Question => {        
         const questionAnswer = {} as Question;
@@ -61,16 +61,25 @@ export const getQuestion = (m: string, lessonData: UserDataArrayOfObj, currentQu
     } else {
         // in Mandarin, there's no space between words ususally. Set different splitter.
         const isEligibleForSentence = q.languageStudying === 'zh' ? q.item.split("").length >= 2 : q.item.split(" ").length >= 3;
-        const randomMode = getRandomMode(isEligibleForSentence);
+        const hasAudioFile = q.filePath && q.fileUrl ? true : false;
+        const randomMode = getRandomMode(isEligibleForSentence, hasAudioFile);
+        
         return handleQuestion(randomMode, lessonData);
     }
 }
 
 // function to get a random mode
-const getRandomMode = (isEligibleForSentence: boolean):string => {
-    const allModes: string[] = isEligibleForSentence ? 
-        [mapModes.wordTranslation, mapModes.translationWord, mapModes.wordTranslationMPChoice, mapModes.translationWordMPChoice, mapModes.sentenceWordTranslation, mapModes.sentenceTranslationWord] :
-        [mapModes.wordTranslation, mapModes.translationWord, mapModes.wordTranslationMPChoice, mapModes.translationWordMPChoice];
+const getRandomMode = (isEligibleForSentence: boolean, hasAudioFile: boolean):string => {
+    const allModes: string[] = [
+        hasAudioFile && mapModes.wordListening, 
+        mapModes.wordTranslation, 
+        mapModes.translationWord, 
+        mapModes.wordTranslationMPChoice, 
+        mapModes.translationWordMPChoice, 
+        isEligibleForSentence && mapModes.sentenceWordTranslation, 
+        isEligibleForSentence && mapModes.sentenceTranslationWord
+    ]
+    .filter(el=>el)
     const randomIndex:number = Math.floor(Math.random()*allModes.length);
     return allModes[randomIndex];
 }
@@ -81,7 +90,6 @@ export const fillMpChoiceArray = (data: UserDataArrayOfObj, correctAnswer:string
 
     const mpChoices = data
         .map((el: UserData, i: number): MpChoices => {
-            console.log('el', el);
             
             let res: MpChoices = {} as MpChoices;
             const q: string = el[mpChoiceType]?.replace(replaceAllinsideParantheses, '');
@@ -129,6 +137,7 @@ export const mapLanguage = (v:string):string => {
 }
 
 export const mapModes = {
+    wordListening: 'wordListening',
     wordTranslation: 'wordTranslation',
     translationWord: 'translationWord',
     wordTranslationMPChoice: 'wordTranslationMPChoice',

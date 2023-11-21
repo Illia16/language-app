@@ -41,7 +41,7 @@
 
             <div class="learning-data--mode">
                 <h2>{{ t('modeTitle') }}</h2>
-                <div v-for="(mode, i) of [mapModes.wordTranslation, mapModes.translationWord, mapModes.wordTranslationMPChoice, mapModes.translationWordMPChoice, mapModes.sentenceWordTranslation, mapModes.sentenceTranslationWord, mapModes.random]" :key="`${mode}'_'${i}`" class='mode-radio' tabindex="0">
+                <div v-for="(mode, i) of [mapModes.wordListening, mapModes.wordTranslation, mapModes.translationWord, mapModes.wordTranslationMPChoice, mapModes.translationWordMPChoice, mapModes.sentenceWordTranslation, mapModes.sentenceTranslationWord, mapModes.random]" :key="`${mode}'_'${i}`" class='mode-radio' tabindex="0">
                     <label>
                         <input
                             tabindex="-1"
@@ -100,13 +100,20 @@
                 {{ t('question') }}
             </span>
             <AudioPlayer
-                v-if="currentQuestion.fileUrl && [mapModes.wordTranslation, mapModes.wordTranslationMPChoice, mapModes.sentenceWordTranslation].includes(currentQuestion.mode)"
+                v-if="currentQuestion.fileUrl && 
+                [mapModes.wordListening, mapModes.wordTranslation, mapModes.wordTranslationMPChoice, mapModes.sentenceWordTranslation].includes(currentQuestion.mode) &&
+                !currentQuestionAnswered
+                "
                 :file="currentQuestion.fileUrl" 
                 :playRightAway="true"
             >
             </AudioPlayer>
             <span class="lesson-started--question-text">
-                <span :class="!currentQuestionAnswered ? 'animated-text' : 'font-bold'">{{currentQuestion.question}}</span>
+                <span 
+                    v-if="[mapModes.wordTranslation, mapModes.translationWord, mapModes.wordTranslationMPChoice, mapModes.translationWordMPChoice, mapModes.sentenceWordTranslation, mapModes.sentenceTranslationWord, mapModes.random].includes(currentQuestion.mode)"
+                    :class="!currentQuestionAnswered ? 'animated-text' : 'font-bold'">
+                    {{currentQuestion.question}}
+                </span>
                 <span
                     v-if="currentQuestion.itemTranscription
                     && [mapModes.wordTranslation, mapModes.wordTranslationMPChoice, mapModes.sentenceWordTranslation].includes(currentQuestion.mode)"
@@ -118,7 +125,12 @@
         </div>
 
         <!--MODE: Write text -->
-        <div class="form_el" v-if="currentQuestion.mode === mapModes.wordTranslation || currentQuestion.mode === mapModes.translationWord">
+        <div 
+            class="form_el" 
+            v-if="currentQuestion.mode === mapModes.wordTranslation || 
+                currentQuestion.mode === mapModes.translationWord ||
+                currentQuestion.mode === mapModes.wordListening
+            ">
             <label>
                 <input type="text" v-model="userAnswer" :placeholder="t('yourAnswer')" />
             </label>
@@ -267,7 +279,18 @@ const initData = computed<UserDataArrayOfObj>((): UserDataArrayOfObj => store.us
             return el;
         }
             
-        if (modeSelected.value !== mapModes.sentenceWordTranslation && modeSelected.value !== mapModes.sentenceTranslationWord) {
+        if (
+            modeSelected.value !== mapModes.sentenceWordTranslation && 
+            modeSelected.value !== mapModes.sentenceTranslationWord &&
+            modeSelected.value !== mapModes.wordListening
+        ) {
+            return el;
+        }
+
+        // for wordListening mode
+        if (
+            modeSelected.value === mapModes.wordListening && el.filePath && el.fileUrl
+        ) {
             return el;
         }
     })
@@ -276,7 +299,8 @@ const initData = computed<UserDataArrayOfObj>((): UserDataArrayOfObj => store.us
 
 const numQuestions = computed<number[]>(() => {
     return  [
-        initData.value.length <= 5 && initData.value.length >= 1 ? 1 : 0,
+        initData.value.length < 5 && initData.value.length >= 1 ? 1 : 0,
+        initData.value.length < 5 && initData.value.length >= 1 ? 3 : 0,
         initData.value.length >= 5 ? 5 : 0, 
         initData.value.length >= 10 ? 10 : 0,
         initData.value.length >= 15 ? 15 : 0,
@@ -555,6 +579,7 @@ section {
         selectSubExercise: 'Select an exercise or multiple exercises from this section:'
         modeTitle: 'Select a learning mode'
         numberQ: 'Select a number of questions:'
+        wordListening: 'Listening'
         wordTranslation: 'Writing: Translation from learning language'
         translationWord: 'Writing: Translation to learning language'
         wordTranslationMPChoice: 'Multiple Choice: Translation from learning language'
@@ -575,6 +600,7 @@ section {
         selectSubExercise: 'Выберите под-секцию:'
         modeTitle: 'Выберите режим обучения'
         numberQ: 'Выберите количество вопросов:'
+        wordListening: 'Слушание'
         wordTranslation: 'Написание: Перевод с изучаемого языка'
         translationWord: 'Написание: Перевод на изучаемый язык'
         wordTranslationMPChoice: 'Несколько вариантов ответа: Перевод с изучаемого языка'
@@ -595,6 +621,7 @@ section {
         selectSubExercise: 'TBD'
         modeTitle: 'TBD'
         numberQ: '选择问题数量:'
+        wordListening: 'TBD'
         wordTranslation: '翻译 - 单词'
         translationWord: '单词 - 翻译'
         wordTranslationMPChoice: '多选: 单词 - 翻译'
