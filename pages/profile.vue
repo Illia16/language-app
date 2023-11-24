@@ -151,7 +151,7 @@
                         <div class="field-error">Please select a itemType.</div>
                     </template>
                 </CustomSelect>
-                
+
                 <div v-if="v_itemType === 'addNew'" class="form_el">
                     <label>{{t('newItemType')}}</label>
                     <input type="text" v-model="v_newItemType" />
@@ -371,6 +371,7 @@ const config = useRuntimeConfig();
 
 const activeModalAction = ref<string>('');
 const filePath = ref<string>('');
+const currentItemOriginal = ref<UserData>({});
 // v-models
 const v_level = ref<string>('0');
 const v_languageStudying = ref<string>('en');
@@ -403,7 +404,7 @@ const itemTypeCategory = computed<{ name: string, value: string }[]>(() => store
         return {name: el, value: el}
     })
 )
-// 
+//
 
 onMounted(() => {
     console.log('store.userLangData', store.userLangData);
@@ -434,17 +435,19 @@ const closeConfirmModal = (): void => {
     v_itemCorrect.value = '';
     v_itemTranscription.value = '';
     v_file.value = {};
+    currentItemOriginal.value = {};
 }
 
 const openConfirmModal = (item: UserData | null, action: string):void => {
     console.log('action', action);
     console.log('item', item);
-    
+
     store.setModalOpen(true);
     store.setModalType(action);
     activeModalAction.value = action;
 
     if (item) {
+        currentItemOriginal.value = item;
         v_level.value = item.level;
         v_languageStudying.value = item.languageStudying;
         v_itemType.value = item.itemType;
@@ -458,7 +461,7 @@ const openConfirmModal = (item: UserData | null, action: string):void => {
         } else {
             filePath.value = '';
         }
-    }    
+    }
 }
 
 // GET API (in this component for update UI after put/update/delete API calls)
@@ -467,7 +470,7 @@ const getUserData = async () => {
     if (res.data && res.data.length) {
         store.setUserLangData(res.data);
     }
-} 
+}
 
 // DELETE API
 const deleteUserData = async () => {
@@ -498,26 +501,33 @@ const addUserData = async () => {
     if (!v_level.value || !v_languageStudying.value || !v_itemType.value || !v_itemTypeCategory.value || !v_item.value || !v_itemCorrect.value) {
         return;
     }
-    
-    const payload = [
-        {
-            "user": store.currentUserName,
-            "itemID": v_item.value.replaceAll(" ", "_") + "___" + uuidv4(),
-            "item": v_item.value,
-            "itemCorrect": v_itemCorrect.value,
-            "itemType": v_itemType.value === 'addNew' ? v_newItemType.value : v_itemType.value,
-            "itemTypeCategory": v_itemTypeCategory.value === 'addNew' ? v_newItemTypeCategory.value : v_itemTypeCategory.value,
-            "languageMortherTongue": store.userLangData[0].languageMortherTongue,
-            "languageStudying": v_languageStudying.value,
-            "level": v_level.value,
-            ...(v_itemTranscription && { "itemTranscription": v_itemTranscription.value }),
-            ...(v_file.value.hasOwnProperty('name') && { "file": v_file.value }),
-        }
-    ]
 
+    const payload = new FormData();
+    payload.append('item', v_item.value);
+    payload.append('user', store.currentUserName);
+    payload.append('itemID', v_item.value.replaceAll(" ", "_") + "___" + uuidv4());
+
+    payload.append('itemCorrect', v_itemCorrect.value);
+    payload.append('itemType', v_itemType.value === 'addNew' ? v_newItemType.value : v_itemType.value);
+    payload.append('itemTypeCategory', v_itemTypeCategory.value === 'addNew' ? v_newItemTypeCategory.value : v_itemTypeCategory.value);
+
+    payload.append('languageMortherTongue', store.userLangData[0].languageMortherTongue);
+    payload.append('languageStudying', v_languageStudying.value);
+    payload.append('level', v_level.value);
+
+
+    if (v_itemTranscription.value) {
+        payload.append('itemTranscription', v_itemTranscription.value);
+    }
+
+    if (v_file.value?.name) {
+        payload.append('file', v_file.value);
+    }
+
+    console.log('payload', payload);
     const res = await fetch(`${config.public.apiUrl}/${config.public.envName}/study-items`, {
         method: 'POST',
-        body: JSON.stringify(payload)
+        body: payload,
     })
     .then(res => {
         res.json()
@@ -529,75 +539,67 @@ const addUserData = async () => {
         // store.setUserLangData(newArr);
         closeConfirmModal();
     });
-
     console.log('res_POST API', res);
 }
 
 // PUT API
 const updateUserData = async () => {
-    console.log('v_level', v_level.value);
-    console.log('store', store.userLangData.filter(el => el.level === v_level.value));
+    const payload = new FormData();
+    payload.append('item', v_item.value);
+    payload.append('user', store.currentUserName);
+    payload.append('itemID', v_itemID.value);
 
-    const payload = [
-        {
-            name: 'level',
-            value: v_level.value
-        },
-        {
-            name: 'languageStudying',
-            value: v_languageStudying.value
-        },
-        {
-            name: 'itemType',
-            value: v_itemType.value
-        },
-        {
-            name: 'itemTypeCategory',
-            value: v_itemTypeCategory.value
-        },
-        {
-            name: 'item',
-            value: v_item.value
-        },
-        {
-            name: 'itemCorrect',
-            value: v_itemCorrect.value
-        },
-        ...(v_itemTranscription.value && [
-            {
-                name: 'itemTranscription',
-                value: v_itemTranscription.value
-            }
-        ]),
-        ...(v_file.value && [
-            {
-                name: 'filePath',
-                value: v_file.value
-            }
-        ]),
-    ].map(el => {
-        return  {
-            "user": store.currentUserName,
-            "item": v_item.value,
-            "itemID": v_itemID.value,
-            "keyToUpdate": {
-                "name": el.name,
-                "value": el.value
-            }
-        }
-    })
+    let anyChanges: boolean = false;
+    if (currentItemOriginal.value['level'] !== v_level.value) {
+        anyChanges = true;
+        payload.append('level', v_level.value);
+    }
+    if (currentItemOriginal.value['languageStudying'] !== v_languageStudying.value) {
+        anyChanges = true;
+        payload.append('languageStudying', v_languageStudying.value);
+    }
 
-    console.log('payload', payload);
+    const itemTypeKey = v_itemType.value === 'addNew' ? v_newItemType.value : v_itemType.value;
+    if (currentItemOriginal.value['itemType'] !== itemTypeKey) {
+        anyChanges = true;
+        payload.append('itemType', itemTypeKey);
+    }
 
+    const itemTypeCatKey = v_itemTypeCategory.value === 'addNew' ? v_newItemTypeCategory.value : v_itemTypeCategory.value;
+    if (currentItemOriginal.value['itemTypeCategory'] !== itemTypeCatKey) {
+        anyChanges = true;
+        payload.append('itemTypeCategory', itemTypeCatKey);
+    }
 
-    const res = await fetch(`${config.public.apiUrl}/${config.public.envName}/study-items`, {
-        method: 'PUT',
-        body: JSON.stringify(payload),
-    })
-    .then(res => res.json());
-    console.log('res', res);
+    if (currentItemOriginal.value['itemCorrect'] !== v_itemCorrect.value) {
+        anyChanges = true;
+        payload.append('itemCorrect', v_itemCorrect.value);
+    }
 
-    getUserData();
+    if (currentItemOriginal.value['itemTranscription'] !== v_itemTranscription.value) {
+        anyChanges = true;
+        payload.append('itemTranscription', v_itemTranscription.value);
+    }
+
+    if (v_file.value?.name) {
+        anyChanges = true;
+        payload.append('file', v_file.value);
+    }
+
+    console.log('anyChanges', anyChanges);
+    if (anyChanges) {
+        const res = await fetch(`${config.public.apiUrl}/${config.public.envName}/study-items`, {
+            method: 'PUT',
+            body: payload,
+        })
+        .then(res => {
+            res.json();
+            getUserData();
+            closeConfirmModal();
+        });
+        console.log('res_PUT API', res);
+    }
+
     // update FE without API call
     // const newArr: UserDataArrayOfObj = store.userLangData.map(el => {
     //     if (el.itemID === v_itemID.value) {
@@ -615,15 +617,14 @@ const updateUserData = async () => {
     // });
     // console.log('newArr', newArr);
     // store.setUserLangData(newArr);
-    closeConfirmModal();
 }
 
 watch(v_languageStudying, function() {
-    console.log('v_languageStudying', v_languageStudying.value);    
+    console.log('v_languageStudying', v_languageStudying.value);
 });
 
 watch(v_file, function() {
-    console.log('v_file1', v_file.value);    
+    console.log('v_file1', v_file.value);
 });
 </script>
 
@@ -654,7 +655,7 @@ watch(v_file, function() {
 
 .listOfWords {
     @apply overflow-x-auto w-[calc(100vw-1.25rem-1.25rem)];
-    
+
     h1 {
         @apply text-2xl my-3 text-center;
     }
@@ -734,7 +735,7 @@ watch(v_file, function() {
         li:first-child {
             @apply border-l border-l-mainGreen;
         }
-        
+
         li {
             @apply border-r border-r-mainGreen;
         }
@@ -787,7 +788,7 @@ watch(v_file, function() {
         update: 'Обновить'
         delete: 'Удалить'
         confirm: 'Подтвердить'
-        cancel: 'Отменить' 
+        cancel: 'Отменить'
     zh:
         listOfWords: 'TBD'
         modalTitle: 'TBD'

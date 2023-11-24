@@ -1,9 +1,10 @@
-const { DynamoDBClient, BatchWriteItemCommand, UpdateItemCommand } = require("@aws-sdk/client-dynamodb");
+const { DynamoDBClient, BatchWriteItemCommand, PutItemCommand, UpdateItemCommand } = require("@aws-sdk/client-dynamodb");
 const { QueryCommand, DynamoDBDocumentClient } = require("@aws-sdk/lib-dynamodb");
 
 const client = new DynamoDBClient({});
 const docClient = DynamoDBDocumentClient.from(client);
-const { s3GetFile, s3ListObjects, s3UploadFile, s3DeleteFile, s3GetSignedUrl, decodeBase64, cleanUpFileName } = require('../helpers');
+const { s3GetFile, s3ListObjects, s3UploadFile, s3DeleteFile, s3GetSignedUrl, cleanUpFileName, getFilePathIfFileIsPresentInBody } = require('../helpers');
+const parser = require('lambda-multipart-parser');
 
 module.exports = async (event, context) => {
     console.log('-----------------------------');
@@ -13,13 +14,14 @@ module.exports = async (event, context) => {
     console.log('context', context);
     console.log('-----------------------------');
 
-    const body = JSON.parse(event.body);
+    let body;
     const env = process.env.env;
     const projectName = process.env.projectName;
     const admin = process.env.admin;
 
     const allowedOrigins = ["http://localhost:3000", "https://d3uhxucz1lwio6.cloudfront.net"];
     const origin = event.headers.origin;
+    const action = event.httpMethod;
 
     let response = {
         statusCode: 200,
@@ -29,7 +31,25 @@ module.exports = async (event, context) => {
         body: null,
     };
 
-    const action = event.httpMethod;
+    if (action === 'POST' || action === 'PUT') {
+        // const contentType = event.headers['Content-Type'] || event.headers['content-type'];
+        // const boundary = contentType.split('boundary=')[1];
+
+        const result = await parser.parse(event);
+        console.log('_____result', result);
+        // body = result;
+        if (!result.files.length) {
+            delete result.files;
+        }
+
+        body = result;
+        console.log('_____body', body);
+        // body = [parseMultipartFormData(event.body, boundary)];
+        // console.log('____formData in the body', body);
+    } else {
+        body = JSON.parse(event.body);
+    }
+
     if (action === 'GET') {
         const user = event.queryStringParameters.user;
         const languageStudying = event.queryStringParameters.languageStudying;
@@ -67,54 +87,37 @@ module.exports = async (event, context) => {
 
     if (action === 'POST') {
         try {
-            // Save files(if any) to S3
-            await Promise.all(
-                body
-                .filter(el => el.file && el.file.name)
-                .map(async (el) => {
-                    const fileNameCleaned = cleanUpFileName(el.item);
-                    const file_name = fileNameCleaned + '.' + el.file.name.split('.').at(-1);
-                    const filename_path = (`audio/${fileNameCleaned}/${file_name}`).toLowerCase().trim();
-                    const base64_encoded_data = el.file.base64.split(',')[1];
-                    const fileItself = decodeBase64(base64_encoded_data);
-                    await s3UploadFile(`s3-files-${projectName}-${env}`, filename_path, fileItself);
-                })
-            )
+            const checkIfnoAttachmentButFileExistsInS3 = await s3ListObjects(`s3-files-${projectName}-${env}`, `audio/${cleanUpFileName(body.item)}`);
+            const existingFileNameS3 = checkIfnoAttachmentButFileExistsInS3?.Contents?.[0]?.Key;
+
+            // Save files(if any) to S3, also do not upload it if it's already in S3 (different user added it)
+            const filePath = getFilePathIfFileIsPresentInBody(body);
+            if (filePath && !existingFileNameS3) {
+                // TODO: check if there's already a file. If there's, rename that file (or delete and upload the new one)
+                await s3UploadFile(`s3-files-${projectName}-${env}`, filePath, body.files[0].content);
+            }
             //
 
             const input = {
-                "RequestItems": {
-                  [`db-${projectName}-${env}`]: await Promise.all(body.map(async (el) => {
-                    const hasAttachment = el.file && el.file.name ? true : false;
-                    const fileNameCleaned = cleanUpFileName(el.item);
-                    const file_name = hasAttachment ? fileNameCleaned + '.' + el.file.name.split('.').at(-1) : null;
-
-                    const checkIfnoAttachmentButFileExistsInS3 = await s3ListObjects(`s3-files-${projectName}-${env}`, `audio/${fileNameCleaned}`);
-                    const existingFileNameS3 = checkIfnoAttachmentButFileExistsInS3?.Contents?.[0]?.Key;
-
-                    return {
-                        PutRequest: {
-                            Item: {
-                                user: { "S": el.user },
-                                itemID: { "S": el.itemID },
-                                item: { "S": el.item },
-                                itemCorrect: { "S": el.itemCorrect },
-                                itemType: { "S": el.itemType },
-                                itemTypeCategory: { "S": el.itemTypeCategory },
-                                languageMortherTongue: { "S": el.languageMortherTongue },
-                                languageStudying: { "S": el.languageStudying },
-                                level: { "S": el.level },
-                                ...(el.itemTranscription && { itemTranscription: { "S": el.itemTranscription }}),
-                                ...(hasAttachment && { filePath: { "S": `audio/${fileNameCleaned}/${file_name}`.toLowerCase() } }),
-                                ...(existingFileNameS3 && { filePath: { "S": existingFileNameS3 } }),
-                            }
-                        }
-                    }
-                  }))
-                }
+                "Item": {
+                    user: { "S": body.user },
+                    itemID: { "S": body.itemID },
+                    item: { "S": body.item },
+                    itemCorrect: { "S": body.itemCorrect },
+                    itemType: { "S": body.itemType },
+                    itemTypeCategory: { "S": body.itemTypeCategory },
+                    languageMortherTongue: { "S": body.languageMortherTongue },
+                    languageStudying: { "S": body.languageStudying },
+                    level: { "S": body.level },
+                    ...(body.itemTranscription && { itemTranscription: { "S": body.itemTranscription }}),
+                    ...((filePath && !existingFileNameS3) && { filePath: { "S": filePath } }),
+                    ...(existingFileNameS3 && { filePath: { "S": existingFileNameS3 } }),
+                },
+                "ReturnConsumedCapacity": "TOTAL",
+                "TableName": `db-${projectName}-${env}`
             };
-    
-            const command = new BatchWriteItemCommand(input);
+
+            const command = new PutItemCommand(input);
             const res = await client.send(command);
             console.log('res POST:', res);
             response.body = JSON.stringify({success: true});
@@ -130,43 +133,36 @@ module.exports = async (event, context) => {
     if (action === 'PUT') {
         try {
             // Save files(if any) to S3
-            await Promise.all(
-                body
-                .filter(el => el.keyToUpdate.name === 'filePath' && Object.keys(el.keyToUpdate.value).length)
-                .map(async (el) => {
-                    const fileNameCleaned = cleanUpFileName(el.item);
-                    const file_name = el.keyToUpdate.value ? fileNameCleaned + '.' + el.keyToUpdate.value.name.split('.').at(-1) : null;
-                    const filename_path = (`audio/${fileNameCleaned}/${file_name}`).toLowerCase().trim();
-                    const base64_encoded_data = el.keyToUpdate.value.base64.split(',')[1];
-                    const fileItself = decodeBase64(base64_encoded_data);
-                    await s3UploadFile(`s3-files-${projectName}-${env}`, filename_path, fileItself);
-                })
-            );
+            const filePath = getFilePathIfFileIsPresentInBody(body);
+            if (filePath) {
+                // TODO: check if there's already a file in S3 while "item" has changed. If there's, rename that file (or delete and upload the new one), rename with the new "item" name
+                await s3UploadFile(`s3-files-${projectName}-${env}`, filePath, body.files[0].content);
+            }
             //
 
-            const allEls = await Promise.all(
-                body.map(async (el) => {
-                    const fileNameCleaned = cleanUpFileName(el.item);
-                    const hasAttachment = (el.keyToUpdate.name === 'filePath' && Object.keys(el.keyToUpdate.value).length) ? true : false;
-                    const file_name = hasAttachment ? fileNameCleaned + '.' + el.keyToUpdate.value.name.split('.').at(-1) : null;
+            const allEls = [];
+            for (const key in body) {
+                if (!['user', 'itemID'].includes(key)) {
+                    const attributeName = key === 'files' ? 'filePath' : key;
+                    const attributeValue = (key === 'files' && filePath) ? filePath : body[key];
 
                     const input = {
                         TableName: `db-${projectName}-${env}`,
                         Key: {
                             user: {
-                                "S": el.user
+                                "S": body.user
                             },
                             itemID: {
-                                "S": el.itemID
+                                "S": body.itemID
                             },
                         },
                         UpdateExpression: "SET #attributeName = :newValue",
                         ExpressionAttributeNames: {
-                            "#attributeName": el.keyToUpdate.name,
+                            "#attributeName": attributeName,
                         },
                         ExpressionAttributeValues: {
                             ":newValue": {
-                                "S": hasAttachment ? `audio/${fileNameCleaned}/${file_name}`.toLowerCase() : el.keyToUpdate.value
+                                "S": attributeValue
                             }
                         },
                         ReturnValues: "ALL_NEW"
@@ -174,10 +170,9 @@ module.exports = async (event, context) => {
 
                     const command = new UpdateItemCommand(input);
                     const res = await client.send(command);
-                    console.log('res PUT (UPDATE):', res);
-                    return res.Attributes;
-                })
-            )
+                    allEls.push(res.Attributes);
+                }
+            }
 
             response.body = JSON.stringify({success: true, data: allEls});
         } catch (error) {
@@ -221,6 +216,5 @@ module.exports = async (event, context) => {
         response.body = JSON.stringify({success: true});
     }
 
-    console.log("response: " + JSON.stringify(response))
     return response;
 };

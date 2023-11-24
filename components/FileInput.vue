@@ -22,7 +22,6 @@
 </template>
 
 <script lang="ts" setup>
-import { convertFileToBase64 } from 'helper/helpers';
 const emit = defineEmits(['update:modelValue']);
 const { t } = useI18n({useScope: 'local'})
 const props = defineProps({
@@ -37,15 +36,7 @@ const handleFile = async (e: Event) => {
     const element = e.target as HTMLInputElement;
     if (!element.files) return;
     console.log('e.target.files', element.files);
-    const base64 = await convertFileToBase64(element.files[0]);
-    const file = {
-        name: element.files[0].name.replace(/ /g, '_'),
-        size: element.files[0].size,
-        type: element.files[0].type,
-        base64: base64,
-    };
-    console.log('file', file);
-    emit('update:modelValue', file)
+    emit('update:modelValue', element.files[0])
 }
 
 const deleteFile = () => {
@@ -73,4 +64,3 @@ const deleteFile = () => {
         optional: 'TBD'
         deleteFile: 'TBD'
 </i18n>
-    

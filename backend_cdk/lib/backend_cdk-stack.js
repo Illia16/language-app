@@ -158,7 +158,7 @@ class BackendCdkStack extends cdk.Stack {
     myIam.attachInlinePolicy(new iam.Policy(this, `iamPolicy-${props.env.projectName}-${props.env.stage}`, {
           statements: [
               new iam.PolicyStatement({
-                  actions: ['dynamodb:Query', 'dynamodb:BatchWriteItem', 'dynamodb:UpdateItem'],
+                  actions: ['dynamodb:Query', 'dynamodb:BatchWriteItem', 'dynamodb:PutItem', 'dynamodb:UpdateItem'],
                   // dynamodb:*
                   // dynamodb:BatchGetItem
                   // dynamodb:BatchWriteItem
@@ -215,6 +215,7 @@ class BackendCdkStack extends cdk.Stack {
       proxy: false,
       restApiName: `api-study-items--${props.env.projectName}-${props.env.stage}`,
       description: 'API to get/update/post/delete language items of users.',
+      binaryMediaTypes: ['multipart/form-data'],
       defaultCorsPreflightOptions: {
         allowOrigins: props.env.stage === 'prod' ? ['https://d3uhxucz1lwio6.cloudfront.net'] : ['http://localhost:3000', 'https://d3uhxucz1lwio6.cloudfront.net'],
         allowMethods: apiGateway.Cors.ALL_METHODS,

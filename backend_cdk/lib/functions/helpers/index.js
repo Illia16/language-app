@@ -65,11 +65,19 @@ module.exports = {
         const file = await getSignedUrl(client, command, { expiresIn: 3600 });
         return file;
     },
-    decodeBase64: (base64_encoded_file) => {
-        const file = Buffer.from(base64_encoded_file, 'base64');
-        return file;
-    },
     cleanUpFileName: (v) => {
         return v.trim().toLowerCase().replace(/[\s,\.]+/g, '_');
+    },
+    getFilePathIfFileIsPresentInBody: (body) => {
+        let filePath = null;
+        const hasAttachment = body?.files?.length ? true : false;
+
+        if (hasAttachment) {
+            let fileNameCleaned = module.exports.cleanUpFileName(body?.item);
+            let file_name = fileNameCleaned + '.' + body.files?.[0].filename.split('.').at(-1);
+            filePath = `audio/${fileNameCleaned}/${file_name}`.toLowerCase().trim();
+        }
+        
+        return filePath;
     }
 }
