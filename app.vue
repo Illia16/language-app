@@ -20,8 +20,16 @@ watch(route, function() {
 </script>
 
 <style lang="scss">
+    body {
+        @apply font-main;
+
+        h1, h2, h3, h4 {
+            @apply font-heading;
+        }
+    }
+
     .language-app-site {
-        @apply flex flex-col items-center min-h-screen bg-mainBg px-5 py-4;
+        @apply flex flex-col items-center justify-center min-h-screen bg-mainBg px-5 py-4;
 
         p {
             &.specialP {

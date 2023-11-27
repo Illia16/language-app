@@ -1,6 +1,7 @@
 <template>
-    <div class="main-page">        
+    <div class="main-page">    
         <form id="user_login" v-if="!store.userLangData.length">
+            <h1>{{t('helloMsg')}}</h1>
             <div class="form_el">
                 <label for="username">{{ t('username') }}:</label>
                 <input type="text" name="username" v-model="user" />
@@ -134,6 +135,7 @@ onMounted(() => {
 
 <i18n lang="yaml">
     en:
+        helloMsg: 'Please, sign in to continue'
         submit: 'Login'
         username: 'Username'
         password: 'Password'
@@ -142,6 +144,7 @@ onMounted(() => {
         noUserFoundErr: 'No user found'
         languageMenuTitle: "Select the language you're learning"
     ru:
+        helloMsg: 'Пожалуйста, введите Ваш логин и пароль'
         submit: 'Войти'
         username: 'Логин'
         password: 'Пароль'
@@ -150,6 +153,7 @@ onMounted(() => {
         noUserFoundErr: 'Пользователь не найден'
         languageMenuTitle: 'Выбирите язык который изучаете'
     zh:
+        helloMsg: 'TBD'
         submit: 'TBD'
         username: 'TBD'
         password: 'TBD'

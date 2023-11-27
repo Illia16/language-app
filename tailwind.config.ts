@@ -15,6 +15,10 @@ export default <Partial<Config>>{
                 "mainBg": "#ffe6a5",
                 "mainGreen": '#219f7a',
                 "white": '#fff',
+            },
+            fontFamily: {
+                heading: ['"Roboto Condensed"'],
+                main: ['Roboto'],
             }
         },
     },

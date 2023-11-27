@@ -18,7 +18,7 @@
             <li class="listOfWords-languageStudying">
                 <span>{{ t('languageStudying') }}:</span>
             </li>
-            <li>
+            <li class="listOfWords-level">
                 <span>{{ t('level') }}:</span>
             </li>
             <li class="lastLi"></li>
@@ -27,7 +27,6 @@
 
         <ul v-for="(el, i) of store.userLangData" :key="i">
             <li class="listOfWords-item">
-                <span>{{ t('item') }}:</span>
                 <span>{{ el.item }}</span>
                 <span v-if="el.fileUrl" class="listOfWords-item--audio">
                     <span>{{ t('audio') }}:</span>
@@ -35,42 +34,36 @@
                 </span>
             </li>
             <li class="listOfWords-itemCorrect">
-                <span>{{ t('itemCorrect') }}:</span>
                 <span>{{ el.itemCorrect }}</span>
             </li>
             <li class="listOfWords-itemType">
-                <span>{{ t('itemType') }}:</span>
                 <span>{{ el.itemType }}</span>
             </li>
             <li class="listOfWords-itemTypeCategory">
-                <span>{{ t('itemTypeCategory') }}:</span>
                 <span>{{ el.itemTypeCategory }}</span>
             </li>
             <li class="listOfWords-languageStudying">
-                <span>{{ t('languageStudying') }}:</span>
                 <span>{{ el.languageStudying }}</span>
             </li>
-            <li>
-                <span>{{ t('level') }}:</span>
+            <li class="listOfWords-level">
                 <span>{{ el.level }}</span>
             </li>
             <li class="listOfWords-btn--delete lastLi">
-                <button type="button" @click="() => openConfirmModal(el, t('delete'))">{{ t('delete') }}</button>
+                <button type="button" @click="() => openConfirmModal(el, 'delete')">{{ t('delete') }}</button>
             </li>
             <li class="listOfWords-btn--update lastLi">
-                <button type="button" @click="() => openConfirmModal(el, t('update'))">{{ t('update') }}</button>
+                <button type="button" @click="() => openConfirmModal(el, 'update')">{{ t('update') }}</button>
             </li>
         </ul>
         <ul>
             <li  class="listOfWords-addNewItem">
-                <button @click="() => openConfirmModal(null, t('add'))">{{ t('addNewItem') }}</button>
+                <button @click="() => openConfirmModal(null, 'add')">{{ t('addNewItem') }}</button>
             </li>
         </ul>
     </div>
 
     <teleport to="body">
-        <Modal v-if="store.modalOpen && store.modalType === t('delete')" @closeCallback="closeConfirmModal" class="modal-delete-item">
-            <!-- <h2>Are you sure you want to {{ activeModalAction }} the following item?</h2> -->
+        <Modal v-if="store.modalOpen && store.modalType === 'delete'" @closeCallback="closeConfirmModal" class="modal-delete-item">
             <h2>{{ t('modalTitle', { activeModalAction: activeModalAction }) }}</h2>
             <ul>
                 <li>
@@ -120,7 +113,7 @@
             </div>
         </Modal>
 
-        <Modal v-if="store.modalOpen && store.modalType === t('add')" @closeCallback="closeConfirmModal" class="modal-add-item">
+        <Modal v-if="store.modalOpen && store.modalType === 'add'" @closeCallback="closeConfirmModal" class="modal-add-item">
             <h2>{{ t('modalTitle', { activeModalAction: activeModalAction }) }}</h2>
                 <div class="form_el">
                     <label>{{t('item')}}</label>
@@ -258,7 +251,7 @@
             </div>
         </Modal>
 
-        <Modal v-if="store.modalOpen && store.modalType === t('update')" @closeCallback="closeConfirmModal" class="modal-update-item">
+        <Modal v-if="store.modalOpen && store.modalType === 'update'" @closeCallback="closeConfirmModal" class="modal-update-item">
             <h2>{{ t('modalTitle', { activeModalAction: activeModalAction }) }}</h2>
             <div class="form_el">
                 <label>{{t('item')}}</label>
@@ -664,7 +657,7 @@ watch(v_file, function() {
         @apply flex border-b border-mainGreen w-full;
 
         li {
-            @apply flex flex-col justify-center text-xs flex-1 px-2 py-2 bg-yellow-50;
+            @apply flex flex-col justify-center text-xs flex-1 px-2 py-0.5 bg-yellow-50;
 
             &.listOfWords-btn--delete {
                 @apply flex-grow-0 bg-red-500 text-black px-0 py-0;
@@ -683,7 +676,11 @@ watch(v_file, function() {
             }
 
             &.listOfWords-languageStudying {
-                @apply flex-grow-0;
+                @apply flex-grow-0 min-w-[4.6875rem];
+            }
+
+            &.listOfWords-level {
+                @apply min-w-[4.025rem];
             }
 
             &.listOfWords-item {

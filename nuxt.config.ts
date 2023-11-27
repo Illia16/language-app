@@ -85,7 +85,20 @@ const config: NuxtConfig = {
                     redirectOn: 'root',
                 }
             }
-        ]
+        ],
+        ['@nuxtjs/google-fonts', {
+            families: {
+                Roboto: {
+                    wght: [300, 400, 700],
+                    ital: [300, 400, 700]
+                },
+                'Roboto+Condensed': {
+                    wght: [300, 400, 700],
+                    ital: [300, 400, 700]
+                }
+            },
+            display: 'swap',
+        }]
     ],
     alias: {
         'helper': resolve(__dirname, './helper'),
