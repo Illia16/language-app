@@ -227,6 +227,10 @@ class BackendCdkStack extends cdk.Stack {
     //   }
     });
 
+    // const myLambdaIntegration = new apiGateway.LambdaIntegration(lambdaFnDynamoDb, {
+    //   contentHandling: apiGateway.ContentHandling.CONVERT_TO_BINARY,
+    // });
+
     const routeStudyItems = myApi.root.addResource('study-items');
     routeStudyItems.addMethod('GET')
     routeStudyItems.addMethod('POST')
