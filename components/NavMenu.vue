@@ -1,12 +1,12 @@
 <template>
     <nav>
-        <ul v-if="!store.lessonStarted" class="main-menu">
+        <ul class="main-menu">
             <li v-if="$route.path !== '/'">
                 <NuxtLink to="/" class="custom-button-link-secondary">
                     {{t('goToHome')}}
                 </NuxtLink>
             </li>
-            <li v-if="store.userLangData && store.userLangData.length && $route.path !== '/profile'">
+            <li v-if="$route.path !== '/profile'">
                 <NuxtLink class="custom-button-link-secondary" to="/profile">{{t('myProfile')}}</NuxtLink>
             </li>
             <li v-if="isLinkShown">
@@ -43,18 +43,16 @@
 <script lang="ts" setup>
 import { useMainStore } from 'store/main';
 const route = useRoute()
-const { t, locale, setLocale } = useI18n({
+const { t, setLocale } = useI18n({
   useScope: 'local'
 })
 const store = useMainStore();
 
-const isLinkShown = computed<boolean>(():boolean => {
-    return store.userLangData && store.userLangData.length > 0 && (route.path === '/' || route.path === '/profile');
-});
+const isLinkShown = computed<boolean>(():boolean => route.path === '/' || route.path === '/profile');
 const v_interfaceLang = ref<string>('');
 
 onMounted(() => {
-    v_interfaceLang.value = locale.value;
+    v_interfaceLang.value = store?.userLangData?.[0]?.languageMortherTongue;
 })
 
 watch(() => v_interfaceLang.value, (v) => {
