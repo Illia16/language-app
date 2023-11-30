@@ -8,6 +8,8 @@ const environment = app.node.tryGetContext('env');
 const account = app.node.tryGetContext('account');
 const projectName = app.node.tryGetContext('projectName');
 const admin = app.node.tryGetContext('admin');
+const cloudfrontTestUrl = app.node.tryGetContext('cloudfrontTestUrl');
+const cloudfrontProdUrl = app.node.tryGetContext('cloudfrontProdUrl');
 console.log('environment', environment);
 console.log('account', account);
 // console.log('app.node.tryGetContext()', app.node.tryGetContext('env:live'));
@@ -23,7 +25,7 @@ new BackendCdkStack(app, `stack-${projectName}-${environment}`, {
 
   /* Uncomment the next line if you know exactly what Account and Region you
    * want to deploy the stack to. */
-  env: { account, region: 'us-east-1', stage: environment, projectName, admin },
+  env: { account, region: 'us-east-1', stage: environment, projectName, admin, cloudfrontTestUrl, cloudfrontProdUrl },
 
   /* For more information, see https://docs.aws.amazon.com/cdk/latest/guide/environments.html */
 });

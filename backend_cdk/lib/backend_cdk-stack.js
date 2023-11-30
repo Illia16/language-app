@@ -143,7 +143,9 @@ class BackendCdkStack extends cdk.Stack {
         environment: {
           env: props.env.stage,
           projectName: props.env.projectName,
-          admin: props.env.admin
+          admin: props.env.admin,
+          cloudfrontTestUrl: props.env.cloudfrontTestUrl,
+          cloudfrontProdUrl: props.env.cloudfrontProdUrl
         },
         // layers: [helperFns],
     });
@@ -217,7 +219,7 @@ class BackendCdkStack extends cdk.Stack {
       description: 'API to get/update/post/delete language items of users.',
       binaryMediaTypes: ['multipart/form-data'],
       defaultCorsPreflightOptions: {
-        allowOrigins: props.env.stage === 'prod' ? ['https://d3uhxucz1lwio6.cloudfront.net'] : ['http://localhost:3000', 'https://d3uhxucz1lwio6.cloudfront.net'],
+        allowOrigins: props.env.stage === 'prod' ? [props.env.cloudfrontProdUrl] : ['http://localhost:3000', props.env.cloudfrontTestUrl],
         allowMethods: apiGateway.Cors.ALL_METHODS,
       },
       deploy: false,

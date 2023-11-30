@@ -18,8 +18,7 @@ module.exports = async (event, context) => {
     const env = process.env.env;
     const projectName = process.env.projectName;
     const admin = process.env.admin;
-
-    const allowedOrigins = ["http://localhost:3000", "https://d3uhxucz1lwio6.cloudfront.net"];
+    const allowedOrigins = ["http://localhost:3000", process.env.cloudfrontTestUrl, process.env.cloudfrontProdUrl];
     const origin = event.headers.origin;
     const action = event.httpMethod;
     const isBase64Encoded = event.isBase64Encoded;
