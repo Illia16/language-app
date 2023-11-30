@@ -4,7 +4,7 @@ const { QueryCommand, DynamoDBDocumentClient } = require("@aws-sdk/lib-dynamodb"
 const client = new DynamoDBClient({});
 const docClient = DynamoDBDocumentClient.from(client);
 const { s3GetFile, s3ListObjects, s3UploadFile, s3DeleteFile, s3GetSignedUrl, cleanUpFileName, getFilePathIfFileIsPresentInBody } = require('../helpers');
-const parser = require('lambda-multipart-parser');
+const multipartParser = require('parse-multipart-data');
 
 module.exports = async (event, context) => {
     console.log('-----------------------------');
@@ -22,6 +22,7 @@ module.exports = async (event, context) => {
     const allowedOrigins = ["http://localhost:3000", "https://d3uhxucz1lwio6.cloudfront.net"];
     const origin = event.headers.origin;
     const action = event.httpMethod;
+    const isBase64Encoded = event.isBase64Encoded;
 
     let response = {
         statusCode: 200,
@@ -32,20 +33,36 @@ module.exports = async (event, context) => {
     };
 
     if (action === 'POST' || action === 'PUT') {
-        // const contentType = event.headers['Content-Type'] || event.headers['content-type'];
-        // const boundary = contentType.split('boundary=')[1];
-
-        const result = await parser.parse(event);
-        console.log('_____result', result);
+        // if (!result.files.length) {
+        //     delete result.files;
+        // }
         // body = result;
-        if (!result.files.length) {
-            delete result.files;
-        }
 
-        body = result;
-        console.log('_____body', body);
-        // body = [parseMultipartFormData(event.body, boundary)];
-        // console.log('____formData in the body', body);
+        if (isBase64Encoded) {
+            const contentType = event.headers['Content-Type'] || event.headers['content-type'];
+            const boundary = contentType.split('boundary=')[1];
+
+            const getRawData = Buffer.from(event.body, 'base64');
+            console.log('getRawData', getRawData);
+            const parsedData = multipartParser.parse(getRawData, boundary)
+            body = parsedData.reduce(function (result, currentObject) {
+                if (currentObject.name !== 'file') {
+                    result[currentObject.name] = currentObject.data.toString('utf8');
+                } else {
+                    result.files = [{
+                        fieldname: currentObject.name,
+                        filename: currentObject.filename,
+                        contentType: currentObject.type,
+                        content: currentObject.data,
+                        // encoding: '7bit',
+                    }]
+                }
+
+                return result;
+            }, {});
+            console.log('parsedData', parsedData);
+            console.log('body', body);
+        }
     } else {
         body = JSON.parse(event.body);
     }
