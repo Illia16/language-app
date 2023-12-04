@@ -9,18 +9,22 @@ a {
     }
 }
 
+.field-error {
+    @apply text-red-500 font-bold;
+}
+
 .form_el {
     input {
         @apply border border-black w-full text-center text-xl py-1;
     }
 
     .field-error {
-        @apply hidden;
+        @apply hidden text-red-500 font-bold;
     }
 
     &.error {
         .field-error {
-            @apply block text-red-500 font-bold;
+            @apply block;
         }
     }
 }

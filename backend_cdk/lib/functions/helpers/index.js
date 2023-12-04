@@ -79,5 +79,17 @@ module.exports = {
         }
         
         return filePath;
+    },
+    responseWithError: (errorCode = '500', errorMsg = 'Something went wrong...', headers) => {
+        return {
+            statusCode: errorCode,
+            body: JSON.stringify({
+                success: false,
+                message: errorMsg,
+            }),
+            headers: {
+                "Access-Control-Allow-Origin": headers,
+            },
+        }
     }
 }

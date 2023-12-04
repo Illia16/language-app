@@ -9,6 +9,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "parse-multipart-data": "^1.5.0"
+    "jsonwebtoken": "^9.0.2",
+    "parse-multipart-data": "^1.5.0",
+    "uuid": "^9.0.1"
   }
 }

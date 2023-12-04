@@ -14,7 +14,8 @@
                 <span class="field-error">{{ passwordErrMsg }}</span>
             </div>
 
-            <button type="button" @click="getUserData" class="custom-button-link">
+            <span v-if="errMsg" class="field-error">{{errMsg}}</span>
+            <button type="button" @click="login" class="custom-button-link">
                 {{ t('submit') }}
             </button>
         </form>
@@ -47,9 +48,12 @@ useHead({
     }
 })
 
+const cookieUser = useCookie('user');
+const cookieToken = useCookie('token');
 const user = ref<string>('');
 const password = ref<string>('');
 const userErrMsg = ref<string>('');
+const errMsg = ref<string>('');
 const passwordErrMsg = ref<string>('');
 const userLanguagesInProgress = computed<string[]>(() => store.userLangData.reduce(function (accumulator:string[], currentValue:UserData) {
     if (!accumulator.includes(currentValue.languageStudying)){
@@ -58,7 +62,37 @@ const userLanguagesInProgress = computed<string[]>(() => store.userLangData.redu
     return accumulator
 }, []))
 
+const updateStore = async (user: string, token: string) => {
+    store.setCurrentUserName(user);
+    store.setToken(token)
+}
+
 const getUserData = async () => {
+    const userData = await fetch(`${config.public.apiUrl}/${config.public.envName}/study-items?user=${store.currentUserName}`, {
+        headers: {
+            "Authorization": `Bearer ${store.token}`
+        }
+    })
+    .then(res => res.json())
+    .catch(err => {
+        errMsg.value = err?.message;
+    })
+
+    console.log('!!!!res!!!!', userData);
+    if (userData.success && userData.data && userData.data.length) {
+        store.setUserLangData(userData.data);
+        const userMortherTongue = store.userLangData[0].languageMortherTongue;
+        setLocale(userMortherTongue);
+        cookieUser.value = store.currentUserName;
+        cookieToken.value = store.token;
+    } else {
+        errMsg.value = userData?.message;
+        // userErrMsg.value = t('noUserFoundErr')
+        // document.querySelector('.form_el input[name="username"')?.parentElement?.classList.add('error')
+    }
+}
+
+const login = async () => {
     document.querySelectorAll('.form_el').forEach(el=>el.classList.remove('error'))
 
     if (!user.value || !password.value) {
@@ -75,18 +109,24 @@ const getUserData = async () => {
         return
     }
 
-    const res = await fetch(`${config.public.apiUrl}/${config.public.envName}/study-items?user=${user.value}`)
-    .then(res => res.json());
+    const authUser = await fetch(`${config.public.apiUrlAuth}/${config.public.envName}/auth/login`, {
+        method: 'POST',
+        body: JSON.stringify({user: user.value, password: password.value})
+    })
+    .then(res => res.json())
+    .catch(er => {
+        console.log('er', er);     
+    })
+    console.log('!!!!authUser!!!!', authUser);
 
-    console.log('!!!!res!!!!', res);
-    if (res.data && res.data.length) {
-        store.setUserLangData(res.data);
-        store.setCurrentUserName(user.value);
-        const userMortherTongue = store.userLangData[0].languageMortherTongue;
-        setLocale(userMortherTongue);
+    if (!authUser.success) {
+        console.log('Error logging in....');
+        errMsg.value = authUser?.message;
+        return
     } else {
-        userErrMsg.value = t('noUserFoundErr')
-        document.querySelector('.form_el input[name="username"')?.parentElement?.classList.add('error')
+        errMsg.value = '';
+        await updateStore(authUser.data.user, authUser.data.token);
+        await getUserData();
     }
 }
 
@@ -98,11 +138,16 @@ const getUserData = async () => {
 //     console.log('res fe', res);
 // }
 
-onMounted(() => {
+onMounted(async() => {
     console.log('Runtime config API_URL:', config.public.apiUrl)
     console.log('Runtime config API_KEY:', config.public.apiKey)
     console.log('Runtime config ENV_NAME:', config.public.envName)
     // getUserDataNuxt();
+
+    if (cookieUser.value && cookieToken.value) {
+        await updateStore(cookieUser.value, cookieToken.value);
+        await getUserData();
+    }
 })
 </script>
 

@@ -459,15 +459,21 @@ const openConfirmModal = (item: UserData | null, action: string):void => {
 
 // GET API (in this component for update UI after put/update/delete API calls)
 const getUserData = async () => {
-    const res = await fetch(`${config.public.apiUrl}/${config.public.envName}/study-items?user=${store.currentUserName}`).then(el => el.json())
-    if (res.data && res.data.length) {
+    const res = await fetch(`${config.public.apiUrl}/${config.public.envName}/study-items?user=${store.currentUserName}`, {
+        headers: {
+            "Authorization": `Bearer ${store.token}`
+        }
+    })
+    .then(el => el.json())
+    .catch(err => console.log(err))
+    if (res.success && res.data && res.data.length) {
         store.setUserLangData(res.data);
     }
 }
 
 // DELETE API
 const deleteUserData = async () => {
-    const res = await fetch(`${config.public.apiUrl}/${config.public.envName}/study-items`, {
+    const resDeleteApi = await fetch(`${config.public.apiUrl}/${config.public.envName}/study-items`, {
         method: 'DELETE',
         body: JSON.stringify([
             {
@@ -475,18 +481,26 @@ const deleteUserData = async () => {
                 "itemID": v_itemID.value,
                 ...(filePath.value && { "filePath": filePath.value }),
             }
-        ])
+        ]),
+        headers: {
+            "Authorization": `Bearer ${store.token}`
+        }
     })
-    .then(res => {
-        res.json()
-        getUserData()
+    .then(res => res.json())
+    .catch(err => {
+        console.log('err DELETE API:', err);
+    })
+    console.log('res_DELETE API', resDeleteApi);
+
+    
+    if (resDeleteApi.success) {
         // update FE without API call
         // const newArr: UserDataArrayOfObj = store.userLangData.filter(el => el.itemID !== v_itemID.value);
         // console.log('newArr', newArr);
         // store.setUserLangData(newArr);
+        getUserData()
         closeConfirmModal();
-    });
-    console.log('res_DELETE API', res);
+    }
 }
 
 // POST API
@@ -518,21 +532,28 @@ const addUserData = async () => {
     }
 
     console.log('payload', payload);
-    const res = await fetch(`${config.public.apiUrl}/${config.public.envName}/study-items`, {
+    const resPostApi = await fetch(`${config.public.apiUrl}/${config.public.envName}/study-items`, {
         method: 'POST',
         body: payload,
+        headers: {
+            "Authorization": `Bearer ${store.token}`
+        }
     })
-    .then(res => {
-        res.json()
-        getUserData();
+    .then(res => res.json())
+    .catch(err => {
+        console.log('err DELETE API:', err);
+    })
+    console.log('res_POST API', resPostApi);
+
+    if (resPostApi.success) {
         // update FE without API call
         // const newArr: UserDataArrayOfObj = store.userLangData.slice();
         // newArr.push(payload[0])
         // console.log('newArr', newArr);
         // store.setUserLangData(newArr);
+        getUserData()
         closeConfirmModal();
-    });
-    console.log('res_POST API', res);
+    }
 }
 
 // PUT API
@@ -581,35 +602,41 @@ const updateUserData = async () => {
 
     console.log('anyChanges', anyChanges);
     if (anyChanges) {
-        const res = await fetch(`${config.public.apiUrl}/${config.public.envName}/study-items`, {
+        const resPutApi = await fetch(`${config.public.apiUrl}/${config.public.envName}/study-items`, {
             method: 'PUT',
             body: payload,
+            headers: {
+                "Authorization": `Bearer ${store.token}`
+            }
         })
-        .then(res => {
-            res.json();
-            getUserData();
+        .then(res => res.json())
+        .catch(err => {
+            console.log('err DELETE API:', err);
+        })
+        console.log('res_PUT API', resPutApi);
+
+        if (resPutApi.success) {
+            // update FE without API call
+            // const newArr: UserDataArrayOfObj = store.userLangData.map(el => {
+            //     if (el.itemID === v_itemID.value) {
+            //         el.level = v_level.value;
+            //         el.languageStudying = v_languageStudying.value;
+            //         el.itemType = v_itemType.value;
+            //         el.itemTypeCategory = v_itemTypeCategory.value;
+            //         el.item = v_item.value;
+            //         el.itemCorrect = v_itemCorrect.value;
+
+            //         return el;
+            //     } else {
+            //         return el;
+            //     }
+            // });
+            // console.log('newArr', newArr);
+            // store.setUserLangData(newArr);
+            getUserData()
             closeConfirmModal();
-        });
-        console.log('res_PUT API', res);
+        }
     }
-
-    // update FE without API call
-    // const newArr: UserDataArrayOfObj = store.userLangData.map(el => {
-    //     if (el.itemID === v_itemID.value) {
-    //         el.level = v_level.value;
-    //         el.languageStudying = v_languageStudying.value;
-    //         el.itemType = v_itemType.value;
-    //         el.itemTypeCategory = v_itemTypeCategory.value;
-    //         el.item = v_item.value;
-    //         el.itemCorrect = v_itemCorrect.value;
-
-    //         return el;
-    //     } else {
-    //         return el;
-    //     }
-    // });
-    // console.log('newArr', newArr);
-    // store.setUserLangData(newArr);
 }
 
 watch(v_languageStudying, function() {

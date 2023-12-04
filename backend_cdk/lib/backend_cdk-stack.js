@@ -5,6 +5,7 @@ const lambda = require('aws-cdk-lib/aws-lambda');
 const dynamoDb = require('aws-cdk-lib/aws-dynamodb');
 const apiGateway = require('aws-cdk-lib/aws-apigateway');
 const iam = require('aws-cdk-lib/aws-iam');
+const aws_secretsmanager = require('aws-cdk-lib/aws-secretsmanager');
 const path = require('path')
 
 class BackendCdkStack extends cdk.Stack {
@@ -49,6 +50,7 @@ class BackendCdkStack extends cdk.Stack {
             filePath: __dirname + '/functions/basicAuth/index.js',
         }),
         functionName: `cfFunction-${props.env.projectName}-${props.env.stage}`,
+        comment: 'CF to handle redirect.'
     });
 
     const oai = new cloudfront.OriginAccessIdentity(this, `oai-${props.env.projectName}-${props.env.stage}`, {
@@ -127,6 +129,18 @@ class BackendCdkStack extends cdk.Stack {
       }
     });
 
+    const myTableUsers = new dynamoDb.TableV2(this, `db-users-${props.env.projectName}-${props.env.stage}`, {
+      tableName: `db-users-${props.env.projectName}-${props.env.stage}`,
+      partitionKey: {
+        name: 'user',
+        type: dynamoDb.AttributeType.STRING
+      },
+      sortKey: {
+        name: 'userId',
+        type: dynamoDb.AttributeType.STRING
+      },
+    })
+
     // const helperFns = new lambda.LayerVersion(this, `helper-fn-layer-${props.env.projectName}-${props.env.stage}`, {
     //     code: lambda.Code.fromAsset(path.join(__dirname, '../helpers')),
     //     compatibleRuntimes: [lambda.Runtime.NODEJS_18_X],
@@ -157,6 +171,24 @@ class BackendCdkStack extends cdk.Stack {
         iam.ManagedPolicy.fromAwsManagedPolicyName('service-role/AWSLambdaBasicExecutionRole')
     )
 
+    const authFn = new lambda.Function(this, `authFn-${props.env.projectName}-${props.env.stage}`, {
+      runtime: lambda.Runtime.NODEJS_18_X,
+      handler: 'index.auth',
+      code: lambda.Code.fromAsset(path.join(__dirname, 'functions')),
+      functionName: `authFn-${props.env.projectName}-${props.env.stage}`,
+      role: myIam,
+      environment: {
+        env: props.env.stage,
+        projectName: props.env.projectName,
+        admin: props.env.admin,
+        cloudfrontTestUrl: props.env.cloudfrontTestUrl,
+        cloudfrontProdUrl: props.env.cloudfrontProdUrl
+      },
+    });
+    authFn.role.addManagedPolicy(
+        iam.ManagedPolicy.fromAwsManagedPolicyName('service-role/AWSLambdaBasicExecutionRole')
+    )
+
     myIam.attachInlinePolicy(new iam.Policy(this, `iamPolicy-${props.env.projectName}-${props.env.stage}`, {
           statements: [
               new iam.PolicyStatement({
@@ -174,7 +206,7 @@ class BackendCdkStack extends cdk.Stack {
                   // dynamodb:Query
                   // dynamodb:Scan
                   // dynamodb:UpdateItem
-                  resources: [myTable.tableArn],
+                  resources: [myTable.tableArn, myTableUsers.tableArn],
                   effect: iam.Effect.ALLOW,
               }),
               new iam.PolicyStatement({
@@ -211,7 +243,8 @@ class BackendCdkStack extends cdk.Stack {
           ],
       })
     )
-
+    
+    // API #1
     const myApi = new apiGateway.LambdaRestApi(this, `api-study-items--${props.env.projectName}-${props.env.stage}`, {
       handler: lambdaFnDynamoDb,
       proxy: false,
@@ -228,34 +261,73 @@ class BackendCdkStack extends cdk.Stack {
     //     stageName: props.env.stage,
     //   }
     });
-
     const routeStudyItems = myApi.root.addResource('study-items');
     routeStudyItems.addMethod('GET')
     routeStudyItems.addMethod('POST')
     routeStudyItems.addMethod('PUT')
     routeStudyItems.addMethod('DELETE')
-
     const stage = new apiGateway.Stage(this, `apiStage-study-items--${props.env.projectName}-${props.env.stage}`,
       {
         deployment: new apiGateway.Deployment(this, `apiDeployment-study-items--${props.env.projectName}-${props.env.stage}`, {api: myApi}),
         stageName: props.env.stage,
       }
     );
-
     myApi.deploymentStage = props.env.stage;
+    // 
 
-    // user
-    // itemID
-    // languageStudying
-    // languageMortherTongue
-    // item (item to study)
-    // itemType (tenses, words, sentanses)
-    // itemTypeCategory (for various languages: presentPerfect, modal verbs, cooking words, mandarinChar)
-    // itemCorrect (translation to languageMortherTongue)
-    // level (user mastery lvl for the item)
+    // API #2
+    const myApiAuth = new apiGateway.LambdaRestApi(this, `api-auth--${props.env.projectName}-${props.env.stage}`, {
+      handler: authFn,
+      proxy: false,
+      restApiName: `api-auth--${props.env.projectName}-${props.env.stage}`,
+      description: 'API to login/register/delete/change passwords for users.',
+      defaultCorsPreflightOptions: {
+        allowOrigins: props.env.stage === 'prod' ? [props.env.cloudfrontProdUrl] : ['http://localhost:3000', props.env.cloudfrontTestUrl],
+        allowMethods: apiGateway.Cors.ALL_METHODS,
+      },
+      deploy: false,
+    });
 
-    // test script
-    //aws dynamodb put-item --table-name db-personal-project--language-app-test --profile personal --region us-east-1 --item  "{\"user\": {\"S\": \"illia\"}, \"itemID\": {\"S\": \"я-21321321\"}, \"languageStudying\": {\"S\": \"cn\"}, \"languageMortherTongue\": {\"S\": \"ru\"}, \"item\": {\"S\": \"我\"}, \"itemType\": {\"S\": \"word\"}, \"itemTypeCategory\": {\"S\": \"mandarinChar\"}, \"itemCorrect\": {\"S\": \"Я\"}, \"level\": {\"S\": \"0\"}}"
+    const routesApiAuth = myApiAuth.root.addResource('auth');
+    const item = routesApiAuth.addResource('{item}');
+    item.addMethod('POST');
+    item.addMethod('DELETE');
+    item.addMethod('PUT');
+    const stageAuth = new apiGateway.Stage(this, `api-auth-stage--${props.env.projectName}-${props.env.stage}`,
+      {
+        deployment: new apiGateway.Deployment(this, `api-auth--deployment--${props.env.projectName}-${props.env.stage}`, {
+          api: myApiAuth
+        }),
+        stageName: props.env.stage,
+      }
+    );
+    myApiAuth.deploymentStage = props.env.stage;
+    // 
+
+
+    // generate new JWT secret for auth, rotate every 30 days
+    const jwtSecret = new aws_secretsmanager.Secret(this, `secret--${props.env.projectName}`,
+      {
+        secretName: `secret--${props.env.projectName}`,
+        generateSecretString: {
+          secretStringTemplate: JSON.stringify({ name: `secret--${props.env.projectName}` }),
+          generateStringKey: 'value',
+        },
+      }
+    );
+
+    // Enable rotation every 30 days
+    // jwtSecret.addRotationSchedule(`secret-rotation-schedule--${props.env.projectName}`, {
+    //   rotationLambda: new aws_secretsmanager.RotationLambda(this, 'MyRotationLambda', {
+    //     rotationFunctionName: `secret-rotation-schedule-fn--${props.env.projectName}`,
+    //     inlineCode: 'console.log("Custom rotation function logic here");',
+    //   }),
+    //   rotationSchedule: cdk.Duration.minutes(3),
+    // });
+
+    // add this secret to Lambda FN as an env var
+    lambdaFnDynamoDb.addEnvironment('secret', jwtSecret.secretValue.unsafeUnwrap());
+    authFn.addEnvironment('secret', jwtSecret.secretValue.unsafeUnwrap());
   }
 }
 

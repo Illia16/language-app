@@ -65,6 +65,9 @@ const updateUserData = async () => {
             await fetch(`${config.public.apiUrl}/${config.public.envName}/study-items`, {
                 method: 'PUT',
                 body: payload,
+                headers: {
+                    "Authorization": `Bearer ${store.token}`
+                }
             })
         })
     )

@@ -3,8 +3,9 @@ const { QueryCommand, DynamoDBDocumentClient } = require("@aws-sdk/lib-dynamodb"
 
 const client = new DynamoDBClient({});
 const docClient = DynamoDBDocumentClient.from(client);
-const { s3GetFile, s3ListObjects, s3UploadFile, s3DeleteFile, s3GetSignedUrl, cleanUpFileName, getFilePathIfFileIsPresentInBody } = require('../helpers');
+const { s3GetFile, s3ListObjects, s3UploadFile, s3DeleteFile, s3GetSignedUrl, cleanUpFileName, getFilePathIfFileIsPresentInBody, responseWithError } = require('../helpers');
 const multipartParser = require('parse-multipart-data');
+const jwt = require('jsonwebtoken');
 
 module.exports = async (event, context) => {
     console.log('-----------------------------');
@@ -19,17 +20,45 @@ module.exports = async (event, context) => {
     const projectName = process.env.projectName;
     const admin = process.env.admin;
     const allowedOrigins = ["http://localhost:3000", process.env.cloudfrontTestUrl, process.env.cloudfrontProdUrl];
-    const origin = event.headers.origin;
+    const headers = event.headers;
+    const headerOrigin = allowedOrigins.includes(headers?.origin) ? headers?.origin : null
     const action = event.httpMethod;
     const isBase64Encoded = event.isBase64Encoded;
+    const secretJwt = process.env.secret;
 
     let response = {
         statusCode: 200,
         headers: {
-            "Access-Control-Allow-Origin": allowedOrigins.includes(origin) ? origin : null,
+            "Access-Control-Allow-Origin": headerOrigin,
         },
         body: null,
     };
+
+    // 
+    let isTokenValid = false;
+    const authToken = headers['authorization'] || headers['Authorization'];
+    console.log('authToken', authToken);
+    if (!authToken) {
+        response = responseWithError('401', 'Token is invalid.', headerOrigin)
+        return
+    }
+    const token = authToken.split(' ')[1];
+    jwt.verify(token, secretJwt, (err, decoded) => {
+        console.log('decoded', decoded)
+        // console.log('event.queryStringParameters.user', event.queryStringParameters.user);
+        // if (err || decoded.user !== event.queryStringParameters.user) {
+        if (err) {
+            console.log('Err, token is invalid:', err);
+            response = responseWithError('401', 'Token is invalid.', headerOrigin)
+            return
+        } else {
+            isTokenValid = true;
+        }
+    })
+    console.log('isTokenValid', isTokenValid);
+    if (!isTokenValid) {
+        return response;
+    }
 
     if (action === 'POST' || action === 'PUT') {
         // if (!result.files.length) {
@@ -38,7 +67,7 @@ module.exports = async (event, context) => {
         // body = result;
 
         if (isBase64Encoded) {
-            const contentType = event.headers['Content-Type'] || event.headers['content-type'];
+            const contentType = headers['Content-Type'] || headers['content-type'];
             const boundary = contentType.split('boundary=')[1];
 
             const getRawData = Buffer.from(event.body, 'base64');
