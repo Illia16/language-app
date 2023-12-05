@@ -459,7 +459,7 @@ const openConfirmModal = (item: UserData | null, action: string):void => {
 
 // GET API (in this component for update UI after put/update/delete API calls)
 const getUserData = async () => {
-    const res = await fetch(`${config.public.apiUrl}/${config.public.envName}/study-items?user=${store.currentUserName}`, {
+    const res = await fetch(`${config.public.apiUrl}/${config.public.envName}/study-items`, {
         headers: {
             "Authorization": `Bearer ${store.token}`
         }
@@ -475,13 +475,10 @@ const getUserData = async () => {
 const deleteUserData = async () => {
     const resDeleteApi = await fetch(`${config.public.apiUrl}/${config.public.envName}/study-items`, {
         method: 'DELETE',
-        body: JSON.stringify([
-            {
-                "user": store.currentUserName,
-                "itemID": v_itemID.value,
-                ...(filePath.value && { "filePath": filePath.value }),
-            }
-        ]),
+        body: JSON.stringify({
+            "itemID": v_itemID.value,
+            ...(filePath.value && { "filePath": filePath.value }),
+        }),
         headers: {
             "Authorization": `Bearer ${store.token}`
         }
@@ -511,7 +508,6 @@ const addUserData = async () => {
 
     const payload = new FormData();
     payload.append('item', v_item.value);
-    payload.append('user', store.currentUserName);
     payload.append('itemID', v_item.value.replaceAll(" ", "_") + "___" + uuidv4());
 
     payload.append('itemCorrect', v_itemCorrect.value);
@@ -560,7 +556,6 @@ const addUserData = async () => {
 const updateUserData = async () => {
     const payload = new FormData();
     payload.append('item', v_item.value);
-    payload.append('user', store.currentUserName);
     payload.append('itemID', v_itemID.value);
 
     let anyChanges: boolean = false;

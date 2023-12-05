@@ -157,7 +157,6 @@ class BackendCdkStack extends cdk.Stack {
         environment: {
           env: props.env.stage,
           projectName: props.env.projectName,
-          admin: props.env.admin,
           cloudfrontTestUrl: props.env.cloudfrontTestUrl,
           cloudfrontProdUrl: props.env.cloudfrontProdUrl
         },
@@ -180,7 +179,6 @@ class BackendCdkStack extends cdk.Stack {
       environment: {
         env: props.env.stage,
         projectName: props.env.projectName,
-        admin: props.env.admin,
         cloudfrontTestUrl: props.env.cloudfrontTestUrl,
         cloudfrontProdUrl: props.env.cloudfrontProdUrl
       },

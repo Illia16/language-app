@@ -58,7 +58,6 @@ const updateUserData = async () => {
         .map(async (el: Report) => {
             const payload = new FormData();
             payload.append('item', el.item);
-            payload.append('user', store.currentUserName);
             payload.append('itemID', el.id);
             payload.append('level', JSON.stringify(Number(el.level) + 1));
 

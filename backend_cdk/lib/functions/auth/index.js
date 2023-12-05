@@ -19,7 +19,6 @@ module.exports = async (event, context) => {
     // let body;
     const env = process.env.env;
     const projectName = process.env.projectName;
-    const admin = process.env.admin;
     const allowedOrigins = ["http://localhost:3000", process.env.cloudfrontTestUrl, process.env.cloudfrontProdUrl];
     const headers = event.headers;
     const headerOrigin = allowedOrigins.includes(headers?.origin) ? headers?.origin : null

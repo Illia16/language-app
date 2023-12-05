@@ -19,7 +19,6 @@
     "account": "177749704705",
     "env": "test",
     "projectName": "personal-project--language-app",
-    "admin": "illia",
     "cloudfrontTestUrl": "https://d3uhxucz1lwio6.cloudfront.net",
     "cloudfrontProdUrl": "TBD",
     "@aws-cdk/aws-lambda:recognizeLayerVersion": true,

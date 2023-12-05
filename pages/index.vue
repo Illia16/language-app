@@ -68,7 +68,7 @@ const updateStore = async (user: string, token: string) => {
 }
 
 const getUserData = async () => {
-    const userData = await fetch(`${config.public.apiUrl}/${config.public.envName}/study-items?user=${store.currentUserName}`, {
+    const userData = await fetch(`${config.public.apiUrl}/${config.public.envName}/study-items`, {
         headers: {
             "Authorization": `Bearer ${store.token}`
         }
