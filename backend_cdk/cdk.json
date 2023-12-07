@@ -18,9 +18,9 @@
   "context": {
     "account": "177749704705",
     "env": "test",
-    "projectName": "personal-project--language-app",
-    "cloudfrontTestUrl": "https://d3uhxucz1lwio6.cloudfront.net",
-    "cloudfrontProdUrl": "TBD",
+    "projectName": "personal-project-language-app",
+    "cloudfrontTestUrl": "https://d3qignet23dx6u.cloudfront.net",
+    "cloudfrontProdUrl": "https://d3qignet23dx6u.cloudfront.net",
     "@aws-cdk/aws-lambda:recognizeLayerVersion": true,
     "@aws-cdk/core:checkSecretUsage": true,
     "@aws-cdk/core:target-partitions": [

@@ -61,7 +61,7 @@ const updateUserData = async () => {
             payload.append('itemID', el.id);
             payload.append('level', JSON.stringify(Number(el.level) + 1));
 
-            await fetch(`${config.public.apiUrl}/${config.public.envName}/study-items`, {
+            await fetch(`${config.public.apiUrl}/${config.public.envName}/data`, {
                 method: 'PUT',
                 body: payload,
                 headers: {
@@ -75,7 +75,7 @@ const updateUserData = async () => {
         const newArr: UserDataArrayOfObj = store.userLangData.map(el => {
             const itemLvlToUpdateExists:boolean = props.report
                 .filter((el: Report) => el.isCorrect)
-                .filter((report:Report) => report.id === el.itemID).length > 0;                
+                .filter((report:Report) => report.id === el.itemID).length > 0;
             if (itemLvlToUpdateExists && Number(el.level) < 10) {
                 el.level = (Number(el.level) + 1).toString();
                 return el;
@@ -100,7 +100,7 @@ const updateUserData = async () => {
             @apply list-decimal list-inside;
             li {
                 @apply list-none flex flex-col;
-                
+
                 &:not(:last-child) {
                     @apply mb-6 border-b border-b-black;
                 }
@@ -133,4 +133,3 @@ const updateUserData = async () => {
         correctAnswer: 'TBD'
         progress: 'TBD'
 </i18n>
-    

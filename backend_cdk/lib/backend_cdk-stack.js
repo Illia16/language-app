@@ -14,47 +14,47 @@ class BackendCdkStack extends cdk.Stack {
 
     console.log('environment2', props.env.stage);
 
-    const websiteBucket = new s3.Bucket(this, `${props.env.projectName}-${props.env.stage}`, {
+    const websiteBucket = new s3.Bucket(this, `${props.env.projectName}--s3-site--${props.env.stage}`, {
       removalPolicy: cdk.RemovalPolicy.DESTROY,
-      bucketName: `${props.env.projectName}-${props.env.stage}`,
+      bucketName: `${props.env.projectName}--s3-site--${props.env.stage}`,
     });
 
-    const websiteBucketFiles = new s3.Bucket(this, `s3-files-${props.env.projectName}-${props.env.stage}`, {
+    const websiteBucketFiles = new s3.Bucket(this, `${props.env.projectName}--s3-files--${props.env.stage}`, {
       removalPolicy: cdk.RemovalPolicy.RETAIN,
-      bucketName: `s3-files-${props.env.projectName}-${props.env.stage}`,
+      bucketName: `${props.env.projectName}--s3-files--${props.env.stage}`,
     });
 
-    const myIam = new iam.Role(this, `iam-${props.env.projectName}-${props.env.stage}`, {
+    const myIam = new iam.Role(this, `${props.env.projectName}--iam-role--${props.env.stage}`, {
         assumedBy: new iam.ServicePrincipal('lambda.amazonaws.com'),
-        roleName: `iam-${props.env.projectName}-${props.env.stage}`,
+        roleName: `${props.env.projectName}--iam-role--${props.env.stage}`,
     })
 
     // Basic Auth
-    // const auth = new cloudfront.experimental.EdgeFunction(this, `auth--${props.env.projectName}-${props.env.stage}`, {
+    // const auth = new cloudfront.experimental.EdgeFunction(this, `${props.env.projectName}-auth--${props.env.stage}`, {
     //     runtime: lambda.Runtime.NODEJS_18_X,
-    //     functionName: `fn_auth--${props.env.projectName}-${props.env.stage}`,
+    //     functionName: `${props.env.projectName}--fn_auth--${props.env.stage}`,
     //     handler: 'index.handler',
     //     code: lambda.Code.fromAsset(path.join(__dirname, 'basic_auth')),
     // })
 
 
-    // const myFunc = new cloudfront.experimental.EdgeFunction(this, `redirect-${props.env.projectName}-${props.env.stage}`, {
+    // const myFunc = new cloudfront.experimental.EdgeFunction(this, `${props.env.projectName}--redirect--${props.env.stage}`, {
     //   runtime: lambda.Runtime.NODEJS_18_X,
-    //   functionName: `redirect-${props.env.projectName}-${props.env.stage}`,
+    //   functionName: `{props.env.projectName}--redirect--${props.env.stage}`,
     //   handler: 'index.handler',
     //   code: lambda.Code.fromAsset(path.join(__dirname, 'basic_auth')),
     // });
 
-    const cfFunction = new cloudfront.Function(this, 'Function', {
+    const cfFunction = new cloudfront.Function(this, `${props.env.projectName}--cf-redirect-fn--${props.env.stage}`, {
         code: cloudfront.FunctionCode.fromFile({
             filePath: __dirname + '/functions/basicAuth/index.js',
         }),
-        functionName: `cfFunction-${props.env.projectName}-${props.env.stage}`,
+        functionName: `${props.env.projectName}--cf-redirect-fn--${props.env.stage}`,
         comment: 'CF to handle redirect.'
     });
 
-    const oai = new cloudfront.OriginAccessIdentity(this, `oai-${props.env.projectName}-${props.env.stage}`, {
-      comment: `oai-${props.env.projectName}-${props.env.stage}`,
+    const oai = new cloudfront.OriginAccessIdentity(this, `${props.env.projectName}--oai--${props.env.stage}`, {
+      comment: `${props.env.projectName}--oai--${props.env.stage}`,
     });
 
     websiteBucket.addToResourcePolicy(
@@ -64,7 +64,7 @@ class BackendCdkStack extends cdk.Stack {
           `${websiteBucket.bucketArn}/*`
         ],
         actions: ["s3:GetObject", "s3:ListBucket"],
-        principals: [new iam.ArnPrincipal('arn:aws:iam::cloudfront:user/CloudFront Origin Access Identity ELUW0TL0CILLB')],
+        principals: [new iam.ArnPrincipal('arn:aws:iam::cloudfront:user/CloudFront Origin Access Identity E2MVKOXEMZ8ANE')],
       })
     )
 
@@ -75,11 +75,11 @@ class BackendCdkStack extends cdk.Stack {
     //       `${websiteBucketFiles.bucketArn}/*`
     //     ],
     //     actions: ["s3:GetObject", "s3:ListBucket", "s3:PutObject"],
-    //     principals: [new iam.ArnPrincipal('arn:aws:iam::cloudfront:user/CloudFront Origin Access Identity ELUW0TL0CILLB')],
+    //     principals: [new iam.ArnPrincipal('arn:aws:iam::cloudfront:user/CloudFront Origin Access Identity E2MVKOXEMZ8ANE')],
     //   })
     // )
 
-    new cloudfront.CloudFrontWebDistribution(this, `cf-${props.env.projectName}-${props.env.stage}`, {
+    new cloudfront.CloudFrontWebDistribution(this, `${props.env.projectName}--cf--${props.env.stage}`, {
       originConfigs: [
         {
           s3OriginSource: {
@@ -117,8 +117,8 @@ class BackendCdkStack extends cdk.Stack {
       ]
     });
 
-    const myTable = new dynamoDb.TableV2(this, `db-${props.env.projectName}-${props.env.stage}`, {
-      tableName: `db-${props.env.projectName}-${props.env.stage}`,
+    const myTable = new dynamoDb.TableV2(this, `${props.env.projectName}--db-data--${props.env.stage}`, {
+      tableName: `${props.env.projectName}--db-data--${props.env.stage}`,
       partitionKey: {
         name: 'user',
         type: dynamoDb.AttributeType.STRING
@@ -129,8 +129,8 @@ class BackendCdkStack extends cdk.Stack {
       }
     });
 
-    const myTableUsers = new dynamoDb.TableV2(this, `db-users-${props.env.projectName}-${props.env.stage}`, {
-      tableName: `db-users-${props.env.projectName}-${props.env.stage}`,
+    const myTableUsers = new dynamoDb.TableV2(this, `${props.env.projectName}--db-users--${props.env.stage}`, {
+      tableName: `${props.env.projectName}--db-users--${props.env.stage}`,
       partitionKey: {
         name: 'user',
         type: dynamoDb.AttributeType.STRING
@@ -141,18 +141,18 @@ class BackendCdkStack extends cdk.Stack {
       },
     })
 
-    // const helperFns = new lambda.LayerVersion(this, `helper-fn-layer-${props.env.projectName}-${props.env.stage}`, {
+    // const helperFns = new lambda.LayerVersion(this, `${props.env.projectName}--helper-fn-layer--${props.env.stage}`, {
     //     code: lambda.Code.fromAsset(path.join(__dirname, '../helpers')),
     //     compatibleRuntimes: [lambda.Runtime.NODEJS_18_X],
     //     description: `helper functions for Lambda fn`,
-    //     layerVersionName: `helper-fn-layer-${props.env.projectName}-${props.env.stage}`,
+    //     layerVersionName: `${props.env.projectName}--helper-fn-layer--${props.env.stage}`,
     // })
 
-    const lambdaFnDynamoDb = new lambda.Function(this, `lambdaFnDynamoDb-${props.env.projectName}-${props.env.stage}`, {
+    const lambdaFnDynamoDb = new lambda.Function(this, `${props.env.projectName}--lambda-fn-db-data--${props.env.stage}`, {
         runtime: lambda.Runtime.NODEJS_18_X,
         handler: 'index.handleItems',
         code: lambda.Code.fromAsset(path.join(__dirname, 'functions')),
-        functionName: `lambdaFnDynamoDb-${props.env.projectName}-${props.env.stage}`,
+        functionName: `${props.env.projectName}--lambda-fn-db-data--${props.env.stage}`,
         role: myIam,
         environment: {
           env: props.env.stage,
@@ -170,11 +170,11 @@ class BackendCdkStack extends cdk.Stack {
         iam.ManagedPolicy.fromAwsManagedPolicyName('service-role/AWSLambdaBasicExecutionRole')
     )
 
-    const authFn = new lambda.Function(this, `authFn-${props.env.projectName}-${props.env.stage}`, {
+    const authFn = new lambda.Function(this, `${props.env.projectName}--lambda-fn-db-users--${props.env.stage}`, {
       runtime: lambda.Runtime.NODEJS_18_X,
       handler: 'index.auth',
       code: lambda.Code.fromAsset(path.join(__dirname, 'functions')),
-      functionName: `authFn-${props.env.projectName}-${props.env.stage}`,
+      functionName: `${props.env.projectName}--lambda-fn-db-users--${props.env.stage}`,
       role: myIam,
       environment: {
         env: props.env.stage,
@@ -187,10 +187,10 @@ class BackendCdkStack extends cdk.Stack {
         iam.ManagedPolicy.fromAwsManagedPolicyName('service-role/AWSLambdaBasicExecutionRole')
     )
 
-    myIam.attachInlinePolicy(new iam.Policy(this, `iamPolicy-${props.env.projectName}-${props.env.stage}`, {
+    myIam.attachInlinePolicy(new iam.Policy(this, `${props.env.projectName}--iam-policy--${props.env.stage}`, {
           statements: [
               new iam.PolicyStatement({
-                  actions: ['dynamodb:Query', 'dynamodb:BatchWriteItem', 'dynamodb:PutItem', 'dynamodb:UpdateItem'],
+                  actions: ['dynamodb:Query', 'dynamodb:BatchWriteItem', 'dynamodb:PutItem', 'dynamodb:UpdateItem', 'dynamodb:Scan'],
                   // dynamodb:*
                   // dynamodb:BatchGetItem
                   // dynamodb:BatchWriteItem
@@ -241,49 +241,49 @@ class BackendCdkStack extends cdk.Stack {
           ],
       })
     )
-    
+
     // API #1
-    const myApi = new apiGateway.LambdaRestApi(this, `api-study-items--${props.env.projectName}-${props.env.stage}`, {
+    const myApi = new apiGateway.LambdaRestApi(this, `${props.env.projectName}--api-data--${props.env.stage}`, {
       handler: lambdaFnDynamoDb,
+      deployOptions: {
+        stageName: props.env.stage,
+      },
       proxy: false,
-      restApiName: `api-study-items--${props.env.projectName}-${props.env.stage}`,
+      restApiName: `${props.env.projectName}--api-data--${props.env.stage}`,
       description: 'API to get/update/post/delete language items of users.',
       binaryMediaTypes: ['multipart/form-data'],
       defaultCorsPreflightOptions: {
         allowOrigins: props.env.stage === 'prod' ? [props.env.cloudfrontProdUrl] : ['http://localhost:3000', props.env.cloudfrontTestUrl],
         allowMethods: apiGateway.Cors.ALL_METHODS,
       },
-      deploy: false,
-    //   change default deploment to test
-    //   deployOptions: {
-    //     stageName: props.env.stage,
-    //   }
     });
-    const routeStudyItems = myApi.root.addResource('study-items');
+    const routeStudyItems = myApi.root.addResource('data');
     routeStudyItems.addMethod('GET')
     routeStudyItems.addMethod('POST')
     routeStudyItems.addMethod('PUT')
     routeStudyItems.addMethod('DELETE')
-    const stage = new apiGateway.Stage(this, `apiStage-study-items--${props.env.projectName}-${props.env.stage}`,
-      {
-        deployment: new apiGateway.Deployment(this, `apiDeployment-study-items--${props.env.projectName}-${props.env.stage}`, {api: myApi}),
-        stageName: props.env.stage,
-      }
-    );
-    myApi.deploymentStage = props.env.stage;
-    // 
+    // const stage = new apiGateway.Stage(this, `${props.env.projectName}--api-stage-data--${props.env.stage}`,
+    //   {
+    //     deployment: new apiGateway.Deployment(this, `${props.env.projectName}--api-deployment-data--${props.env.stage}`, {api: myApi}),
+    //     stageName: props.env.stage,
+    //   }
+    // );
+    // myApi.deploymentStage = props.env.stage;
+    //
 
     // API #2
-    const myApiAuth = new apiGateway.LambdaRestApi(this, `api-auth--${props.env.projectName}-${props.env.stage}`, {
+    const myApiAuth = new apiGateway.LambdaRestApi(this, `${props.env.projectName}--api-users--${props.env.stage}`, {
       handler: authFn,
       proxy: false,
-      restApiName: `api-auth--${props.env.projectName}-${props.env.stage}`,
+      deployOptions: {
+        stageName: props.env.stage,
+      },
+      restApiName: `${props.env.projectName}--api-users--${props.env.stage}`,
       description: 'API to login/register/delete/change passwords for users.',
       defaultCorsPreflightOptions: {
         allowOrigins: props.env.stage === 'prod' ? [props.env.cloudfrontProdUrl] : ['http://localhost:3000', props.env.cloudfrontTestUrl],
         allowMethods: apiGateway.Cors.ALL_METHODS,
       },
-      deploy: false,
     });
 
     const routesApiAuth = myApiAuth.root.addResource('auth');
@@ -291,33 +291,24 @@ class BackendCdkStack extends cdk.Stack {
     item.addMethod('POST');
     item.addMethod('DELETE');
     item.addMethod('PUT');
-    const stageAuth = new apiGateway.Stage(this, `api-auth-stage--${props.env.projectName}-${props.env.stage}`,
-      {
-        deployment: new apiGateway.Deployment(this, `api-auth--deployment--${props.env.projectName}-${props.env.stage}`, {
-          api: myApiAuth
-        }),
-        stageName: props.env.stage,
-      }
-    );
-    myApiAuth.deploymentStage = props.env.stage;
-    // 
+    //
 
 
     // generate new JWT secret for auth, rotate every 30 days
-    const jwtSecret = new aws_secretsmanager.Secret(this, `secret--${props.env.projectName}`,
+    const jwtSecret = new aws_secretsmanager.Secret(this, `${props.env.projectName}--secret-auth--${props.env.stage}`,
       {
-        secretName: `secret--${props.env.projectName}`,
+        secretName: `${props.env.projectName}--secret-auth--${props.env.stage}`,
         generateSecretString: {
-          secretStringTemplate: JSON.stringify({ name: `secret--${props.env.projectName}` }),
+          secretStringTemplate: JSON.stringify({ name: `${props.env.projectName}--secret-auth--${props.env.stage}` }),
           generateStringKey: 'value',
         },
       }
     );
 
     // Enable rotation every 30 days
-    // jwtSecret.addRotationSchedule(`secret-rotation-schedule--${props.env.projectName}`, {
+    // jwtSecret.addRotationSchedule(`${props.env.projectName}--secret_rotation-auth--${props.env.stage}`, {
     //   rotationLambda: new aws_secretsmanager.RotationLambda(this, 'MyRotationLambda', {
-    //     rotationFunctionName: `secret-rotation-schedule-fn--${props.env.projectName}`,
+    //     rotationFunctionName: `${props.env.projectName}--secret_rotation-fn-auth--${props.env.stage}`,
     //     inlineCode: 'console.log("Custom rotation function logic here");',
     //   }),
     //   rotationSchedule: cdk.Duration.minutes(3),
