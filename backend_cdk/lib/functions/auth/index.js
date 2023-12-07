@@ -1,10 +1,9 @@
-const { DynamoDBClient, BatchWriteItemCommand, PutItemCommand, UpdateItemCommand } = require("@aws-sdk/client-dynamodb");
-const { QueryCommand, DynamoDBDocumentClient } = require("@aws-sdk/lib-dynamodb");
+const { DynamoDBClient } = require("@aws-sdk/client-dynamodb");
+const { DynamoDBDocumentClient, QueryCommand, PutCommand } = require("@aws-sdk/lib-dynamodb");
 
 const client = new DynamoDBClient({});
 const docClient = DynamoDBDocumentClient.from(client);
-const { s3GetFile, s3ListObjects, s3UploadFile, s3DeleteFile, s3GetSignedUrl, cleanUpFileName, getFilePathIfFileIsPresentInBody, responseWithError } = require('../helpers');
-const multipartParser = require('parse-multipart-data');
+const { responseWithError } = require('../helpers');
 const { v4: uuidv4 } = require("uuid");
 const jwt = require('jsonwebtoken');
 
@@ -16,17 +15,21 @@ module.exports = async (event, context) => {
     console.log('context', context);
     console.log('-----------------------------');
 
-    // let body;
+    // Environment variables
     const env = process.env.env;
     const projectName = process.env.projectName;
-    const allowedOrigins = ["http://localhost:3000", process.env.cloudfrontTestUrl, process.env.cloudfrontProdUrl];
+    const secretJwt = process.env.secret;
+
+    // Event obj and CORS
     const headers = event.headers;
+    const allowedOrigins = ["http://localhost:3000", process.env.cloudfrontTestUrl, process.env.cloudfrontProdUrl];
     const headerOrigin = allowedOrigins.includes(headers?.origin) ? headers?.origin : null
     const body = JSON.parse(event.body);
-    const secretJwt = process.env.secret;
-    // const action = event.httpMethod;
-    // const isBase64Encoded = event.isBase64Encoded;
 
+    // AWS Resource names
+    const dbUsers = `${projectName}--db-users--${env}`;
+
+    // Response obj
     let response = {
         statusCode: 200,
         headers: {
@@ -40,7 +43,7 @@ module.exports = async (event, context) => {
         const password = body.password
 
         const params = {
-            TableName: `db-users-${projectName}-${env}`,
+            TableName: dbUsers,
             FilterExpression: "password = :filterExp",
             KeyConditionExpression: "#userName = :usr",
             ExpressionAttributeValues: {
@@ -90,15 +93,15 @@ module.exports = async (event, context) => {
                 try {
                     const input = {
                         "Item": {
-                            user: { "S": genInvitationCode },
-                            userId: { "S": genInvitationCode },
-                            role: { "S": 'user' },
+                            user: genInvitationCode,
+                            userId: genInvitationCode,
+                            role: 'user',
                         },
                         "ReturnConsumedCapacity": "TOTAL",
-                        "TableName": `db-users-${projectName}-${env}`
+                        "TableName": dbUsers
                     };
-        
-                    const command = new PutItemCommand(input);
+
+                    const command = new PutCommand(input);
                     const res = await client.send(command);
                     console.log('res POST generate-invitation-code:', res);
                     response.body = JSON.stringify({success: true});

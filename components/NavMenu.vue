@@ -32,7 +32,7 @@
                 </CustomSelect>
             </li>
             <li v-if="isLinkShown">
-                <button @click="store.setUserLangData([]), navigateTo('/')" class="custom-button-link-secondary">
+                <button @click="handleLogout" class="custom-button-link-secondary">
                     {{ t('logout') }}
                 </button>
             </li>
@@ -50,6 +50,14 @@ const store = useMainStore();
 
 const isLinkShown = computed<boolean>(():boolean => route.path === '/' || route.path === '/profile');
 const v_interfaceLang = ref<string>('');
+
+const handleLogout = () => {
+    store.setUserLangData([]);
+    store.setCurrentUserName('');
+    navigateTo('/');
+    useCookie('user').value = '';
+    useCookie('token').value = '';
+}
 
 onMounted(() => {
     v_interfaceLang.value = store?.userLangData?.[0]?.languageMortherTongue;

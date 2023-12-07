@@ -459,7 +459,7 @@ const openConfirmModal = (item: UserData | null, action: string):void => {
 
 // GET API (in this component for update UI after put/update/delete API calls)
 const getUserData = async () => {
-    const res = await fetch(`${config.public.apiUrl}/${config.public.envName}/study-items`, {
+    const res = await fetch(`${config.public.apiUrl}/${config.public.envName}/data`, {
         headers: {
             "Authorization": `Bearer ${store.token}`
         }
@@ -473,7 +473,7 @@ const getUserData = async () => {
 
 // DELETE API
 const deleteUserData = async () => {
-    const resDeleteApi = await fetch(`${config.public.apiUrl}/${config.public.envName}/study-items`, {
+    const resDeleteApi = await fetch(`${config.public.apiUrl}/${config.public.envName}/data`, {
         method: 'DELETE',
         body: JSON.stringify({
             "itemID": v_itemID.value,
@@ -489,7 +489,7 @@ const deleteUserData = async () => {
     })
     console.log('res_DELETE API', resDeleteApi);
 
-    
+
     if (resDeleteApi.success) {
         // update FE without API call
         // const newArr: UserDataArrayOfObj = store.userLangData.filter(el => el.itemID !== v_itemID.value);
@@ -528,7 +528,7 @@ const addUserData = async () => {
     }
 
     console.log('payload', payload);
-    const resPostApi = await fetch(`${config.public.apiUrl}/${config.public.envName}/study-items`, {
+    const resPostApi = await fetch(`${config.public.apiUrl}/${config.public.envName}/data`, {
         method: 'POST',
         body: payload,
         headers: {
@@ -597,7 +597,7 @@ const updateUserData = async () => {
 
     console.log('anyChanges', anyChanges);
     if (anyChanges) {
-        const resPutApi = await fetch(`${config.public.apiUrl}/${config.public.envName}/study-items`, {
+        const resPutApi = await fetch(`${config.public.apiUrl}/${config.public.envName}/data`, {
             method: 'PUT',
             body: payload,
             headers: {

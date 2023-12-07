@@ -1,6 +1,6 @@
 <template>
-    <div class="main-page">    
-        <form id="user_login" v-if="!store.userLangData.length">
+    <div class="main-page">
+        <form id="user_login" v-if="!store.currentUserName">
             <h1>{{t('helloMsg')}}</h1>
             <div class="form_el">
                 <label for="username">{{ t('username') }}:</label>
@@ -19,9 +19,8 @@
                 {{ t('submit') }}
             </button>
         </form>
-
         <!-- User languages in progress -->
-        <template v-if="store.userLangData.length">
+        <template v-if="store.currentUserName">
             <h1>{{ t('languageMenuTitle') }}</h1>
             <ul class="list-items">
                 <li v-for="(user_language, i) of userLanguagesInProgress" :key="i">
@@ -68,7 +67,7 @@ const updateStore = async (user: string, token: string) => {
 }
 
 const getUserData = async () => {
-    const userData = await fetch(`${config.public.apiUrl}/${config.public.envName}/study-items`, {
+    const userData = await fetch(`${config.public.apiUrl}/${config.public.envName}/data`, {
         headers: {
             "Authorization": `Bearer ${store.token}`
         }
@@ -100,7 +99,7 @@ const login = async () => {
             userErrMsg.value = t('userNameEmptyErr')
             document.querySelector('.form_el input[name="username"')?.parentElement?.classList.add('error')
         }
-        
+
         if (!password.value) {
             passwordErrMsg.value = t('passwordNameEmptyErr')
             document.querySelector('.form_el input[name="password"')?.parentElement?.classList.add('error')
@@ -115,7 +114,7 @@ const login = async () => {
     })
     .then(res => res.json())
     .catch(er => {
-        console.log('er', er);     
+        console.log('er', er);
     })
     console.log('!!!!authUser!!!!', authUser);
 
@@ -132,7 +131,7 @@ const login = async () => {
 
 // NUXT SERVER
 // const getUserDataNuxt = async () => {
-//     const res = await fetch(`/api/study-items/get?user=viktoria`)
+//     const res = await fetch(`/api/data/get?user=viktoria`)
 //     .then(res => res.json());
 
 //     console.log('res fe', res);

@@ -1,9 +1,9 @@
-const { DynamoDBClient, BatchWriteItemCommand, PutItemCommand, UpdateItemCommand } = require("@aws-sdk/client-dynamodb");
-const { QueryCommand, DynamoDBDocumentClient } = require("@aws-sdk/lib-dynamodb");
+const { DynamoDBClient } = require("@aws-sdk/client-dynamodb");
+const { DynamoDBDocumentClient, QueryCommand, ScanCommand, BatchWriteCommand, PutCommand, UpdateCommand } = require("@aws-sdk/lib-dynamodb");
 
 const client = new DynamoDBClient({});
 const docClient = DynamoDBDocumentClient.from(client);
-const { s3GetFile, s3ListObjects, s3UploadFile, s3DeleteFile, s3GetSignedUrl, cleanUpFileName, getFilePathIfFileIsPresentInBody, responseWithError } = require('../helpers');
+const { s3ListObjects, s3UploadFile, s3DeleteFile, s3GetSignedUrl, cleanUpFileName, getFilePathIfFileIsPresentInBody, responseWithError } = require('../helpers');
 const multipartParser = require('parse-multipart-data');
 const jwt = require('jsonwebtoken');
 
@@ -15,18 +15,28 @@ module.exports = async (event, context) => {
     console.log('context', context);
     console.log('-----------------------------');
 
-    let data;
+    // Environment variables
     const env = process.env.env;
     const projectName = process.env.projectName;
-    const allowedOrigins = ["http://localhost:3000", process.env.cloudfrontTestUrl, process.env.cloudfrontProdUrl];
+    const secretJwt = process.env.secret;
+
+    // Event obj and CORS
     const headers = event.headers;
+    const allowedOrigins = ["http://localhost:3000", process.env.cloudfrontTestUrl, process.env.cloudfrontProdUrl];
     const headerOrigin = allowedOrigins.includes(headers?.origin) ? headers?.origin : null
     const action = event.httpMethod;
     const isBase64Encoded = event.isBase64Encoded;
-    const secretJwt = process.env.secret;
+
+    // AWS Resource names
+    const dbData = `${projectName}--db-data--${env}`;
+    const s3Files = `${projectName}--s3-files--${env}`;
+
+    // Handle data
+    let data;
     let user = '';
     let userRole = '';
-    
+
+    // Response obj
     let response = {
         statusCode: 200,
         headers: {
@@ -35,10 +45,9 @@ module.exports = async (event, context) => {
         body: null,
     };
 
-    // 
+    // Check if token is valid
     let isTokenValid = false;
     const authToken = headers['authorization'] || headers['Authorization'];
-    console.log('authToken', authToken);
     if (!authToken) {
         response = responseWithError('401', 'Token is invalid.', headerOrigin)
         return
@@ -60,6 +69,7 @@ module.exports = async (event, context) => {
     if (!isTokenValid) {
         return response;
     }
+    //
 
     if (action === 'POST' || action === 'PUT') {
         if (isBase64Encoded) {
@@ -92,7 +102,7 @@ module.exports = async (event, context) => {
 
     if (action === 'GET') {
         const params = {
-            TableName: `db-${projectName}-${env}`,
+            TableName: dbData,
             KeyConditionExpression:
               "#userName = :usr",
             ExpressionAttributeValues: {
@@ -110,7 +120,7 @@ module.exports = async (event, context) => {
             res.Items
             .map((async (el) => {
                 if (el.filePath) {
-                    const url = await s3GetSignedUrl(`s3-files-${projectName}-${env}`, el.filePath);
+                    const url = await s3GetSignedUrl(s3Files, el.filePath);
                     el.fileUrl = url;
                 }
                 return el;
@@ -122,40 +132,86 @@ module.exports = async (event, context) => {
 
     if (action === 'POST') {
         try {
-            const checkIfnoAttachmentButFileExistsInS3 = await s3ListObjects(`s3-files-${projectName}-${env}`, `audio/${cleanUpFileName(data.item)}`);
+            const checkIfnoAttachmentButFileExistsInS3 = await s3ListObjects(s3Files, `audio/${cleanUpFileName(data.item)}`);
             const existingFileNameS3 = checkIfnoAttachmentButFileExistsInS3?.Contents?.[0]?.Key;
 
             // Save files(if any) to S3, also do not upload it if it's already in S3 (different user added it)
             const filePath = getFilePathIfFileIsPresentInBody(data);
             if (filePath && !existingFileNameS3) {
                 // TODO: check if there's already a file. If there's, rename that file (or delete and upload the new one)
-                await s3UploadFile(`s3-files-${projectName}-${env}`, filePath, data.files[0].content);
+                await s3UploadFile(s3Files, filePath, data.files[0].content);
             }
             //
 
-            const input = {
-                "Item": {
-                    user: { "S": user },
-                    itemID: { "S": data.itemID },
-                    item: { "S": data.item },
-                    itemCorrect: { "S": data.itemCorrect },
-                    itemType: { "S": data.itemType },
-                    itemTypeCategory: { "S": data.itemTypeCategory },
-                    languageMortherTongue: { "S": data.languageMortherTongue },
-                    languageStudying: { "S": data.languageStudying },
-                    level: { "S": data.level },
-                    ...(data.itemTranscription && { itemTranscription: { "S": data.itemTranscription }}),
-                    ...((filePath && !existingFileNameS3) && { filePath: { "S": filePath } }),
-                    ...(existingFileNameS3 && { filePath: { "S": existingFileNameS3 } }),
-                },
-                "ReturnConsumedCapacity": "TOTAL",
-                "TableName": `db-${projectName}-${env}`
-            };
+            const allEls = [];
+            if (userRole === 'admin') {
+                const params = {
+                    TableName: dbData,
+                    ProjectionExpression: '#aliasForUser',
+                    ExpressionAttributeNames: {
+                      '#aliasForUser': 'user'
+                    }
+                };
 
-            const command = new PutItemCommand(input);
-            const res = await client.send(command);
-            console.log('res POST:', res);
-            response.body = JSON.stringify({success: true});
+                const command = new ScanCommand(params);
+                const res = await docClient.send(command);
+                const uniqueUsers = [...new Set(res.Items.map(item => item.user))];
+
+                const input = {
+                    RequestItems: {
+                      [dbData]: uniqueUsers.map(username => {
+                        return {
+                            PutRequest: {
+                                Item: {
+                                    user: username,
+                                    itemID: data.itemID,
+                                    item: data.item,
+                                    itemCorrect: data.itemCorrect,
+                                    itemType: data.itemType,
+                                    itemTypeCategory: data.itemTypeCategory,
+                                    languageMortherTongue: data.languageMortherTongue,
+                                    languageStudying: data.languageStudying,
+                                    level: data.level,
+                                    ...(data.itemTranscription && { itemTranscription: data.itemTranscription }),
+                                    ...((filePath && !existingFileNameS3) && { filePath: filePath } ),
+                                    ...(existingFileNameS3 && { filePath: existingFileNameS3 } ),
+                                }
+                            }
+                        }
+                      })
+                    }
+                };
+                const commandWrite = new BatchWriteCommand(input);
+                const resWrite = await docClient.send(commandWrite);
+                console.log('_____res POST admin:', resWrite);
+                allEls.push(resWrite.ItemCollectionMetrics);
+            } else {
+                const input = {
+                    "Item": {
+                        user: user,
+                        itemID: data.itemID,
+                        item: data.item,
+                        itemCorrect: data.itemCorrect,
+                        itemType: data.itemType,
+                        itemTypeCategory: data.itemTypeCategory,
+                        languageMortherTongue: data.languageMortherTongue,
+                        languageStudying: data.languageStudying,
+                        level: data.level,
+                        ...(data.itemTranscription && { itemTranscription: data.itemTranscription }),
+                        ...((filePath && !existingFileNameS3) && { filePath: filePath } ),
+                        ...(existingFileNameS3 && { filePath: existingFileNameS3 } ),
+                    },
+                    "TableName": dbData
+                };
+
+                const command = new PutCommand(input);
+                const res = await client.send(command);
+                console.log('_____res POST not admin:', res);
+                allEls.push(res.Attributes);
+            }
+
+            console.log('allEls', allEls);
+            response.body = JSON.stringify({success: true, data: allEls});
         } catch (error) {
             response.statusCode = '500';
             response.body = JSON.stringify({
@@ -171,7 +227,7 @@ module.exports = async (event, context) => {
             const filePath = getFilePathIfFileIsPresentInBody(data);
             if (filePath) {
                 // TODO: check if there's already a file in S3 while "item" has changed. If there's, rename that file (or delete and upload the new one), rename with the new "item" name
-                await s3UploadFile(`s3-files-${projectName}-${env}`, filePath, data.files[0].content);
+                await s3UploadFile(s3Files, filePath, data.files[0].content);
             }
             //
 
@@ -182,28 +238,22 @@ module.exports = async (event, context) => {
                     const attributeValue = (key === 'files' && filePath) ? filePath : data[key];
 
                     const input = {
-                        TableName: `db-${projectName}-${env}`,
+                        TableName: dbData,
                         Key: {
-                            user: {
-                                "S": user
-                            },
-                            itemID: {
-                                "S": data.itemID
-                            },
+                            user: user,
+                            itemID: data.itemID,
                         },
                         UpdateExpression: "SET #attributeName = :newValue",
                         ExpressionAttributeNames: {
                             "#attributeName": attributeName,
                         },
                         ExpressionAttributeValues: {
-                            ":newValue": {
-                                "S": attributeValue
-                            }
+                            ":newValue": attributeValue
                         },
                         ReturnValues: "ALL_NEW"
                     };
 
-                    const command = new UpdateItemCommand(input);
+                    const command = new UpdateCommand(input);
                     const res = await client.send(command);
                     allEls.push(res.Attributes);
                 }
@@ -222,23 +272,23 @@ module.exports = async (event, context) => {
     if (action === 'DELETE') {
         const input = {
             "RequestItems": {
-              [`db-${projectName}-${env}`]: [{
+              [dbData]: [{
                     DeleteRequest: {
                         Key: {
-                            user: { "S": user },
-                            itemID: { "S": data.itemID }
+                            user: user ,
+                            itemID: data.itemID,
                         }
                     }
               }]
             }
         };
 
-        const command = new BatchWriteItemCommand(input);
+        const command = new BatchWriteCommand(input);
         const res = await client.send(command);
 
         // Delete from S3
         if (userRole === 'admin' && data.filePath) {
-            await s3DeleteFile(`s3-files-${projectName}-${env}`, data.filePath)
+            await s3DeleteFile(s3Files, data.filePath)
         }
         //
         console.log('res DELETE:', res);
