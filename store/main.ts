@@ -8,7 +8,9 @@ export const useMainStore = defineStore('main-store', {
         lessonStarted: false,
         currentUserName: '',
         token: '',
-        userLangData: [] as UserDataArrayOfObj, 
+        userLangData: [] as UserDataArrayOfObj,
+        userMotherTongue: '',
+        loading: false,
     }),
     actions: {
         setModalType(v: string) {
@@ -29,6 +31,12 @@ export const useMainStore = defineStore('main-store', {
         setUserLangData(v: UserDataArrayOfObj) {
             this.userLangData = v;
         },
+        setUserMortherTongue(v: string) {
+            this.userMotherTongue = v;
+        },
+        setLoading(v: boolean) {
+            this.loading = v;
+        }
     },
     // persist: true,
 });

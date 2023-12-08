@@ -1,5 +1,5 @@
 <template>
-    <div v-if="store.userLangData" class="listOfWords">
+    <div v-if="store.currentUserName" class="listOfWords">
         <h1>{{ t('listOfWords') }}</h1>
 
         <ul>
@@ -459,6 +459,7 @@ const openConfirmModal = (item: UserData | null, action: string):void => {
 
 // GET API (in this component for update UI after put/update/delete API calls)
 const getUserData = async () => {
+    store.setLoading(true);
     const res = await fetch(`${config.public.apiUrl}/${config.public.envName}/data`, {
         headers: {
             "Authorization": `Bearer ${store.token}`
@@ -466,13 +467,19 @@ const getUserData = async () => {
     })
     .then(el => el.json())
     .catch(err => console.log(err))
-    if (res.success && res.data && res.data.length) {
+    .finally(() => {
+        store.setLoading(false);
+    });
+
+    // if (res.success && res.data && res.data.length) {
+    if (res.success) {
         store.setUserLangData(res.data);
     }
 }
 
 // DELETE API
 const deleteUserData = async () => {
+    store.setLoading(true);
     const resDeleteApi = await fetch(`${config.public.apiUrl}/${config.public.envName}/data`, {
         method: 'DELETE',
         body: JSON.stringify({
@@ -487,6 +494,9 @@ const deleteUserData = async () => {
     .catch(err => {
         console.log('err DELETE API:', err);
     })
+    .finally(() => {
+        store.setLoading(false);
+    });
     console.log('res_DELETE API', resDeleteApi);
 
 
@@ -514,7 +524,7 @@ const addUserData = async () => {
     payload.append('itemType', v_itemType.value === 'addNew' ? v_newItemType.value : v_itemType.value);
     payload.append('itemTypeCategory', v_itemTypeCategory.value === 'addNew' ? v_newItemTypeCategory.value : v_itemTypeCategory.value);
 
-    payload.append('languageMortherTongue', store.userLangData[0].languageMortherTongue);
+    payload.append('userMotherTongue', store.userMotherTongue);
     payload.append('languageStudying', v_languageStudying.value);
     payload.append('level', v_level.value);
 
@@ -528,6 +538,7 @@ const addUserData = async () => {
     }
 
     console.log('payload', payload);
+    store.setLoading(true);
     const resPostApi = await fetch(`${config.public.apiUrl}/${config.public.envName}/data`, {
         method: 'POST',
         body: payload,
@@ -539,6 +550,9 @@ const addUserData = async () => {
     .catch(err => {
         console.log('err DELETE API:', err);
     })
+    .finally(() => {
+        store.setLoading(false);
+    });
     console.log('res_POST API', resPostApi);
 
     if (resPostApi.success) {
@@ -597,6 +611,7 @@ const updateUserData = async () => {
 
     console.log('anyChanges', anyChanges);
     if (anyChanges) {
+        store.setLoading(true);
         const resPutApi = await fetch(`${config.public.apiUrl}/${config.public.envName}/data`, {
             method: 'PUT',
             body: payload,
@@ -607,6 +622,9 @@ const updateUserData = async () => {
         .then(res => res.json())
         .catch(err => {
             console.log('err DELETE API:', err);
+        })
+        .finally(() => {
+            store.setLoading(false);
         })
         console.log('res_PUT API', resPutApi);
 

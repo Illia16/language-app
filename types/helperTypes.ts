@@ -4,7 +4,7 @@ export interface UserData {
     itemTypeCategory: string;
     user: string;
     itemType: string;
-    languageMortherTongue: string;
+    userMotherTongue: string;
     itemID: string;
     item: string;
     itemCorrect: string;

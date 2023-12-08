@@ -60,7 +60,7 @@ module.exports = async (event, context) => {
             response = responseWithError('401', 'Token is invalid.', headerOrigin)
             return
         } else {
-            userRole = decoded.role;
+            userRole = decoded.role || 'user';
             user = decoded.user;
             isTokenValid = true;
         }
@@ -169,7 +169,7 @@ module.exports = async (event, context) => {
                                     itemCorrect: data.itemCorrect,
                                     itemType: data.itemType,
                                     itemTypeCategory: data.itemTypeCategory,
-                                    languageMortherTongue: data.languageMortherTongue,
+                                    userMotherTongue: data.userMotherTongue,
                                     languageStudying: data.languageStudying,
                                     level: data.level,
                                     ...(data.itemTranscription && { itemTranscription: data.itemTranscription }),
@@ -194,7 +194,7 @@ module.exports = async (event, context) => {
                         itemCorrect: data.itemCorrect,
                         itemType: data.itemType,
                         itemTypeCategory: data.itemTypeCategory,
-                        languageMortherTongue: data.languageMortherTongue,
+                        userMotherTongue: data.userMotherTongue,
                         languageStudying: data.languageStudying,
                         level: data.level,
                         ...(data.itemTranscription && { itemTranscription: data.itemTranscription }),

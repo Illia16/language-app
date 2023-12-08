@@ -190,7 +190,7 @@ class BackendCdkStack extends cdk.Stack {
     myIam.attachInlinePolicy(new iam.Policy(this, `${props.env.projectName}--iam-policy--${props.env.stage}`, {
           statements: [
               new iam.PolicyStatement({
-                  actions: ['dynamodb:Query', 'dynamodb:BatchWriteItem', 'dynamodb:PutItem', 'dynamodb:UpdateItem', 'dynamodb:Scan'],
+                  actions: ['dynamodb:Query', 'dynamodb:BatchWriteItem', 'dynamodb:PutItem', 'dynamodb:UpdateItem', 'dynamodb:Scan', 'dynamodb:DeleteItem'],
                   // dynamodb:*
                   // dynamodb:BatchGetItem
                   // dynamodb:BatchWriteItem
@@ -305,13 +305,30 @@ class BackendCdkStack extends cdk.Stack {
       }
     );
 
-    // Enable rotation every 30 days
+    // TODO:
+    // // Define a Lambda function for the rotation
+    // const rotateSecretFn = new lambda.Function(this, `${props.env.projectName}--secret-rotation-fn--${props.env.stage}`, {
+    //   runtime: lambda.Runtime.NODEJS_18_X,
+    //   handler: 'index.handler',
+    //   environment: {
+    //     jwtSecret: jwtSecret,
+    //   },
+    //   code: lambda.Code.fromInline(`
+    //     exports.handler = async (event) => {
+    //       // Your rotation logic here
+    //       console.log("Secret Rotation Logic");
+    //       return {};
+    //     }
+    //   `),
+    // });
+
+    // rotateSecretFn.role.addManagedPolicy(
+    //   iam.ManagedPolicy.fromAwsManagedPolicyName('service-role/AWSLambdaBasicExecutionRole')
+    // );
+
     // jwtSecret.addRotationSchedule(`${props.env.projectName}--secret_rotation-auth--${props.env.stage}`, {
-    //   rotationLambda: new aws_secretsmanager.RotationLambda(this, 'MyRotationLambda', {
-    //     rotationFunctionName: `${props.env.projectName}--secret_rotation-fn-auth--${props.env.stage}`,
-    //     inlineCode: 'console.log("Custom rotation function logic here");',
-    //   }),
-    //   rotationSchedule: cdk.Duration.minutes(3),
+    //   automaticallyAfter: cdk.Duration.minutes(3),
+    //   rotationLambda: rotateSecretFn,
     // });
 
     // add this secret to Lambda FN as an env var

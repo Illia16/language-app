@@ -15,9 +15,20 @@
             </div>
 
             <span v-if="errMsg" class="field-error">{{errMsg}}</span>
-            <button type="button" @click="login" class="custom-button-link">
-                {{ t('submit') }}
-            </button>
+
+            <div class="form-buttons">
+                <button type="button" @click="login" class="custom-button-link">
+                    {{ t('submit') }}
+                </button>
+                <div class="form-buttons--sub">
+                    <button type="button" class="custom-button-link-secondary">
+                        {{ t('forgotPassword') }}
+                    </button>
+                    <button type="button" @click="store.setModalOpen(true); store.setModalType('signup');" class="custom-button-link-secondary">
+                        {{ t('createAccount') }}
+                    </button>
+                </div>
+            </div>
         </form>
         <!-- User languages in progress -->
         <template v-if="store.currentUserName">
@@ -28,6 +39,52 @@
                 </li>
             </ul>
         </template>
+
+        <teleport to="body">
+            <Modal v-if="store.modalOpen && store.modalType === 'signup'" class="modal-signup">
+                <!-- @closeCallback="closeConfirmModal" -->
+                <div class="form_el">
+                    <label>{{t('username')}}</label>
+                    <input type="text" v-model="signup_user" />
+                </div>
+                <div class="form_el">
+                    <label>{{t('password')}}</label>
+                    <input type="password" v-model="signup_pw" />
+                </div>
+                <div class="form_el">
+                    <label>{{t('retypePassword')}}</label>
+                    <input type="password" v-model="retypeSignup_pw" />
+                </div>
+                <div v-if="signup_pw !== retypeSignup_pw" class="field-error">{{ t('passowrdsNoMatch') }}</div>
+                <CustomSelect
+                    v-model="v_motherTongue"
+                    :options="[
+                        {
+                            name: 'English',
+                            value: 'en',
+                        },
+                        {
+                            name: 'Chinese',
+                            value: 'zh',
+                        },
+                        {
+                            name: 'Russian',
+                            value: 'ru',
+                        },
+                    ]"
+                    state="lang"
+                >
+                    <template v-slot:label>{{t('motherTongue')}}</template>
+                </CustomSelect>
+                <div class="form_el">
+                    <label>{{t('invitationCode')}}</label>
+                    <input type="text" v-model="signup_invitation_code" />
+                </div>
+                <div class="mt-4">
+                    <button class="custom-button-link" @click="signup">{{t('signup')}}</button>
+                </div>
+            </Modal>
+        </teleport>
     </div>
 </template>
 
@@ -61,10 +118,13 @@ const userLanguagesInProgress = computed<string[]>(() => store.userLangData.redu
     return accumulator
 }, []))
 
-const updateStore = async (user: string, token: string) => {
-    store.setCurrentUserName(user);
-    store.setToken(token)
-}
+// Signup
+const signup_user = ref<string>('');
+const signup_pw = ref<string>('');
+const retypeSignup_pw = ref<string>('');
+const v_motherTongue = ref<string>('en');
+const signup_invitation_code = ref<string>('');
+// 
 
 const getUserData = async () => {
     const userData = await fetch(`${config.public.apiUrl}/${config.public.envName}/data`, {
@@ -76,14 +136,20 @@ const getUserData = async () => {
     .catch(err => {
         errMsg.value = err?.message;
     })
+    .finally(() => {
+        store.setLoading(false);
+    })
 
     console.log('!!!!res!!!!', userData);
     if (userData.success && userData.data && userData.data.length) {
         store.setUserLangData(userData.data);
-        const userMortherTongue = store.userLangData[0].languageMortherTongue;
-        setLocale(userMortherTongue);
         cookieUser.value = store.currentUserName;
         cookieToken.value = store.token;
+
+        if (!store.userMotherTongue) {
+            store.setUserMortherTongue(userData.data[0].userMotherTongue);
+            setLocale(store.userMotherTongue);
+        }
     } else {
         errMsg.value = userData?.message;
         // userErrMsg.value = t('noUserFoundErr')
@@ -108,6 +174,7 @@ const login = async () => {
         return
     }
 
+    store.setLoading(true);
     const authUser = await fetch(`${config.public.apiUrlAuth}/${config.public.envName}/auth/login`, {
         method: 'POST',
         body: JSON.stringify({user: user.value, password: password.value})
@@ -115,6 +182,7 @@ const login = async () => {
     .then(res => res.json())
     .catch(er => {
         console.log('er', er);
+        store.setLoading(false);
     })
     console.log('!!!!authUser!!!!', authUser);
 
@@ -124,8 +192,43 @@ const login = async () => {
         return
     } else {
         errMsg.value = '';
-        await updateStore(authUser.data.user, authUser.data.token);
+        store.setCurrentUserName(authUser.data.user);
+        store.setToken(authUser.data.token);
+        store.setUserMortherTongue(authUser.data.userMotherTongue);
+        setLocale(store.userMotherTongue);
         await getUserData();
+    }
+}
+
+const signup = async () => {
+    if (!signup_user.value || !signup_pw.value || !signup_invitation_code || signup_pw.value !== retypeSignup_pw.value) {
+        return
+    }
+
+    store.setLoading(true);    
+    const signupRes = await fetch(`${config.public.apiUrlAuth}/${config.public.envName}/auth/register`, {
+        method: 'POST',
+        body: JSON.stringify({
+            "user": signup_user.value,
+            "password": signup_pw.value,
+            "userMotherTongue": v_motherTongue.value,
+            "invitationCode": signup_invitation_code.value,
+        })
+    })
+    .then(res => res.json())
+    .catch(err => {
+        console.log('err signup API:', err);
+    })
+    .finally(() => {        
+        store.setLoading(false);
+        store.setModalOpen(false);
+        store.setModalType('');
+    });
+
+    if (!signupRes.success) {
+        errMsg.value = signupRes.message;
+    } else {
+        errMsg.value = '';
     }
 }
 
@@ -143,8 +246,9 @@ onMounted(async() => {
     console.log('Runtime config ENV_NAME:', config.public.envName)
     // getUserDataNuxt();
 
-    if (cookieUser.value && cookieToken.value) {
-        await updateStore(cookieUser.value, cookieToken.value);
+    if (cookieUser.value && cookieToken.value && !store.currentUserName && !store.userLangData.length) {
+        store.setCurrentUserName(cookieUser.value);
+        store.setToken(cookieToken.value);
         await getUserData();
     }
 })
@@ -172,6 +276,18 @@ onMounted(async() => {
 
         #user_login {
             @apply space-y-3;
+
+            .form-buttons {
+                @apply flex flex-col space-y-2;
+
+                .form-buttons--sub {
+                    @apply flex justify-center space-x-2;
+
+                    button {
+                        @apply text-xs;
+                    }
+                }
+            }
         }
     }
 </style>
@@ -181,8 +297,15 @@ onMounted(async() => {
     en:
         helloMsg: 'Please, sign in to continue'
         submit: 'Login'
+        signup: 'Signup'
+        forgotPassword: 'Forgot password?'
+        createAccount: 'Create account'
         username: 'Username'
         password: 'Password'
+        retypePassword: 'Retype password'
+        motherTongue: 'Select your mother tongue'
+        invitationCode: 'Invitation code'
+        passowrdsNoMatch: "Passwords don't match"
         userNameEmptyErr: 'Please, enter your username'
         passwordNameEmptyErr: 'Please, enter your password'
         noUserFoundErr: 'No user found'
@@ -190,8 +313,15 @@ onMounted(async() => {
     ru:
         helloMsg: 'Пожалуйста, введите Ваш логин и пароль'
         submit: 'Войти'
+        signup: 'Создать'
+        forgotPassword: 'Забыли пароль?'
+        createAccount: 'Создать аккаунт'
         username: 'Логин'
         password: 'Пароль'
+        retypePassword: 'Повторите пароль'
+        motherTongue: 'Выбирите ваш родной язык'
+        invitationCode: 'Код приглашения'
+        passowrdsNoMatch: 'Пароли не совпадают'
         userNameEmptyErr: 'Пожалуйста, введите ваш логин'
         passwordNameEmptyErr: 'Пожалуйста, введите ваш пароль'
         noUserFoundErr: 'Пользователь не найден'
@@ -199,8 +329,15 @@ onMounted(async() => {
     zh:
         helloMsg: 'TBD'
         submit: 'TBD'
+        signup: 'Signup'
+        forgotPassword: 'Forgot password?'
+        createAccount: 'Create account'
         username: 'TBD'
         password: 'TBD'
+        retypePassword: 'Retype password'
+        motherTongue: 'Select your mother tongue'
+        invitationCode: 'Invitation code'
+        passowrdsNoMatch: "Passwords don't match"
         userNameEmptyErr: 'TBD'
         passwordNameEmptyErr: 'TBD'
         noUserFoundErr: 'TBD'

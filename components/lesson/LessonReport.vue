@@ -52,6 +52,7 @@ onBeforeUnmount(() => {
 
 // PUT API (update level for correct answers)
 const updateUserData = async () => {
+    store.setLoading(true);
     await Promise.all(
         props.report
         .filter((el: Report) => el.isCorrect && Number(el.level) < 10)
@@ -84,6 +85,9 @@ const updateUserData = async () => {
             }
         });
         store.setUserLangData(newArr);
+    })
+    .finally(() => {
+        store.setLoading(false);
     })
 }
 

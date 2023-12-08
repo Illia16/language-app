@@ -60,7 +60,7 @@ const handleLogout = () => {
 }
 
 onMounted(() => {
-    v_interfaceLang.value = store?.userLangData?.[0]?.languageMortherTongue;
+    v_interfaceLang.value = store.userMotherTongue;
 })
 
 watch(() => v_interfaceLang.value, (v) => {

@@ -1,5 +1,5 @@
 const { DynamoDBClient } = require("@aws-sdk/client-dynamodb");
-const { DynamoDBDocumentClient, QueryCommand, PutCommand } = require("@aws-sdk/lib-dynamodb");
+const { DynamoDBDocumentClient, QueryCommand, PutCommand, DeleteCommand } = require("@aws-sdk/lib-dynamodb");
 
 const client = new DynamoDBClient({});
 const docClient = DynamoDBDocumentClient.from(client);
@@ -60,8 +60,9 @@ module.exports = async (event, context) => {
 
         if (res.Items && res.Items.length) {
             // const token = jwt.sign(res.Items[0], secretJwt, { expiresIn: '30 days' });
-            const token = jwt.sign(res.Items[0], secretJwt, { expiresIn: '5m' });
-            response.body = JSON.stringify({success: true, data: {user: res.Items[0].user, token: token}});
+            const userObj = res.Items[0];
+            const token = jwt.sign({user: userObj.user, ...(userObj.role === 'admin' && {role: userObj.role})}, secretJwt, { expiresIn: '15m' });
+            response.body = JSON.stringify({success: true, data: {user: res.Items[0].user, userMotherTongue: res.Items[0].userMotherTongue, token: token}});
         } else {
             response = responseWithError('500', 'Either user does not exist or wrong password.', headerOrigin)
         }
@@ -116,7 +117,74 @@ module.exports = async (event, context) => {
         })
     }
 
-    // if (event.path === '/auth/register') {}
+    if (event.path === '/auth/register') {
+        const username = body.user;
+        const password = body.password;
+        const invitationCode = body.invitationCode;
+        const userMotherTongue = body.userMotherTongue;
+
+        const getParams = (v) => {
+            return {
+                TableName: dbUsers,
+                KeyConditionExpression: "#userName = :usr",
+                ExpressionAttributeValues: {
+                    ":usr": v,
+                },
+                ExpressionAttributeNames: {
+                    "#userName": "user"
+                },
+                ConsistentRead: true,
+            };
+        }
+        // Check if username is available
+        const commandCheckUserName = new QueryCommand(getParams(username));
+        const resCheckUserName = await docClient.send(commandCheckUserName);
+        console.log('resCheckUserName', resCheckUserName);
+        // 
+
+        if (resCheckUserName.Items && resCheckUserName.Items.length) {
+            response = responseWithError('500', 'Either username already taken or inivation code is wrong.', headerOrigin)
+        } else {
+            // Check inv code
+            const commandInvCode = new QueryCommand(getParams(invitationCode));
+            const resInvCode = await docClient.send(commandInvCode);
+            console.log('resInvCode', resInvCode);
+            // 
+
+            if (resInvCode.Items && resInvCode.Items.length) {
+                const inputDeleteInvCode = {
+                    TableName: dbUsers,
+                    Key: {
+                        user: invitationCode,
+                        userId: invitationCode,
+                    },
+                }
+                
+                const commandDeleteInvCode = new DeleteCommand(inputDeleteInvCode);
+                const resDeleteInvCode = await client.send(commandDeleteInvCode);
+                console.log('resDeleteInvCode', resDeleteInvCode);
+
+                const inputCreateUser = {
+                    Item: {
+                        user: username,
+                        userId: username+"___"+invitationCode,
+                        password: password,
+                        userMotherTongue: userMotherTongue,
+                        role: 'user',
+                    },
+                    ReturnConsumedCapacity: "TOTAL",
+                    TableName: dbUsers
+                };
+
+                const commandCreateUser = new PutCommand(inputCreateUser);
+                const resCreateUser = await client.send(commandCreateUser);
+                console.log('resCreateUser', resCreateUser);
+                response.body = JSON.stringify({success: true, data: resCreateUser.Attributes});
+            } else {
+                response = responseWithError('500', 'Either username already taken or inivation code is wrong.', headerOrigin)
+            }
+        }
+    }
     // if (event.path === '/auth/delete-account') {}
     // if (event.path === '/auth/forgot-password') {}
     // if (event.path === '/auth/change-password') {}

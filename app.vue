@@ -1,7 +1,8 @@
 <template>
     <div class="language-app-site">
-        <NavMenu v-if="store.userLangData.length && !store.lessonStarted"/>
+        <NavMenu v-if="store.currentUserName && !store.lessonStarted"/>
         <NuxtPage />
+        <Loading v-if="store.loading" />
     </div>
 </template>
 
