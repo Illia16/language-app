@@ -1,0 +1,110 @@
+Base sentence: I have never been to France.
+Incorrect sentence 1:  
+
+1. I never had been to France. 
+2
+Incorrect sentence 2: 
+
+1. I have never been gone to France.
+2.
+Incorrect sentence 3: 
+
+1. I not have never gone to France.
+2.
+Base sentence: I have never been to France.
+Incorrect sentence 1: 
+
+1. I hadn't been to France.
+2. I don't went to France.
+3. I am never been to France.
+Incorrect sentence 2: 
+
+1. I hadn't been to France. 
+2. I had never gone to France. 
+3. I am never been to France.
+Incorrect sentence 3: 
+
+1. I didn't never been to France.
+2. I had never been to France.
+3. I ain't never been to France.
+Base sentence: I have never been to France.
+Incorrect sentence 1: 
+
+1. I have not been to France yet.
+2. I have not gone to France.
+3. I never been to France before.
+
+ 
+ 
+Base sentence: I have never been to France.
+Incorrect sentence 1: 
+
+1. I have not went to France.
+2. I did not go to France.
+3. I was never gone to France.
+
+ 
+ 
+Base sentence: I have never been to France.
+
+
+1. I hadn't been to France yet.
+2. I weren't ever in France.
+3. I was never in France yet.
+ 
+ 
+Base sentence: I like apples.
+
+1. I am liking apples.
+2. I have liked apples.
+3. I did liked apples.
+ 
+ 
+Base sentence: I like apples.
+ 
+ 
+Base sentence: I like apples.1. I likes apples.
+2. I lik apples.
+3. I liked apples.
+ 
+ 
+Base sentence: I like apples.
+1. I liking apples.
+2. I liked apples.
+3. I like apple.
+ 
+ 
+Base sentence: I like apples.
+1. I likes apples.
+2. I liking apples.
+3. I liked apples.
+ 
+ 
+Base sentence: I didn't like that cake.
+1. I don't like that cake.
+2. I don't liked that cake.
+3. I didn't liking that cake.
+ 
+ 
+Base sentence: I didn't like that cake.
+1. I did not liked that cake.
+2. I don't liked that cake.
+3. I not liked that cake.
+ 
+ 
+Base sentence: I didn't like that cake.
+1. I didn't liked that cake.
+2. I not liked that cake.
+3. I didn't liking that cake.
+ 
+ 
+Base sentence: I didn't like that cake.
+1. I don't liked that cake.
+2. I didn't liked that cake.
+3. I not liked that cake.
+ 
+ 
+Base sentence: I didn't like that cake.
+1. I didn't liked that cake.
+2. I not liked that cake.
+3. I dislike that cake.
