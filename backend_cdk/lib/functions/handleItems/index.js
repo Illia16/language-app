@@ -4,6 +4,7 @@ const { DynamoDBDocumentClient, QueryCommand, ScanCommand, BatchWriteCommand, Pu
 const client = new DynamoDBClient({});
 const docClient = DynamoDBDocumentClient.from(client);
 const { s3ListObjects, s3UploadFile, s3DeleteFile, s3GetSignedUrl, cleanUpFileName, getFilePathIfFileIsPresentInBody, responseWithError } = require('../helpers');
+const { getIncorrectItems, getAudio } = require('../helpers/openai')
 const multipartParser = require('parse-multipart-data');
 const jwt = require('jsonwebtoken');
 
@@ -123,6 +124,11 @@ module.exports = async (event, context) => {
                     const url = await s3GetSignedUrl(s3Files, el.filePath);
                     el.fileUrl = url;
                 }
+
+                if (el.incorrectItems) {
+                    el.incorrectItems = JSON.parse(el.incorrectItems);
+                }
+
                 return el;
             }))
         );
@@ -142,6 +148,24 @@ module.exports = async (event, context) => {
                 await s3UploadFile(s3Files, filePath, data.files[0].content);
             }
             //
+
+            // get audio of text from AI
+            let audioFilePathAi;
+            if (!filePath && !existingFileNameS3) {
+                const audioFile = await getAudio(data.item)
+                const fileNameCleaned = cleanUpFileName(data?.item);
+                audioFilePathAi = `audio/${fileNameCleaned}/${fileNameCleaned}.mp3`;
+                await s3UploadFile(s3Files, audioFilePathAi, audioFile);
+            }
+
+            // get incorrect answers of the correct item from AI
+            const incorrectItems = await getIncorrectItems(data.item);
+            // const incorrectItems = [
+            //     'The man needing help.',
+            //     'Help is needed by the man.',
+            //     'The help is needed by the man.'
+            // ];
+            console.log('incorrectItems', incorrectItems);
 
             const allEls = [];
             if (userRole === 'admin') {
@@ -167,6 +191,7 @@ module.exports = async (event, context) => {
                                     itemID: data.itemID,
                                     item: data.item,
                                     itemCorrect: data.itemCorrect,
+                                    incorrectItems: JSON.stringify(incorrectItems),
                                     itemType: data.itemType,
                                     itemTypeCategory: data.itemTypeCategory,
                                     userMotherTongue: data.userMotherTongue,
@@ -175,6 +200,7 @@ module.exports = async (event, context) => {
                                     ...(data.itemTranscription && { itemTranscription: data.itemTranscription }),
                                     ...((filePath && !existingFileNameS3) && { filePath: filePath } ),
                                     ...(existingFileNameS3 && { filePath: existingFileNameS3 } ),
+                                    ...((!filePath && !existingFileNameS3) && { filePath: audioFilePathAi } ),
                                 }
                             }
                         }
@@ -192,6 +218,7 @@ module.exports = async (event, context) => {
                         itemID: data.itemID,
                         item: data.item,
                         itemCorrect: data.itemCorrect,
+                        incorrectItems: JSON.stringify(incorrectItems),
                         itemType: data.itemType,
                         itemTypeCategory: data.itemTypeCategory,
                         userMotherTongue: data.userMotherTongue,
@@ -200,6 +227,7 @@ module.exports = async (event, context) => {
                         ...(data.itemTranscription && { itemTranscription: data.itemTranscription }),
                         ...((filePath && !existingFileNameS3) && { filePath: filePath } ),
                         ...(existingFileNameS3 && { filePath: existingFileNameS3 } ),
+                        ...((!filePath && !existingFileNameS3) && { filePath: audioFilePathAi } ),
                     },
                     "TableName": dbData
                 };
