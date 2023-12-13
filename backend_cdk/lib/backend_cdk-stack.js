@@ -160,6 +160,7 @@ class BackendCdkStack extends cdk.Stack {
           cloudfrontTestUrl: props.env.cloudfrontTestUrl,
           cloudfrontProdUrl: props.env.cloudfrontProdUrl
         },
+        timeout: cdk.Duration.seconds(30),
         // layers: [helperFns],
     });
 
