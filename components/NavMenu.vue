@@ -61,11 +61,8 @@ const handleLogout = () => {
 
 onMounted(() => {
     v_interfaceLang.value = store.userMotherTongue;
+    setLocale(store.userMotherTongue);
 })
-
-watch(() => v_interfaceLang.value, (v) => {
-    setLocale(v);
-});
 
 </script>
 

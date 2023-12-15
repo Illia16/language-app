@@ -141,17 +141,30 @@ const getUserData = async () => {
     })
 
     console.log('!!!!res!!!!', userData);
-    if (userData.success && userData.data && userData.data.length) {
-        store.setUserLangData(userData.data);
+    if (userData.success) {
         cookieUser.value = store.currentUserName;
         cookieToken.value = store.token;
 
-        if (!store.userMotherTongue) {
-            store.setUserMortherTongue(userData.data[0].userMotherTongue);
-            setLocale(store.userMotherTongue);
+        if (userData.data && userData.data.length) {
+            store.setUserLangData(userData.data);
+            
+            if (!store?.userMotherTongue) {
+                store.setUserMortherTongue(userData.data[0].userMotherTongue);
+                setLocale(store.userMotherTongue);
+            }
+        }
+
+        if (!store?.userMotherTongue) {
+            const userSavedLang = useCookie('i18n_redirected').value as string;
+            store.setUserMortherTongue(userSavedLang);
+            setLocale(userSavedLang);
         }
     } else {
         errMsg.value = userData?.message;
+        store.setUserLangData([]);
+        store.setCurrentUserName('');
+        useCookie('user').value = '';
+        useCookie('token').value = '';
         // userErrMsg.value = t('noUserFoundErr')
         // document.querySelector('.form_el input[name="username"')?.parentElement?.classList.add('error')
     }
@@ -192,10 +205,12 @@ const login = async () => {
         return
     } else {
         errMsg.value = '';
+        cookieUser.value = authUser.data.user;
+        cookieToken.value = authUser.data.token;
         store.setCurrentUserName(authUser.data.user);
         store.setToken(authUser.data.token);
         store.setUserMortherTongue(authUser.data.userMotherTongue);
-        setLocale(store.userMotherTongue);
+        setLocale(authUser.data.userMotherTongue);
         await getUserData();
     }
 }
