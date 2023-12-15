@@ -8,6 +8,7 @@ export interface UserData {
     itemID: string;
     item: string;
     itemCorrect: string;
+    incorrectItems: Array<string>,
     filePath: string | null;
     fileUrl: string | null;
     itemTranscription: string | null;

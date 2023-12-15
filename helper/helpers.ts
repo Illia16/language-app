@@ -88,27 +88,42 @@ const getRandomMode = (isEligibleForSentence: boolean, hasAudioFile: boolean):st
 export const fillMpChoiceArray = (data: UserDataArrayOfObj, correctAnswer:string, mpChoiceType: string): MpChoicesArrayOfObj => {
     let correctitemTranscription: string | null = "";
 
-    const mpChoices = data
-        .map((el: UserData, i: number): MpChoices => {
-            
-            let res: MpChoices = {} as MpChoices;
-            const q: string = el[mpChoiceType]?.replace(replaceAllinsideParantheses, '');
-            if (q !== correctAnswer) {
-                res = {
-                    item: el[mpChoiceType].replace(replaceAllinsideParantheses, ''),
-                    itemTranscription: el?.itemTranscription,
+    // check if there's predefined incorrect options
+    const hasIncorrectOptions: Array<string> = data.filter(el => el[mpChoiceType]?.replace(replaceAllinsideParantheses, '') === correctAnswer && el?.incorrectItems?.length)[0];
+        
+    if (hasIncorrectOptions?.incorrectItems?.length) {
+        const mpChoices = hasIncorrectOptions.incorrectItems
+            .map((el: string): MpChoices => {
+                return {
+                    item: el,
+                    itemTranscription: null,
                 };
-            } else {
-                correctitemTranscription = el?.itemTranscription;
-            }
-                                
-            return res;
-        })
-        .filter(el=>el.item)
-        .slice(0, 3);
-    
-    mpChoices.push({item: correctAnswer, itemTranscription: correctitemTranscription});    
-    return sortArray(mpChoices) as MpChoicesArrayOfObj;
+            })
+        mpChoices.push({item: correctAnswer, itemTranscription: hasIncorrectOptions?.itemTranscription});    
+        return sortArray(mpChoices) as MpChoicesArrayOfObj;
+    } else {
+        const mpChoices = data
+            .map((el: UserData, i: number): MpChoices => {
+                
+                let res: MpChoices = {} as MpChoices;
+                const q: string = el[mpChoiceType]?.replace(replaceAllinsideParantheses, '');
+                if (q !== correctAnswer) {
+                    res = {
+                        item: el[mpChoiceType].replace(replaceAllinsideParantheses, ''),
+                        itemTranscription: el?.itemTranscription,
+                    };
+                } else {
+                    correctitemTranscription = el?.itemTranscription;
+                }
+                                    
+                return res;
+            })
+            .filter(el=>el.item)
+            .slice(0, 3);
+        
+        mpChoices.push({item: correctAnswer, itemTranscription: correctitemTranscription});    
+        return sortArray(mpChoices) as MpChoicesArrayOfObj;
+    }
 }
 
 export const isCorrect = (currentQuestion: Question, answer: string): boolean => {
