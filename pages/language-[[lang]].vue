@@ -76,7 +76,7 @@
             </div>
         </section>
 
-        <button class="custom-button-link" @click="store.setLessonStarted(true)" :disabled="initData.every(el => !el) || numQuestionsSelected < 1">
+        <button class="custom-button-link" @click="store.setLessonStarted(true)" :disabled="initData.every(el => !el) || numQuestionsSelected < 1 || !modeSelected">
             {{ t('startBtn') }}
         </button>
     </template>
