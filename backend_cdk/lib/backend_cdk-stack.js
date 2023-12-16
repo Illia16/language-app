@@ -6,6 +6,8 @@ const dynamoDb = require('aws-cdk-lib/aws-dynamodb');
 const apiGateway = require('aws-cdk-lib/aws-apigateway');
 const iam = require('aws-cdk-lib/aws-iam');
 const aws_secretsmanager = require('aws-cdk-lib/aws-secretsmanager');
+const events = require('aws-cdk-lib/aws-events');
+const eventsTargets = require('aws-cdk-lib/aws-events-targets');
 const path = require('path')
 
 class BackendCdkStack extends cdk.Stack {
@@ -25,7 +27,8 @@ class BackendCdkStack extends cdk.Stack {
     });
 
     const myIam = new iam.Role(this, `${props.env.projectName}--iam-role--${props.env.stage}`, {
-        assumedBy: new iam.ServicePrincipal('lambda.amazonaws.com'),
+        // assumedBy: new iam.ServicePrincipal('lambda.amazonaws.com'),
+        assumedBy: new iam.CompositePrincipal(new iam.ServicePrincipal('lambda.amazonaws.com'), new iam.ServicePrincipal('secretsmanager.amazonaws.com'), new iam.ServicePrincipal('events.amazonaws.com')),
         roleName: `${props.env.projectName}--iam-role--${props.env.stage}`,
     })
 
@@ -188,61 +191,6 @@ class BackendCdkStack extends cdk.Stack {
         iam.ManagedPolicy.fromAwsManagedPolicyName('service-role/AWSLambdaBasicExecutionRole')
     )
 
-    myIam.attachInlinePolicy(new iam.Policy(this, `${props.env.projectName}--iam-policy--${props.env.stage}`, {
-          statements: [
-              new iam.PolicyStatement({
-                  actions: ['dynamodb:Query', 'dynamodb:BatchWriteItem', 'dynamodb:PutItem', 'dynamodb:UpdateItem', 'dynamodb:Scan', 'dynamodb:DeleteItem'],
-                  // dynamodb:*
-                  // dynamodb:BatchGetItem
-                  // dynamodb:BatchWriteItem
-                  // dynamodb:ConditionCheckItem
-                  // dynamodb:DeleteItem
-                  // dynamodb:DescribeTable
-                  // dynamodb:GetItem
-                  // dynamodb:GetRecords
-                  // dynamodb:GetShardIterator
-                  // dynamodb:PutItem
-                  // dynamodb:Query
-                  // dynamodb:Scan
-                  // dynamodb:UpdateItem
-                  resources: [myTable.tableArn, myTableUsers.tableArn],
-                  effect: iam.Effect.ALLOW,
-              }),
-              new iam.PolicyStatement({
-                actions: [
-                    "s3:GetObject",
-                    "s3:ListBucket",
-                    "s3:PutObject",
-                    "s3:DeleteObject",
-                    // "s3:PutObjectAcl",
-                    // "s3:GetObjectAcl",
-                    // "s3:*"
-                  ],
-                resources: [websiteBucketFiles.bucketArn, `${websiteBucketFiles.bucketArn}/*`],
-                effect: iam.Effect.ALLOW
-              }),
-            // the below is custom policy to give lambda fn access to write cloudwatch logs
-            //   new iam.PolicyStatement({
-            //     actions: [
-            //       "logs:CreateLogGroup",
-            //     ],
-            //     resources: [`arn:aws:logs:${props.env.region}:${props.env.account}:*`],
-            //     effect: iam.Effect.ALLOW,
-            //   }),
-            //   new iam.PolicyStatement({
-            //     actions: [
-            //       "logs:CreateLogStream",
-            //       "logs:PutLogEvents"
-            //     ],
-            //     // resources: [lambdaFnDynamoDb.functionArn],
-            //     resources: [`arn:aws:logs:${props.env.region}:${props.env.account}:log-group:/aws/lambda/${lambdaFnDynamoDb.functionName}:*`],
-            //     effect: iam.Effect.ALLOW,
-            //   })
-            //
-          ],
-      })
-    )
-
     // API #1
     const myApi = new apiGateway.LambdaRestApi(this, `${props.env.projectName}--api-data--${props.env.stage}`, {
       handler: lambdaFnDynamoDb,
@@ -296,45 +244,120 @@ class BackendCdkStack extends cdk.Stack {
 
 
     // generate new JWT secret for auth, rotate every 30 days
-    const jwtSecret = new aws_secretsmanager.Secret(this, `${props.env.projectName}--secret-auth--${props.env.stage}`,
-      {
+    const jwtSecret = new aws_secretsmanager.Secret(this, `${props.env.projectName}--secret-auth--${props.env.stage}`, {
         secretName: `${props.env.projectName}--secret-auth--${props.env.stage}`,
+        description: `JWT secret for ${props.env.projectName} for auth ${props.env.stage} environment.`,
         generateSecretString: {
           secretStringTemplate: JSON.stringify({ name: `${props.env.projectName}--secret-auth--${props.env.stage}` }),
           generateStringKey: 'value',
         },
-      }
-    );
+    });
 
     // TODO:
-    // // Define a Lambda function for the rotation
-    // const rotateSecretFn = new lambda.Function(this, `${props.env.projectName}--secret-rotation-fn--${props.env.stage}`, {
-    //   runtime: lambda.Runtime.NODEJS_18_X,
-    //   handler: 'index.handler',
-    //   environment: {
-    //     jwtSecret: jwtSecret,
-    //   },
-    //   code: lambda.Code.fromInline(`
-    //     exports.handler = async (event) => {
-    //       // Your rotation logic here
-    //       console.log("Secret Rotation Logic");
-    //       return {};
-    //     }
-    //   `),
-    // });
+    // Define a Lambda function for the rotation
+    const rotateSecretFn = new lambda.Function(this, `${props.env.projectName}--secret-rotation-fn--${props.env.stage}`, {
+        runtime: lambda.Runtime.NODEJS_18_X,
+        handler: 'index.rotateAuthSecret',
+        functionName: `${props.env.projectName}--secret-rotation-fn--${props.env.stage}`,
+        environment: {
+            secretId: `${props.env.projectName}--secret-auth--${props.env.stage}`,
+        },
+        code: lambda.Code.fromAsset(path.join(__dirname, 'functions')),
+        role: myIam,
 
-    // rotateSecretFn.role.addManagedPolicy(
-    //   iam.ManagedPolicy.fromAwsManagedPolicyName('service-role/AWSLambdaBasicExecutionRole')
-    // );
+    });
+
+    rotateSecretFn.role.addManagedPolicy(
+        iam.ManagedPolicy.fromAwsManagedPolicyName('service-role/AWSLambdaBasicExecutionRole')
+    );
 
     // jwtSecret.addRotationSchedule(`${props.env.projectName}--secret_rotation-auth--${props.env.stage}`, {
-    //   automaticallyAfter: cdk.Duration.minutes(3),
+    //   automaticallyAfter: cdk.Duration.days(1),
     //   rotationLambda: rotateSecretFn,
+    //   rotateImmediatelyOnUpdate: false,
     // });
 
     // add this secret to Lambda FN as an env var
     lambdaFnDynamoDb.addEnvironment('secret', jwtSecret.secretValue.unsafeUnwrap());
     authFn.addEnvironment('secret', jwtSecret.secretValue.unsafeUnwrap());
+
+    const rule = new events.Rule(this, `${props.env.projectName}--secret-update-schedule-rule--${props.env.stage}`, {
+      ruleName: `${props.env.projectName}--secret-update-schedule-rule--${props.env.stage}`,
+      description: `Event to update auth secret for ${props.env.projectName} project ${props.env.stage} env`,
+      schedule: events.Schedule.rate(cdk.Duration.minutes(5)),
+      targets: [new eventsTargets.LambdaFunction(rotateSecretFn, {
+        retryAttempts: 0,
+      })],
+    });
+
+    myIam.attachInlinePolicy(new iam.Policy(this, `${props.env.projectName}--iam-policy--${props.env.stage}`, {
+        policyName: `${props.env.projectName}--iam-policy--${props.env.stage}`,
+        statements: [
+            new iam.PolicyStatement({
+                actions: ['dynamodb:Query', 'dynamodb:BatchWriteItem', 'dynamodb:PutItem', 'dynamodb:UpdateItem', 'dynamodb:Scan', 'dynamodb:DeleteItem'],
+                // dynamodb:*
+                // dynamodb:BatchGetItem
+                // dynamodb:BatchWriteItem
+                // dynamodb:ConditionCheckItem
+                // dynamodb:DeleteItem
+                // dynamodb:DescribeTable
+                // dynamodb:GetItem
+                // dynamodb:GetRecords
+                // dynamodb:GetShardIterator
+                // dynamodb:PutItem
+                // dynamodb:Query
+                // dynamodb:Scan
+                // dynamodb:UpdateItem
+                resources: [myTable.tableArn, myTableUsers.tableArn],
+                effect: iam.Effect.ALLOW,
+            }),
+            new iam.PolicyStatement({
+                actions: [
+                    "s3:GetObject",
+                    "s3:ListBucket",
+                    "s3:PutObject",
+                    "s3:DeleteObject",
+                    // "s3:PutObjectAcl",
+                    // "s3:GetObjectAcl",
+                    // "s3:*"
+                ],
+                resources: [websiteBucketFiles.bucketArn, `${websiteBucketFiles.bucketArn}/*`],
+                effect: iam.Effect.ALLOW
+            }),
+            new iam.PolicyStatement({
+                actions: [
+                    "secretsmanager:GetSecretValue",
+                    "secretsmanager:RotateSecret",
+                    "secretsmanager:UpdateSecret",
+                    "secretsmanager:GetRandomPassword",
+                ],
+                // resources: [rotateSecretFn.functionArn],
+                // resources: [jwtSecret.secretArn, rotateSecretFn.functionArn],
+                // resources: [jwtSecret.secretFullArn],
+                resources: "*",
+                effect: iam.Effect.ALLOW
+            }),
+            // the below is custom policy to give lambda fn access to write cloudwatch logs
+            //   new iam.PolicyStatement({
+            //     actions: [
+            //       "logs:CreateLogGroup",
+            //     ],
+            //     resources: [`arn:aws:logs:${props.env.region}:${props.env.account}:*`],
+            //     effect: iam.Effect.ALLOW,
+            //   }),
+            //   new iam.PolicyStatement({
+            //     actions: [
+            //       "logs:CreateLogStream",
+            //       "logs:PutLogEvents"
+            //     ],
+            //     // resources: [lambdaFnDynamoDb.functionArn],
+            //     resources: [`arn:aws:logs:${props.env.region}:${props.env.account}:log-group:/aws/lambda/${lambdaFnDynamoDb.functionName}:*`],
+            //     effect: iam.Effect.ALLOW,
+            //   })
+            //
+        ],
+      })
+    )
   }
 }
 

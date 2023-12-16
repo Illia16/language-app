@@ -1,4 +1,5 @@
 const handleItems = require('./handleItems');
 const basicAuth = require('./basicAuth');
 const auth = require('./auth');
-module.exports = { handleItems, basicAuth, auth }
+const rotateAuthSecret = require('./rotateAuthSecret');
+module.exports = { handleItems, basicAuth, auth, rotateAuthSecret }
