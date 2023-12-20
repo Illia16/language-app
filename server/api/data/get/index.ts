@@ -1,6 +1,5 @@
 export default defineEventHandler(async (event) => {
     console.log('be apiUrl:', process.env.API_URL,);
-    console.log('be apiKey:', process.env.API_KEY,);
     console.log('be envName:', process.env.ENV_NAME,);
 
     const query = getQuery(event);

@@ -257,7 +257,6 @@ const signup = async () => {
 
 onMounted(async() => {
     console.log('Runtime config API_URL:', config.public.apiUrl)
-    console.log('Runtime config API_KEY:', config.public.apiKey)
     console.log('Runtime config ENV_NAME:', config.public.envName)
     // getUserDataNuxt();
 

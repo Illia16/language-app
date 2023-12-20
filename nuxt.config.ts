@@ -3,7 +3,6 @@ import type { NuxtConfig } from '@nuxt/types'
 
 console.log('apiUrl:', process.env.API_URL,);
 console.log('apiUrlAuth:', process.env.API_URL_AUTH,);
-console.log('apiKey:', process.env.API_KEY,);
 console.log('envName:', process.env.ENV_NAME,);
 
 const config: NuxtConfig = {
@@ -13,11 +12,9 @@ const config: NuxtConfig = {
     //     // strict: true
     // },
     runtimeConfig: {
-        apiKey: process.env.API_KEY,
         apiUrl: process.env.API_URL,
         envName: process.env.ENV_NAME,
         public: {
-            apiKey: process.env.API_KEY,
             apiUrl: process.env.API_URL,
             apiUrlAuth: process.env.API_URL_AUTH,
             envName: process.env.ENV_NAME,
