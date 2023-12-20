@@ -61,7 +61,7 @@ module.exports = async (event, context) => {
         if (res.Items && res.Items.length) {
             // const token = jwt.sign(res.Items[0], secretJwt, { expiresIn: '30 days' });
             const userObj = res.Items[0];
-            const token = jwt.sign({user: userObj.user, ...(userObj.role === 'admin' && {role: userObj.role})}, secretJwt, { expiresIn: '15m' });
+            const token = jwt.sign({user: userObj.user, ...(userObj.role === 'admin' && {role: userObj.role})}, secretJwt, { expiresIn: '1 day' });
             response.body = JSON.stringify({success: true, data: {user: res.Items[0].user, userMotherTongue: res.Items[0].userMotherTongue, token: token}});
         } else {
             response = responseWithError('500', 'Either user does not exist or wrong password.', headerOrigin)
@@ -140,7 +140,7 @@ module.exports = async (event, context) => {
         const commandCheckUserName = new QueryCommand(getParams(username));
         const resCheckUserName = await docClient.send(commandCheckUserName);
         console.log('resCheckUserName', resCheckUserName);
-        // 
+        //
 
         if (resCheckUserName.Items && resCheckUserName.Items.length) {
             response = responseWithError('500', 'Either username already taken or inivation code is wrong.', headerOrigin)
@@ -149,7 +149,7 @@ module.exports = async (event, context) => {
             const commandInvCode = new QueryCommand(getParams(invitationCode));
             const resInvCode = await docClient.send(commandInvCode);
             console.log('resInvCode', resInvCode);
-            // 
+            //
 
             if (resInvCode.Items && resInvCode.Items.length) {
                 const inputDeleteInvCode = {
@@ -159,7 +159,7 @@ module.exports = async (event, context) => {
                         userId: invitationCode,
                     },
                 }
-                
+
                 const commandDeleteInvCode = new DeleteCommand(inputDeleteInvCode);
                 const resDeleteInvCode = await client.send(commandDeleteInvCode);
                 console.log('resDeleteInvCode', resDeleteInvCode);
