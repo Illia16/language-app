@@ -8,7 +8,7 @@
     "generate:prod": "nuxt generate --dotenv .env.prod",
     "preview": "nuxt preview",
     "deploy:test": "npm run generate:test && node deploy.js test",
-    "deploy:prod": "npm run generate:prod && node deploy.js"
+    "deploy:prod": "npm run generate:prod && node deploy.js prod"
   },
   "devDependencies": {
     "@nuxt/postcss8": "^1.1.3",

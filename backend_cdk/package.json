@@ -7,6 +7,8 @@
   "scripts": {
     "build": "echo \"The build step is not required when using JavaScript!\" && exit 0",
     "cdk": "cdk",
+    "synth:test": "cdk synth -c env=test",
+    "synth:prod": "cdk synth -c env=prod",
     "deploy:test": "cdk deploy -c env=test",
     "deploy:prod": "cdk deploy -c env=prod",
     "test": "jest"
