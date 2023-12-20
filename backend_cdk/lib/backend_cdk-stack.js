@@ -60,27 +60,16 @@ class BackendCdkStack extends cdk.Stack {
       comment: `${props.env.projectName}--oai--${props.env.stage}`,
     });
 
-    websiteBucket.addToResourcePolicy(
-      new iam.PolicyStatement({
-        resources: [
-          websiteBucket.bucketArn,
-          `${websiteBucket.bucketArn}/*`
-        ],
-        actions: ["s3:GetObject", "s3:ListBucket"],
-        principals: [new iam.ArnPrincipal('arn:aws:iam::cloudfront:user/CloudFront Origin Access Identity E2MVKOXEMZ8ANE')],
-      })
-    )
-
-    // websiteBucketFiles.addToResourcePolicy(
+    // websiteBucket.addToResourcePolicy(
     //   new iam.PolicyStatement({
     //     resources: [
-    //       websiteBucketFiles.bucketArn,
-    //       `${websiteBucketFiles.bucketArn}/*`
+    //       websiteBucket.bucketArn,
+    //       `${websiteBucket.bucketArn}/*`
     //     ],
-    //     actions: ["s3:GetObject", "s3:ListBucket", "s3:PutObject"],
+    //     actions: ["s3:GetObject", "s3:ListBucket"],
     //     principals: [new iam.ArnPrincipal('arn:aws:iam::cloudfront:user/CloudFront Origin Access Identity E2MVKOXEMZ8ANE')],
     //   })
-    // )
+    // );
 
     new cloudfront.CloudFrontWebDistribution(this, `${props.env.projectName}--cf--${props.env.stage}`, {
       originConfigs: [
