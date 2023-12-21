@@ -201,6 +201,7 @@ const login = async () => {
 
     if (!authUser.success) {
         console.log('Error logging in....');
+        store.setLoading(false);
         errMsg.value = authUser?.message;
         return
     } else {
