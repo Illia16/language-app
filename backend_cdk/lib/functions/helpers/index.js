@@ -20,7 +20,7 @@ module.exports = {
     s3ListObjects: async (s3_buckname, path) => {
         const input = {
             Bucket: s3_buckname,
-            Prefix: path,
+            Prefix: `${path}/`,
         };
 
         const command = new ListObjectsV2Command(input);
