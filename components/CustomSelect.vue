@@ -146,7 +146,7 @@ onBeforeUnmount(() => {
 	@apply md:max-w-[16rem];
 
 	.select-input-label {
-		@apply text-xs leading-3;
+		@apply text-xs inline-block;
 	}
 
 	.custom-select-container {
