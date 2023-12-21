@@ -132,7 +132,12 @@
                 currentQuestion.mode === mapModes.wordListening
             ">
             <label>
-                <input type="text" v-model="userAnswer" :placeholder="t('yourAnswer')" />
+                <input 
+                    type="text" 
+                    v-model="userAnswer" 
+                    :placeholder="t('yourAnswer') + (currentQuestion.mode === mapModes.wordListening ? ' ' + t('studyingLang') : '') " 
+                    :disabled="currentQuestionAnswered" 
+                />
             </label>
         </div>
 
@@ -591,6 +596,7 @@ section {
         questionNumber: 'Question number is {currentQuestionNum} out of {lessonDataLength}'
         question: 'Question:'
         yourAnswer: 'Your answer'
+        studyingLang: 'the language you are studying'
         clearBtn: 'Clear'
         checkBtn: 'Check'
         nextQBtn: 'Next question'
@@ -612,6 +618,7 @@ section {
         questionNumber: 'Номер вопроса {currentQuestionNum} из {lessonDataLength}'
         question: 'Вопрос:'
         yourAnswer: 'Ваш ответ'
+        studyingLang: 'на языке который изучаете'
         clearBtn: 'Очистить'
         checkBtn: 'Проверить'
         nextQBtn: 'Следующий вопрос'
@@ -633,6 +640,7 @@ section {
         questionNumber: '问题编号 {currentQuestionNum} out of {lessonDataLength}'
         question: '问题:'
         yourAnswer: '你的答案'
+        studyingLang: 'the language you are studying'
         clearBtn: '清除'
         checkBtn: '检查'
         nextQBtn: '下一个问题'
