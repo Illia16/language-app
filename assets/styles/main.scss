@@ -49,11 +49,13 @@ a {
 }
 
 .custom-button-link-secondary {
-    @apply underline;
+    @apply underline disabled:opacity-25;
 
-    &:hover,
-    &:focus {
-        @apply no-underline;
+    &:not([disabled]) {
+        &:hover,
+        &:focus {
+            @apply no-underline;
+        }
     }
 }
 
