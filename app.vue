@@ -30,8 +30,8 @@ watch(route, function() {
     }
 
     .language-app-site {
-        @apply flex flex-col items-center justify-center min-h-screen px-5 py-4;
-        // bg-mainBg
+        @apply flex flex-col items-center justify-center min-h-screen px-5 py-4 bg-mainBg;
+
         p {
             &.specialP {
                 @apply text-yellow-600;
