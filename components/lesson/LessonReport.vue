@@ -4,7 +4,7 @@
         <ul class="list-report">
             <li v-for="(q, i) in props.report" :key="`report-${i}`">
                 <strong>{{ t('question') }} #{{i+1}}: {{q.question}}</strong>
-                <span :class="q.userAnswer === q.correctAnswer ? 'correct-answer' : 'incorrect-answer'">
+                <span :class="q.isCorrect ? 'correct-answer' : 'incorrect-answer'">
                     {{ t('myAnswer') }}: {{q.userAnswer}}
                 </span>
                 <span v-if="!q.isCorrect">{{ t('correctAnswer') }}: {{q.correctAnswer}}</span>
