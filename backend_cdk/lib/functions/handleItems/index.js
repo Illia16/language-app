@@ -37,6 +37,10 @@ module.exports = async (event, context) => {
     let user = '';
     let userRole = '';
 
+    // Regex
+    const englishRegex = /[a-zA-Z]/;
+    const chineseRegex = /[\u4E00-\u9FFF]/;
+
     // Response obj
     let response = {
         statusCode: 200,
@@ -79,10 +83,21 @@ module.exports = async (event, context) => {
 
             const getRawData = Buffer.from(event.body, 'base64');
             console.log('getRawData', getRawData);
-            const parsedData = multipartParser.parse(getRawData, boundary)
+            const parsedData = multipartParser.parse(getRawData, boundary);
             data = parsedData.reduce(function (result, currentObject) {
                 if (currentObject.name !== 'file') {
                     result[currentObject.name] = currentObject.data.toString('utf8');
+
+                    if (currentObject.name === 'item') {
+                        const strItem = currentObject.data.toString('utf8');
+
+                        // Always get audio for Chineese lang, but for other(English only for now) get only is it's a sentence 
+                        if (chineseRegex.test(strItem)) {
+                            result.getAudioAI = true;
+                        } else {
+                            result.getAudioAI = strItem.split(' ').length > 2 ? true : false;
+                        }
+                    }
                 } else {
                     result.files = [{
                         fieldname: currentObject.name,
@@ -151,7 +166,8 @@ module.exports = async (event, context) => {
 
             // get audio of text from AI
             let audioFilePathAi;
-            if (!filePath && !existingFileNameS3) {
+            if (!filePath && !existingFileNameS3 && data.getAudioAI) {
+                console.log('AI audio');
                 const audioFile = await getAudio(data.item)
                 const fileNameCleaned = cleanUpFileName(data?.item);
                 audioFilePathAi = `audio/${fileNameCleaned}/${fileNameCleaned}.mp3`;
@@ -160,27 +176,36 @@ module.exports = async (event, context) => {
 
             // get incorrect answers of the correct item from AI
             const incorrectItems = await getIncorrectItems(data.item);
-            // const incorrectItems = [
-            //     'The man needing help.',
-            //     'Help is needed by the man.',
-            //     'The help is needed by the man.'
-            // ];
             console.log('incorrectItems', incorrectItems);
 
             const allEls = [];
             if (userRole === 'admin') {
+                // adding to all users that have the same lang as admin
                 const params = {
                     TableName: dbData,
-                    ProjectionExpression: '#aliasForUser',
+                    ProjectionExpression: '#aliasForUser, #langMother, #langStudying',
                     ExpressionAttributeNames: {
-                      '#aliasForUser': 'user'
+                      '#aliasForUser': 'user',
+                      '#langMother': 'userMotherTongue',
+                      '#langStudying': 'languageStudying'
                     }
                 };
 
                 const command = new ScanCommand(params);
                 const res = await docClient.send(command);
-                const uniqueUsers = [...new Set(res.Items.map(item => item.user))];
+                console.log('res ALL USERS', res);
+                const uniqueUsers = [
+                    ...new Set(res.Items.map(item => {
+                        return item.userMotherTongue === data.userMotherTongue && item.languageStudying === data.languageStudying ? item.user : null
+                    })
+                    .filter(el=>el))
+                ];
 
+                // cover a case where user(admin) doesn't have any data for the languageStudying.
+                if (!uniqueUsers.length) {
+                    uniqueUsers.push(user)
+                }
+                console.log('uniqueUsers', uniqueUsers);
                 const input = {
                     RequestItems: {
                       [dbData]: uniqueUsers.map(username => {
@@ -197,10 +222,11 @@ module.exports = async (event, context) => {
                                     userMotherTongue: data.userMotherTongue,
                                     languageStudying: data.languageStudying,
                                     level: data.level,
+                                    getAudioAI: data.getAudioAI,
                                     ...(data.itemTranscription && { itemTranscription: data.itemTranscription }),
                                     ...((filePath && !existingFileNameS3) && { filePath: filePath } ),
                                     ...(existingFileNameS3 && { filePath: existingFileNameS3 } ),
-                                    ...((!filePath && !existingFileNameS3) && { filePath: audioFilePathAi } ),
+                                    ...((!filePath && !existingFileNameS3 && audioFilePathAi) && { filePath: audioFilePathAi } ),
                                 }
                             }
                         }
@@ -224,10 +250,11 @@ module.exports = async (event, context) => {
                         userMotherTongue: data.userMotherTongue,
                         languageStudying: data.languageStudying,
                         level: data.level,
+                        getAudioAI: data.getAudioAI,
                         ...(data.itemTranscription && { itemTranscription: data.itemTranscription }),
                         ...((filePath && !existingFileNameS3) && { filePath: filePath } ),
                         ...(existingFileNameS3 && { filePath: existingFileNameS3 } ),
-                        ...((!filePath && !existingFileNameS3) && { filePath: audioFilePathAi } ),
+                        ...((!filePath && !existingFileNameS3 && audioFilePathAi) && { filePath: audioFilePathAi } ),
                     },
                     "TableName": dbData
                 };
