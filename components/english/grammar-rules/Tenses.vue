@@ -17,6 +17,11 @@
             <li v-for="(item, i) in tensesData[tense].howToUse" v-html="item" :key="'howToUse' + '_' + i"></li>
         </Table>
     </div>
+    <div v-else>
+        <ul class="grammar-rules--tensesDataShort">
+            <li v-for="(item, i) in tensesDataShort[tense].content" v-html="item" :key="'tensesDataShort' + '_' + i"></li>
+        </ul>
+    </div>
 </template>
 
 <script lang="ts" setup>
@@ -35,6 +40,11 @@ interface Tenses {
         howToBuild: string[];
         description: string[];
         howToUse: string[];
+    }
+}
+interface TensesDataShort {
+    [key: string]: {
+        content: string[];
     }
 }
 
@@ -129,14 +139,14 @@ const tensesData: Tenses = {
                 <span class="green-underlined">${t('sentense')}:</span>
                 ${t('noun')} +
                 <span class="green-bolded">am/is/are</span> +
-                <span class="green-bolded">{{t('verb')}}(+ing)</span> +
+                <span class="green-bolded">${t('verb')}(+ing)</span> +
                 ${t('restOfTheWords')}
             </span>`,
             `<span>
                 <span class="green-underlined">${t('negative')}:</span>
                 ${t('noun')} +
                 <span class="green-bolded">am/is/are</span> + not +
-                <span class="green-bolded">{{t('verb')}}(+ing)</span> +
+                <span class="green-bolded">${t('verb')}(+ing)</span> +
                 ${t('restOfTheWords')}
             </span>`,
             `<span>
@@ -318,7 +328,7 @@ const tensesData: Tenses = {
             </span>`,
             `<span>
                 <span class="green-underlined">${t('negative')}:</span>${t('noun')} + 
-                <span class="green-bolded">did + not}</span> + <span class="green-bolded">${t('verb')}</span> + ${t('restOfTheWords')}
+                <span class="green-bolded">did + not</span> + <span class="green-bolded">${t('verb')}</span> + ${t('restOfTheWords')}
             </span>`,
             `<span>
                 <span class="green-underlined">${t('question')}:</span> <span class="green-bolded">Did</span> + ${t('noun')} + <span class="green-bolded">${t('verb')}
@@ -445,6 +455,41 @@ const tensesData: Tenses = {
             </ul>`
         ],
     }
+}
+
+const tensesDataShort: TensesDataShort = {
+    futureSimple: {
+        content: [
+            `<span class="green-bolded">will + ${t('verb')}</span>`,
+            `<span>+ I will work</span><span>+ He will write</span>`,
+            `<span>- I won't work</span><span>- He won't write</span>`,
+            `<span>? Will I work?</span><span>? Will I write?</span>`,
+        ]
+    },
+    futureContinuous: {
+        content: [
+            `<span class="green-bolded">will be + ${t('verb')} + ing</span>`,
+            `<span>+ I will be working</span><span>+ He will be writing</span>`,
+            `<span>- I won't be working</span><span>- He won't be writing</span>`,
+            `<span>? Will I be working?</span><span>? Will he be writing?</span>`,
+        ]
+    },
+    futurePerfect: {
+        content: [
+            `<span class="green-bolded">will have + ${t('verb')} + ed / ${t('irregularVerb3')}</span>`,
+            `<span>+ I will have worked until midnight</span><span>+ He will have written a letter to you by tomorrow</span>`,
+            `<span>- I won't have worked until midnight</span><span>- He won't have written a letter to you by tomorrow</span>`,
+            `<span>? Will I have worked until midnight?</span><span>? Will he have written a letter to you by tomorrow?</span>`,
+        ]
+    },
+    pastPerfect: {
+        content: [
+            `<span class="green-bolded">had + ${t('verb')} + ed / ${t('irregularVerb3')}</span>`,
+            `<span>+ I had worked until yesterday 3pm</span><span>+ He had written me a letter by the time I turned 18</span>`,
+            `<span>- I had not worked until yesterday 3pm</span><span>- He had not written me a letter by the time I turned 18</span>`,
+            `<span>? Had I worked until yesterday 3pm?</span><span>? Had he written me a letter by the time I turned 18?</span>`,
+        ]
+    },
 }
 
 </script>

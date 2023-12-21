@@ -47,6 +47,12 @@ const isTenses = computed<boolean>(():boolean => {
             }
         }
 
+        ul.grammar-rules--tensesDataShort {
+            li {
+                @apply flex flex-col mb-3;
+            }
+        }
+
         ul.grammar-rules--sublist {
             @apply pt-3;
             li {
