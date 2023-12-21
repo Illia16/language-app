@@ -318,11 +318,12 @@ class BackendCdkStack extends cdk.Stack {
                     "secretsmanager:GetSecretValue",
                     "secretsmanager:RotateSecret",
                     "secretsmanager:UpdateSecret",
-                    "secretsmanager:GetRandomPassword",
                 ],
-                // resources: [rotateSecretFn.functionArn],
-                // resources: [jwtSecret.secretArn, rotateSecretFn.functionArn],
-                // resources: [jwtSecret.secretFullArn],
+                resources: [jwtSecret.secretArn],
+                effect: iam.Effect.ALLOW
+            }),
+            new iam.PolicyStatement({
+                actions: ["secretsmanager:GetRandomPassword"],
                 resources: "*",
                 effect: iam.Effect.ALLOW
             }),
