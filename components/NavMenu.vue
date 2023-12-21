@@ -59,6 +59,11 @@ const handleLogout = () => {
     useCookie('token').value = '';
 }
 
+watch(() => v_interfaceLang.value, (v) => {
+    console.log('v_interfaceLang', v);
+    setLocale(v);
+});
+
 onMounted(() => {
     v_interfaceLang.value = store.userMotherTongue;
     setLocale(store.userMotherTongue);
