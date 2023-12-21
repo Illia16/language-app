@@ -13,7 +13,7 @@ module.exports = {
           });
         
           console.log('completion', completion);
-          const arrRes = completion.choices[0].message.content.split('\n').map(sentence => sentence.replace(/^\d+\.\s/, '').trim())
+          const arrRes = completion.choices[0].message.content.split('\n').map(sentence => sentence.replace(/^(\d+\.|\d+\))\s/, '').trim())
           console.log('arrRes', arrRes);
           return arrRes;
     },

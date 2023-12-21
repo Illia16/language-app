@@ -21,7 +21,7 @@ async function main(prompt) {
   const results = '\n \n \n' + `Base sentence: ${prompt}\n` + completion.choices[0].message.content;
   fs.appendFileSync(outputFileName, results);
   console.log(`Results have been written to ${outputFileName}. The results are: ${completion.choices[0].message.content}`);
-  const arrRes = completion.choices[0].message.content.split('\n').map(sentence => sentence.replace(/^\d+\.\s/, '').trim())
+  const arrRes = completion.choices[0].message.content.split('\n').map(sentence => sentence.replace(/^(\d+\.|\d+\))\s/, '').trim())
   console.log('arrRes', arrRes);
 }
 
