@@ -89,9 +89,9 @@ export const fillMpChoiceArray = (data: UserDataArrayOfObj, correctAnswer:string
     let correctitemTranscription: string | null = "";
 
     // check if there's predefined incorrect options
-    const hasIncorrectOptions: Array<string> = data.filter(el => el[mpChoiceType]?.replace(replaceAllinsideParantheses, '') === correctAnswer && el?.incorrectItems?.length)[0];
-        
-    if (hasIncorrectOptions?.incorrectItems?.length) {
+    const hasIncorrectOptions: UserData = data.filter(el => el[mpChoiceType]?.replace(replaceAllinsideParantheses, '') === correctAnswer && el?.incorrectItems?.length)[0];
+    
+    if (hasIncorrectOptions?.incorrectItems?.length && mpChoiceType === 'item') {
         const mpChoices = hasIncorrectOptions.incorrectItems
             .map((el: string): MpChoices => {
                 return {
