@@ -30,9 +30,9 @@ export const getQuestion = (m: string, lessonData: UserDataArrayOfObj, currentQu
 
     const handleQuestion = (m: string, lessonData: UserDataArrayOfObj): Question => {        
         const questionAnswer = {} as Question;
+        // diff splitter for Eng and Mandarin since the latter doesn't have spaces in sentences
+        const splitter = q.languageStudying === 'zh' && m === mapModes.sentenceTranslationWord ? '' : ' '; 
 
-        console.log('q', q);
-        
         questionAnswer.question = q[m === mapModes.wordTranslation || m === mapModes.wordTranslationMPChoice || m === mapModes.sentenceWordTranslation ? 'item' : 'itemCorrect'];
         questionAnswer.qAnswer = q[m === mapModes.wordTranslation || m === mapModes.wordTranslationMPChoice || m === mapModes.sentenceWordTranslation ? 'itemCorrect' : 'item'].replace(replaceAllinsideParantheses, '');
         
@@ -49,7 +49,7 @@ export const getQuestion = (m: string, lessonData: UserDataArrayOfObj, currentQu
         } else if (m === mapModes.translationWordMPChoice) {
             questionAnswer.all = fillMpChoiceArray(lessonData, questionAnswer.qAnswer, 'item');
         } else if (m === mapModes.sentenceWordTranslation || m === mapModes.sentenceTranslationWord) {
-            questionAnswer.splitted = sortArray(uniqueElements(questionAnswer.qAnswer.split(' '))) as string[];
+            questionAnswer.splitted = sortArray(uniqueElements(questionAnswer.qAnswer.split(splitter))) as string[];
         }
 
         console.log('questionAnswer', questionAnswer);

@@ -173,7 +173,7 @@
         <template v-if="currentQuestion.mode === mapModes.sentenceWordTranslation || currentQuestion.mode === mapModes.sentenceTranslationWord">
             <div class="lesson-started--sentenceBuiler">
                 <button
-                    @click="userAnswer ? userAnswer = userAnswer + ' ' + word : userAnswer = word"
+                    @click="userAnswer ? userAnswer = userAnswer + (lessonData[0].languageStudying === 'zh' && currentQuestion.mode === mapModes.sentenceTranslationWord ? '' : ' ') + word : userAnswer = word"
                     v-for="(word, key) of currentQuestion.splitted"
                     :key="`sentence-builer-q-key-${key}`"
                     class="custom-button-link custom-button-link--mp-choice"
@@ -237,7 +237,7 @@ import GrammarEng from 'components/english/GrammarEng.vue';
 import GrammarRulesEng from 'components/english/GrammarRulesEng.vue';
 import { useMainStore } from 'store/main';
 import { getLesson, getQuestion, isCorrect, mapModes } from 'helper/helpers';
-import { UserDataArrayOfObj, UserData , Question, ReportArrayOfObj, RecordUserAnswerDestructured, Report} from 'types/helperTypes'
+import { UserDataArrayOfObj, Question, ReportArrayOfObj, RecordUserAnswerDestructured, Report } from 'types/helperTypes'
 const store = useMainStore();
 const { t } = useI18n({useScope: 'local'})
 const route = useRoute()
@@ -279,8 +279,11 @@ const initData = computed<UserDataArrayOfObj>((): UserDataArrayOfObj => store.us
         || v_selecteditemType.value[el.itemType] && !v_selecteditemTypeCategory.value[el.itemTypeCategory] && v_selecteditemTypeCategory.value[el.itemTypeCategory]
     })
     .map(el => {
-        if (modeSelected.value === mapModes.sentenceWordTranslation && el.item.split(' ').length > 1 || 
-            modeSelected.value === mapModes.sentenceTranslationWord && el.item.split(' ').length > 1) {
+        // diff splitter for Eng and Mandarin since the latter doesn't have spaces in sentences
+        const splitter = el.languageStudying === 'en' ? ' ' : '';
+        
+        if (modeSelected.value === mapModes.sentenceWordTranslation && el.item.split(splitter).length > 1 || 
+            modeSelected.value === mapModes.sentenceTranslationWord && el.item.split(splitter).length > 1) {
             return el;
         }
             
@@ -304,11 +307,9 @@ const initData = computed<UserDataArrayOfObj>((): UserDataArrayOfObj => store.us
 
 const numQuestions = computed<number[]>(() => {
     return  [
-        initData.value.length < 5 && initData.value.length >= 1 ? 1 : 0,
-        initData.value.length < 5 && initData.value.length >= 1 ? 3 : 0,
-        initData.value.length >= 5 ? 5 : 0, 
+        initData.value.length > 0 && initData.value.length < 5 ? initData.value.length : 0,
+        initData.value.length >= 5 ? 5 : 0,
         initData.value.length >= 10 ? 10 : 0,
-        initData.value.length >= 15 ? 15 : 0,
     ]
     .filter(el=>el)
 }) // number of questions generated based on how many exersises available
