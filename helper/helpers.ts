@@ -31,8 +31,10 @@ export const getQuestion = (m: string, lessonData: UserDataArrayOfObj, currentQu
     const handleQuestion = (m: string, lessonData: UserDataArrayOfObj): Question => {        
         const questionAnswer = {} as Question;
         // diff splitter for Eng and Mandarin since the latter doesn't have spaces in sentences
-        const splitter = q.languageStudying === 'zh' && m === mapModes.sentenceTranslationWord ? '' : ' '; 
-
+        const splitter = (q.languageStudying === 'zh' && m === mapModes.sentenceTranslationWord 
+                        || q.userMotherTongue === 'zh' && m === mapModes.sentenceWordTranslation)
+                         ? '' : ' '; 
+        
         questionAnswer.question = q[m === mapModes.wordTranslation || m === mapModes.wordTranslationMPChoice || m === mapModes.sentenceWordTranslation ? 'item' : 'itemCorrect'];
         questionAnswer.qAnswer = q[m === mapModes.wordTranslation || m === mapModes.wordTranslationMPChoice || m === mapModes.sentenceWordTranslation ? 'itemCorrect' : 'item'].replace(replaceAllinsideParantheses, '');
         
