@@ -1,11 +1,16 @@
 const { DynamoDBClient } = require("@aws-sdk/client-dynamodb");
 const { DynamoDBDocumentClient, QueryCommand, PutCommand, DeleteCommand } = require("@aws-sdk/lib-dynamodb");
+// const { SESClient, VerifyEmailIdentityCommand } = require("@aws-sdk/client-ses");
+const { SQSClient, SendMessageCommand } = require("@aws-sdk/client-sqs");
 
+const clientSQS = new SQSClient({});
+// const clientSES = new SESClient({});
 const client = new DynamoDBClient({});
 const docClient = DynamoDBDocumentClient.from(client);
-const { responseWithError } = require('../helpers');
+const { responseWithError, checkIfUserExists } = require('../helpers');
 const { v4: uuidv4 } = require("uuid");
 const jwt = require('jsonwebtoken');
+const config = require('../config');
 
 module.exports = async (event, context) => {
     console.log('-----------------------------');
@@ -40,7 +45,7 @@ module.exports = async (event, context) => {
 
     if (event.path === '/auth/login') {
         const username = body.user;
-        const password = body.password
+        const password = body.password;
 
         const params = {
             TableName: dbUsers,
@@ -62,7 +67,7 @@ module.exports = async (event, context) => {
             // const token = jwt.sign(res.Items[0], secretJwt, { expiresIn: '30 days' });
             const userObj = res.Items[0];
             const token = jwt.sign({user: userObj.user, ...(userObj.role === 'admin' && {role: userObj.role})}, secretJwt, { expiresIn: '1 day' });
-            response.body = JSON.stringify({success: true, data: {user: res.Items[0].user, userMotherTongue: res.Items[0].userMotherTongue, token: token}});
+            response.body = JSON.stringify({success: true, data: {user: res.Items[0].user, userId: res.Items[0].userId, userMotherTongue: res.Items[0].userMotherTongue, token: token}});
         } else {
             response = responseWithError('500', 'Either user does not exist or wrong password.', headerOrigin)
         }
@@ -91,6 +96,7 @@ module.exports = async (event, context) => {
                 }
 
                 const genInvitationCode = uuidv4();
+                console.log('genInvitationCode', genInvitationCode);
                 try {
                     const input = {
                         "Item": {
@@ -101,6 +107,7 @@ module.exports = async (event, context) => {
                         "ReturnConsumedCapacity": "TOTAL",
                         "TableName": dbUsers
                     };
+                    console.log('genInvitationCode input:', input);
 
                     const command = new PutCommand(input);
                     const res = await client.send(command);
@@ -120,38 +127,23 @@ module.exports = async (event, context) => {
     if (event.path === '/auth/register') {
         const username = body.user;
         const password = body.password;
+        const userEmail = body.userEmail;
         const invitationCode = body.invitationCode;
         const userMotherTongue = body.userMotherTongue;
 
-        const getParams = (v) => {
-            return {
-                TableName: dbUsers,
-                KeyConditionExpression: "#userName = :usr",
-                ExpressionAttributeValues: {
-                    ":usr": v,
-                },
-                ExpressionAttributeNames: {
-                    "#userName": "user"
-                },
-                ConsistentRead: true,
-            };
-        }
         // Check if username is available
-        const commandCheckUserName = new QueryCommand(getParams(username));
-        const resCheckUserName = await docClient.send(commandCheckUserName);
+        const resCheckUserName = await checkIfUserExists(dbUsers, username, userEmail);
         console.log('resCheckUserName', resCheckUserName);
-        //
 
         if (resCheckUserName.Items && resCheckUserName.Items.length) {
             response = responseWithError('500', 'Either username already taken or inivation code is wrong.', headerOrigin)
         } else {
             // Check inv code
-            const commandInvCode = new QueryCommand(getParams(invitationCode));
-            const resInvCode = await docClient.send(commandInvCode);
+            const resInvCode = await checkIfUserExists(dbUsers, invitationCode);
             console.log('resInvCode', resInvCode);
-            //
 
             if (resInvCode.Items && resInvCode.Items.length) {
+                // if inv code is correct, delete it and create a user
                 const inputDeleteInvCode = {
                     TableName: dbUsers,
                     Key: {
@@ -171,6 +163,7 @@ module.exports = async (event, context) => {
                         password: password,
                         userMotherTongue: userMotherTongue,
                         role: 'user',
+                        userEmail: userEmail,
                     },
                     ReturnConsumedCapacity: "TOTAL",
                     TableName: dbUsers
@@ -180,14 +173,53 @@ module.exports = async (event, context) => {
                 const resCreateUser = await client.send(commandCreateUser);
                 console.log('resCreateUser', resCreateUser);
                 response.body = JSON.stringify({success: true, data: resCreateUser.Attributes});
+
+                // send verification email to the user
+                const inputSQS = {
+                    QueueUrl: config[env].sqsUrl,
+                    MessageBody: JSON.stringify({eventName: 'verify-email', userEmail: userEmail}),
+                };
+                const commandSQS = new SendMessageCommand(inputSQS);
+                await clientSQS.send(commandSQS);
             } else {
                 response = responseWithError('500', 'Either username already taken or inivation code is wrong.', headerOrigin)
             }
         }
     }
     // if (event.path === '/auth/delete-account') {}
-    // if (event.path === '/auth/forgot-password') {}
-    // if (event.path === '/auth/change-password') {}
+    if (event.path === '/auth/forgot-password') {
+        const inputSQS = {
+            QueueUrl: config[env].sqsUrl,
+            MessageBody: JSON.stringify({eventName: 'forgot-password', dbUsers: dbUsers, userEmail: body.userEmail}),
+        };
+        const commandSQS = new SendMessageCommand(inputSQS);
+        await clientSQS.send(commandSQS);
+    }
+
+    if (event.path === '/auth/change-password') {
+        const authToken = headers.authorization || headers.Authorization;
+        console.log('authToken', authToken);
+        if (!authToken) {
+            response = responseWithError('401', 'Token is invalid.', headerOrigin)
+            return
+        }
+        const token = authToken.split(' ')[1];
+        jwt.verify(token, secretJwt, async (err, decoded) => {
+            if (err) {
+                console.log('Err, token is invalid:', err);
+                response = responseWithError('401', 'Token is invalid.', headerOrigin)
+                return
+            } else {
+                console.log('Token is ok.', decoded);
+                const inputSQS = {
+                    QueueUrl: config[env].sqsUrl,
+                    MessageBody: JSON.stringify({eventName: 'change-password', dbUsers: dbUsers, user: decoded.user, userId: body.userId, password: body.password}),
+                };
+                const commandSQS = new SendMessageCommand(inputSQS);
+                await clientSQS.send(commandSQS);
+            }
+        });
+    }
 
     console.log('response', response);
     return response;

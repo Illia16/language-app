@@ -8,7 +8,10 @@ const iam = require('aws-cdk-lib/aws-iam');
 const aws_secretsmanager = require('aws-cdk-lib/aws-secretsmanager');
 const events = require('aws-cdk-lib/aws-events');
 const eventsTargets = require('aws-cdk-lib/aws-events-targets');
-const path = require('path')
+const sqs = require('aws-cdk-lib/aws-sqs');
+const lambdaEventSource = require('aws-cdk-lib/aws-lambda-event-sources');
+const path = require('path');
+const config = require('./functions/config');
 
 class BackendCdkStack extends cdk.Stack {
   constructor(scope, id, props) {
@@ -242,7 +245,6 @@ class BackendCdkStack extends cdk.Stack {
         },
     });
 
-    // TODO:
     // Define a Lambda function for the rotation
     const rotateSecretFn = new lambda.Function(this, `${props.env.projectName}--secret-rotation-fn--${props.env.stage}`, {
         runtime: lambda.Runtime.NODEJS_18_X,
@@ -278,6 +280,36 @@ class BackendCdkStack extends cdk.Stack {
         retryAttempts: 0,
       })],
     });
+
+    // SQS
+    // const myDeadLetterQueue = new sqs.Queue(this, `${props.env.projectName}--sqs-dlq--${props.env.stage}`, {
+    //   queueName: `${props.env.projectName}--sqs-dlq--${props.env.stage}`,
+    // });
+    // TODO: this does not work properly. Fix it later.
+    const myQueue = new sqs.Queue(this, `${props.env.projectName}--sqs--${props.env.stage}`, {
+      queueName: `${props.env.projectName}--sqs--${props.env.stage}`,
+      retentionPeriod: cdk.Duration.hours(1),
+      // deadLetterQueue: {
+      //   maxReceiveCount: 2,
+      //   queue: myDeadLetterQueue,
+      // }
+    });
+    const lambdaFnSQS = new lambda.Function(this, `${props.env.projectName}--lambda-fn-handleSQS--${props.env.stage}`, {
+        runtime: lambda.Runtime.NODEJS_18_X,
+        handler: 'index.handleQueue',
+        code: lambda.Code.fromAsset(path.join(__dirname, 'functions')),
+        functionName: `${props.env.projectName}--lambda-fn-handleSQS--${props.env.stage}`,
+        role: myIam,
+        events: [new lambdaEventSource.SqsEventSource(myQueue, {
+          // enabled: true,
+          batchSize: 1,
+        })],
+    });
+
+    lambdaFnSQS.role.addManagedPolicy(
+      iam.ManagedPolicy.fromAwsManagedPolicyName('service-role/AWSLambdaBasicExecutionRole')
+    );
+    // 
 
     myIam.attachInlinePolicy(new iam.Policy(this, `${props.env.projectName}--iam-policy--${props.env.stage}`, {
         policyName: `${props.env.projectName}--iam-policy--${props.env.stage}`,
@@ -326,6 +358,32 @@ class BackendCdkStack extends cdk.Stack {
                 actions: ["secretsmanager:GetRandomPassword"],
                 resources: "*",
                 effect: iam.Effect.ALLOW
+            }),
+            new iam.PolicyStatement({
+              actions: [
+                  "ses:SendEmail",
+              ],
+              resources: "*",
+              effect: iam.Effect.ALLOW,
+              conditions: {
+                StringEquals: {
+                  "ses:FromAddress": config.senderEmail,
+                }
+              }
+            }),
+            new iam.PolicyStatement({
+              actions: [
+                  "ses:VerifyEmailIdentity",
+              ],
+              resources: "*",
+              effect: iam.Effect.ALLOW,
+            }),
+            new iam.PolicyStatement({
+              actions: [
+                  "sqs:SendMessage",
+              ],
+              resources: [myQueue.queueArn],
+              effect: iam.Effect.ALLOW
             }),
             // the below is custom policy to give lambda fn access to write cloudwatch logs
             //   new iam.PolicyStatement({

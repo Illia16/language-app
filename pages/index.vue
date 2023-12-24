@@ -21,7 +21,7 @@
                     {{ t('submit') }}
                 </button>
                 <div class="form-buttons--sub">
-                    <button type="button" class="custom-button-link-secondary">
+                    <button type="button" @click="store.setModalOpen(true); store.setModalType('forgot-password');" class="custom-button-link-secondary">
                         {{ t('forgotPassword') }}
                     </button>
                     <button type="button" @click="store.setModalOpen(true); store.setModalType('signup');" class="custom-button-link-secondary">
@@ -46,6 +46,10 @@
                 <div class="form_el">
                     <label>{{t('username')}}</label>
                     <input type="text" v-model="signup_user" />
+                </div>
+                <div class="form_el">
+                    <label>{{t('specifyYourEmail')}}</label>
+                    <input type="text" v-model="signup_user_email" />
                 </div>
                 <div class="form_el">
                     <label>{{t('password')}}</label>
@@ -80,8 +84,21 @@
                     <label>{{t('invitationCode')}}</label>
                     <input type="text" v-model="signup_invitation_code" />
                 </div>
+                <p class="signupEmailNote">{{t('signupEmailNote')}}</p>
                 <div class="mt-4">
                     <button class="custom-button-link" @click="signup">{{t('signup')}}</button>
+                </div>
+            </Modal>
+        </teleport>
+
+        <teleport to="body">
+            <Modal v-if="store.modalOpen && store.modalType === 'forgot-password'" class="modal-forgot-password">
+                <div class="form_el">
+                    <label>{{t('specifyYourEmail')}}</label>
+                    <input type="text" v-model="userEmail" />
+                </div>
+                <div class="mt-4">
+                    <button class="custom-button-link" @click="handleForgotPassword">Ok</button>
                 </div>
             </Modal>
         </teleport>
@@ -120,10 +137,15 @@ const userLanguagesInProgress = computed<string[]>(() => store.userLangData.redu
 
 // Signup
 const signup_user = ref<string>('');
+const signup_user_email = ref<string>('');
 const signup_pw = ref<string>('');
 const retypeSignup_pw = ref<string>('');
 const v_motherTongue = ref<string>('en');
 const signup_invitation_code = ref<string>('');
+//
+
+// Forgot password
+const userEmail = ref<string>('');
 // 
 
 const getUserData = async () => {
@@ -163,6 +185,7 @@ const getUserData = async () => {
         errMsg.value = userData?.message;
         store.setUserLangData([]);
         store.setCurrentUserName('');
+        store.setCurrentUserId('');
         useCookie('user').value = '';
         useCookie('token').value = '';
         // userErrMsg.value = t('noUserFoundErr')
@@ -209,6 +232,7 @@ const login = async () => {
         cookieUser.value = authUser.data.user;
         cookieToken.value = authUser.data.token;
         store.setCurrentUserName(authUser.data.user);
+        store.setCurrentUserId(authUser.data.userId);
         store.setToken(authUser.data.token);
         store.setUserMortherTongue(authUser.data.userMotherTongue);
         setLocale(authUser.data.userMotherTongue);
@@ -217,7 +241,7 @@ const login = async () => {
 }
 
 const signup = async () => {
-    if (!signup_user.value || !signup_pw.value || !signup_invitation_code || signup_pw.value !== retypeSignup_pw.value) {
+    if (!signup_user.value || !signup_user_email.value || !signup_pw.value || !signup_invitation_code || signup_pw.value !== retypeSignup_pw.value) {
         return
     }
 
@@ -226,6 +250,7 @@ const signup = async () => {
         method: 'POST',
         body: JSON.stringify({
             "user": signup_user.value,
+            "userEmail": signup_user_email.value,
             "password": signup_pw.value,
             "userMotherTongue": v_motherTongue.value,
             "invitationCode": signup_invitation_code.value,
@@ -239,6 +264,38 @@ const signup = async () => {
         store.setLoading(false);
         store.setModalOpen(false);
         store.setModalType('');
+    });
+
+    if (!signupRes.success) {
+        errMsg.value = signupRes.message;
+    } else {
+        errMsg.value = '';
+    }
+}
+
+const handleForgotPassword =async () => {
+    console.log('userEmail', userEmail);
+    
+    if (!userEmail.value) {
+        return
+    }
+
+    store.setLoading(true);    
+    const signupRes = await fetch(`${config.public.apiUrlAuth}/${config.public.envName}/auth/forgot-password`, {
+        method: 'POST',
+        body: JSON.stringify({
+            "userEmail": userEmail.value,
+        })
+    })
+    .then(res => res.json())
+    .catch(err => {
+        console.log('err signup API:', err);
+    })
+    .finally(() => {        
+        store.setLoading(false);
+        store.setModalOpen(false);
+        store.setModalType('');
+        userEmail.value = '';
     });
 
     if (!signupRes.success) {
@@ -305,6 +362,12 @@ onMounted(async() => {
             }
         }
     }
+
+    .modal-signup {
+        .signupEmailNote {
+            @apply text-xs my-1;
+        }
+    }
 </style>
 
 
@@ -313,7 +376,9 @@ onMounted(async() => {
         helloMsg: 'Please, sign in to continue'
         submit: 'Login'
         signup: 'Signup'
+        signupEmailNote: 'You will need to vefiry your email address after registration. Look for an email from Amazon.'
         forgotPassword: 'Forgot password?'
+        specifyYourEmail: 'Please, specify your email'
         createAccount: 'Create account'
         username: 'Username'
         password: 'Password'
@@ -329,7 +394,9 @@ onMounted(async() => {
         helloMsg: 'Пожалуйста, введите Ваш логин и пароль'
         submit: 'Войти'
         signup: 'Создать'
+        signupEmailNote: 'Вам нужно будет подтвердить вашу электронную почту после регистрации. Смотрите на письмо от Amazon.'
         forgotPassword: 'Забыли пароль?'
+        specifyYourEmail: 'Укажите вашу электронную почту'
         createAccount: 'Создать аккаунт'
         username: 'Логин'
         password: 'Пароль'
@@ -345,6 +412,8 @@ onMounted(async() => {
         helloMsg: 'TBD'
         submit: 'TBD'
         signup: 'Signup'
+        signupEmailNote: 'You will need to vefiry your email address after. Look for an email from Amazon.'
+        specifyYourEmail: 'Please, specify your email'
         forgotPassword: 'Forgot password?'
         createAccount: 'Create account'
         username: 'TBD'

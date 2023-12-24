@@ -7,6 +7,7 @@ export const useMainStore = defineStore('main-store', {
         modalOpen: false,
         lessonStarted: false,
         currentUserName: '',
+        currentUserId: '',
         token: '',
         userLangData: [] as UserDataArrayOfObj,
         userMotherTongue: '',
@@ -24,6 +25,9 @@ export const useMainStore = defineStore('main-store', {
         },
         setCurrentUserName(v: string) {
             this.currentUserName = v;
+        },
+        setCurrentUserId(v: string) {
+            this.currentUserId = v;
         },
         setToken(v: string) {
             this.token = v;
