@@ -64,9 +64,8 @@ module.exports = async (event, context) => {
         console.log('res /auth/login GET QUERY:', res);
 
         if (res.Items && res.Items.length) {
-            // const token = jwt.sign(res.Items[0], secretJwt, { expiresIn: '30 days' });
             const userObj = res.Items[0];
-            const token = jwt.sign({user: userObj.user, ...(userObj.role === 'admin' && {role: userObj.role})}, secretJwt, { expiresIn: '1 day' });
+            const token = jwt.sign({user: userObj.user, ...(userObj.role === 'admin' && {role: userObj.role})}, secretJwt, { expiresIn: '25 days' });
             response.body = JSON.stringify({success: true, data: {user: res.Items[0].user, userId: res.Items[0].userId, userMotherTongue: res.Items[0].userMotherTongue, token: token}});
         } else {
             response = responseWithError('500', 'Either user does not exist or wrong password.', headerOrigin)
