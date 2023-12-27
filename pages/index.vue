@@ -121,8 +121,8 @@ useHead({
     }
 })
 
-const cookieUser = useCookie('user');
-const cookieToken = useCookie('token');
+const cookieUser = useCookie('user', { maxAge: 2160000});
+const cookieToken = useCookie('token', { maxAge: 2160000});
 const user = ref<string>('');
 const password = ref<string>('');
 const userErrMsg = ref<string>('');
