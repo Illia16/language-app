@@ -444,7 +444,7 @@ section {
     @apply w-full my-4;
 
     &#grammar {
-        @apply space-y-4;
+        @apply space-y-1;
 
         h2 {
             @apply text-center;

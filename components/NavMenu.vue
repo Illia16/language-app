@@ -1,6 +1,9 @@
 <template>
     <nav>
         <ul class="main-menu">
+            <li v-if="isLinkShown">
+                Hello, {{ store.currentUserName }}!
+            </li>
             <li v-if="$route.path !== '/'">
                 <NuxtLink to="/" class="custom-button-link-secondary">
                     {{t('goToHome')}}
@@ -131,7 +134,7 @@ onMounted(() => {
 
 <style lang="scss">
     .main-menu {
-        @apply flex flex-col space-y-4 md:flex-row md:space-y-0 md:space-x-4;
+        @apply flex flex-col space-y-2 md:flex-row md:space-y-0 md:space-x-4;
 
         li {
             @apply flex items-center;

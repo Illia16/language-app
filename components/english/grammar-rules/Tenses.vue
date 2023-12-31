@@ -18,6 +18,7 @@
         </Table>
     </div>
     <div v-else>
+        <h3 class="grammar-rules--title">{{ tensesDataShort[tense].name }} ({{ t(`${tense}.name`)}})</h3>
         <ul class="grammar-rules--tensesDataShort">
             <li v-for="(item, i) in tensesDataShort[tense].content" v-html="item" :key="'tensesDataShort' + '_' + i"></li>
         </ul>
@@ -44,6 +45,7 @@ interface Tenses {
 }
 interface TensesDataShort {
     [key: string]: {
+        name: string,
         content: string[];
     }
 }
@@ -459,6 +461,7 @@ const tensesData: Tenses = {
 
 const tensesDataShort: TensesDataShort = {
     futureSimple: {
+        name: 'Future Simple',
         content: [
             `<span class="green-bolded">will + ${t('verb')}</span>`,
             `<span>+ I will work</span><span>+ He will write</span>`,
@@ -467,6 +470,7 @@ const tensesDataShort: TensesDataShort = {
         ]
     },
     futureContinuous: {
+        name: 'Future Continuous',
         content: [
             `<span class="green-bolded">will be + ${t('verb')} + ing</span>`,
             `<span>+ I will be working</span><span>+ He will be writing</span>`,
@@ -475,6 +479,7 @@ const tensesDataShort: TensesDataShort = {
         ]
     },
     futurePerfect: {
+        name: 'Future Perfect',
         content: [
             `<span class="green-bolded">will have + ${t('verb')} + ed / ${t('irregularVerb3')}</span>`,
             `<span>+ I will have worked until midnight</span><span>+ He will have written a letter to you by tomorrow</span>`,
@@ -483,6 +488,7 @@ const tensesDataShort: TensesDataShort = {
         ]
     },
     pastPerfect: {
+        name: 'Past Perfect',
         content: [
             `<span class="green-bolded">had + ${t('verb')} + ed / ${t('irregularVerb3')}</span>`,
             `<span>+ I had worked until yesterday 3pm</span><span>+ He had written me a letter by the time I turned 18</span>`,
@@ -490,6 +496,15 @@ const tensesDataShort: TensesDataShort = {
             `<span>? Had I worked until yesterday 3pm?</span><span>? Had he written me a letter by the time I turned 18?</span>`,
         ]
     },
+    pastSimplePassive: {
+        name: "Past Simple Passive",
+        content: [
+            `<span class="green-bolded">was/were + ${t('verb')} + ed / ${t('irregularVerb3')}</span>`,
+            `<span>+ The cake was baked by my mother</span><span>+ The letter was written by him</span>`,
+            `<span>- The cake was not baked by him</span><span>- The letter was not written by her</span>`,
+            `<span>? Was the cake baked by him?</span><span>? Was the letter written by her?</span>`,
+        ]
+    }
 }
 
 </script>
@@ -591,6 +606,16 @@ const tensesDataShort: TensesDataShort = {
             description4: При описании обстановки или атмосферы
             description5: Для выражения отрицательной характеристики
             howToUse: Когда использовать was/were?
+        pastPerfect:
+            name: Прошедшее совершенное время
+        futureSimple:
+            name: Будущее простое время
+        futureContinuous:
+            name: Будущее продолжительное время
+        futurePerfect:
+            name: Будущее совершенное время
+        pastSimplePassive:
+            name: Прошедшее простое пассивное время
     zh:
         presentSimpleDescription1: 现在时态由动词的基本形式组成 (例如go, eat, drink, play等)
         presentContinuousDescription1: 现在时

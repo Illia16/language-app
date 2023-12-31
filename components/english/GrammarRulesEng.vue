@@ -1,7 +1,8 @@
 <template>
     <div class="grammar-rules">
         <Tenses v-if="isTenses" :tense="props.rule" :class="props.rule" />
-        <IrregularVerbs v-if="props.rule === 'irregularVerbs'" :class="props.rule"/> 
+        <IrregularVerbs v-if="props.rule === 'irregularVerbs'" :class="props.rule"/>
+        <div v-if="!isTenses">Coming soon!</div>
     </div>
 </template>
 
@@ -16,8 +17,9 @@ const props = defineProps({
     },
 })
 
+// check if the rules for the current tense is added.
 const isTenses = computed<boolean>(():boolean => {
-    return ['presentSimple', 'presentContinuous', 'presentPerfect', 'pastSimple', 'pastContinuous', 'pastPerfect', 'futureSimple', 'futureContinuous', 'futurePerfect'].includes(props.rule);
+    return ['presentSimple', 'presentContinuous', 'presentPerfect', 'pastSimple', 'pastContinuous', 'pastPerfect', 'futureSimple', 'futureContinuous', 'futurePerfect', 'pastSimplePassive'].includes(props.rule);
 });
 </script>
 

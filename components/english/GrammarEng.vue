@@ -42,6 +42,48 @@
             </li>
         </Table>
 
+        <h2>{{ t('tensesPassive') }}</h2>
+        <Table class="grammar-table">
+            <li>
+                <ul>
+                    <li><span class="sr-only">table column</span></li>
+                    <li>Simple</li>
+                    <li>Continuous</li>
+                    <li>Perfect</li>
+                </ul>
+            </li>
+            <li>
+                <ul>
+                    <li>Present</li>
+                    <li v-for="(tense, i) of ['presentSimplePassive', 'presentContinuousPassive', 'presentPerfectPassive']" :key="tense+i">
+                        <button @click="() => handleClick(tense)" class="underline font-bold">
+                            {{t('mainMenu.look')}}
+                        </button>
+                    </li>
+                </ul>
+            </li>
+            <li>
+                <ul>
+                    <li>Past</li>
+                    <li v-for="(tense, i) of ['pastSimplePassive', 'pastContinuousPassive', 'pastPerfectPassive']" :key="tense+i">
+                        <button @click="() => handleClick(tense)" class="underline font-bold">
+                            {{t('mainMenu.look')}}
+                        </button>
+                    </li>
+                </ul>
+            </li>
+            <li>
+                <ul>
+                    <li>Future</li>
+                    <li v-for="(tense, i) of ['futureSimplePassive', 'futureContinuousPassive', 'futurePerfectPassive']" :key="tense+i">
+                        <button @click="() => handleClick(tense)" class="underline font-bold">
+                            {{t('mainMenu.look')}}
+                        </button>
+                    </li>
+                </ul>
+            </li>
+        </Table>
+
         <h2>{{ t('mainMenu.other') }}</h2>
         <Table class="irregular-verbs-table">
             <li>
@@ -84,6 +126,7 @@ const handleClick = (v: string):void => {
 <i18n lang="yaml">
     en:
         tenses: "Tenses"
+        tensesPassive: Tenses in passive
         mainMenu:
             look: 'Look'
             other: 'Other'
@@ -91,6 +134,7 @@ const handleClick = (v: string):void => {
         irregularVerbs: 'Irregular verbs'
     ru:
         tenses: "Времена"
+        tensesPassive: Времена в пассиве
         mainMenu:
             look: 'Смотреть'
             other: 'Другое'
@@ -98,6 +142,7 @@ const handleClick = (v: string):void => {
         irregularVerbs: 'Неправильные глаголы'
     zh:
         tenses: "时态"
+        tensesPassive: Tenses in passive
         mainMenu:
             look: '看看'
             other: '其他'

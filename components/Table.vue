@@ -49,7 +49,7 @@
         &.grammar-table {
             > li {
                 li {
-                    @apply min-w-[70px] text-xs p-2;
+                    @apply min-w-[70px] text-xs p-0.5;
                 }
             }
         }
