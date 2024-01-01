@@ -109,10 +109,11 @@ module.exports = {
         // Used to check during forgot-password call
         const params = {
             TableName: tableName,
-            ProjectionExpression: '#emailAlias, #userPw',
+            ProjectionExpression: '#emailAlias, #userPw, #userLogin',
             ExpressionAttributeNames: {
               '#emailAlias': 'userEmail',
               '#userPw': 'password',
+              '#userLogin': 'user',
             }
         };
 

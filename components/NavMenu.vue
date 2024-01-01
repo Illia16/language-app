@@ -147,8 +147,8 @@ onMounted(() => {
     en:
         myProfile: 'My profile'
         changePasword: 'Change password'
-        password: 'Password'
-        retypePassword: 'Retype password'
+        password: 'New password'
+        retypePassword: 'Retype new password'
         passowrdsNoMatch: "Passwords don't match"
         logout: 'Logout'
         goToHome: 'Homepage'
@@ -157,8 +157,8 @@ onMounted(() => {
     ru:
         myProfile: 'Мой профиль'
         changePasword: 'Изменить пароль'
-        password: 'Пароль'
-        retypePassword: 'Повторите пароль'
+        password: 'Новый пароль'
+        retypePassword: 'Повторите новый пароль'
         passowrdsNoMatch: 'Пароли не совпадают'
         logout: 'Выйти'
         goToHome: 'Домашняя страница'
@@ -167,8 +167,8 @@ onMounted(() => {
     zh:
         myProfile: 'TBD'
         changePasword: 'Change password'
-        password: 'Password'
-        retypePassword: 'Retype password'
+        password: 'New password'
+        retypePassword: 'Retype new password'
         passowrdsNoMatch: "Passwords don't match"
         logout: 'TBD'
         goToHome: 'TBD'

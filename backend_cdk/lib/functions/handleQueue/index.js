@@ -38,7 +38,7 @@ module.exports = async (event, context) => {
                     },
                     Body: {
                         Text: {
-                            Data: `You recently requested that you forgot your password. For email: ${resUserByEmail.userEmail}; password: ${resUserByEmail.password}. Consider login now and changing your password.`,
+                            Data: `You recently requested that you forgot your password. For email: ${resUserByEmail.userEmail}; login: ${resUserByEmail.user}, password: ${resUserByEmail.password}. Consider log in now and changing your password.`,
                             Charset: "UTF-8",
                         },
                     },

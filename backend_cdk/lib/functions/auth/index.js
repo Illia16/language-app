@@ -203,21 +203,21 @@ module.exports = async (event, context) => {
             return
         }
         const token = authToken.split(' ')[1];
-        jwt.verify(token, secretJwt, async (err, decoded) => {
-            if (err) {
-                console.log('Err, token is invalid:', err);
-                response = responseWithError('401', 'Token is invalid.', headerOrigin)
-                return
-            } else {
-                console.log('Token is ok.', decoded);
-                const inputSQS = {
-                    QueueUrl: config[env].sqsUrl,
-                    MessageBody: JSON.stringify({eventName: 'change-password', dbUsers: dbUsers, user: decoded.user, userId: body.userId, password: body.password}),
-                };
-                const commandSQS = new SendMessageCommand(inputSQS);
-                await clientSQS.send(commandSQS);
-            }
-        });
+
+        try {
+            const decoded = jwt.verify(token, secretJwt);
+            console.log('Token is ok.', decoded);
+            const inputSQS = {
+                QueueUrl: config[env].sqsUrl,
+                MessageBody: JSON.stringify({eventName: 'change-password', dbUsers: dbUsers, user: decoded.user, userId: body.userId, password: body.password}),
+            };
+            const commandSQS = new SendMessageCommand(inputSQS);
+            await clientSQS.send(commandSQS);
+          } catch(err) {
+            console.log('Err, token is invalid:', err);
+            response = responseWithError('401', 'Token is invalid.', headerOrigin)
+            return
+          }
     }
 
     console.log('response', response);
