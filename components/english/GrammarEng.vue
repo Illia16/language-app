@@ -141,11 +141,11 @@ const handleClick = (v: string):void => {
             grammar: 'Грамматика'
         irregularVerbs: 'Неправильные глаголы'
     zh:
-        tenses: "时态"
-        tensesPassive: Tenses in passive
+        tenses: 時態
+        tensesPassive: 被動語態
         mainMenu:
-            look: '看看'
-            other: '其他'
-            grammar: '语法'
-        irregularVerbs: 'TBD'
+            look: 看
+            other: 其他
+            grammar: 文法
+        irregularVerbs: 不規則動詞
 </i18n>

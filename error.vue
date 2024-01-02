@@ -14,7 +14,7 @@
 
     const handleError = () => clearError({ redirect: '/' })
     console.log('props', props.error);
-    
+
 </script>
 
 <style lang="scss" scoped>
@@ -43,5 +43,5 @@
     ru:
         goBackToHomepage: 'На домашнюю страницу'
     zh:
-        goBackToHomepage: 'TBD'
+        goBackToHomepage: '前往首頁'
 </i18n>

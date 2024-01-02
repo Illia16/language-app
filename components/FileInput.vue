@@ -60,7 +60,7 @@ const deleteFile = () => {
         optional: 'Необязательно'
         deleteFile: 'Удалить файл'
     zh:
-        chooseFile: 'TBD'
-        optional: 'TBD'
-        deleteFile: 'TBD'
+        chooseFile: '選擇音訊檔案'
+        optional: '選修的'
+        deleteFile: '刪除文件'
 </i18n>

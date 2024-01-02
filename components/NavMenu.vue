@@ -80,7 +80,7 @@ const v_interfaceLang = ref<string>('');
 // Change pw
 const new_pw = ref<string>('');
 const retynew_pw = ref<string>('');
-// 
+//
 
 const handleLogout = () => {
     store.setUserLangData([]);
@@ -91,7 +91,7 @@ const handleLogout = () => {
     useCookie('token').value = '';
 };
 
-const handleChangePassword = async () => {    
+const handleChangePassword = async () => {
     if (!new_pw.value || new_pw.value !== retynew_pw.value) {
         return
     }
@@ -111,7 +111,7 @@ const handleChangePassword = async () => {
     .catch(err => {
         console.log('err signup API:', err);
     })
-    .finally(() => {        
+    .finally(() => {
         store.setLoading(false);
         store.setModalOpen(false);
         store.setModalType('');
@@ -165,13 +165,13 @@ onMounted(() => {
         interfaceLang: 'Сменить язык интерфейса (стандартный - ваш родной язык, указанный при регистрации)'
         languageMenu: 'Языковое меню'
     zh:
-        myProfile: 'TBD'
-        changePasword: 'Change password'
-        password: 'New password'
-        retypePassword: 'Retype new password'
-        passowrdsNoMatch: "Passwords don't match"
-        logout: 'TBD'
-        goToHome: 'TBD'
-        interfaceLang: 'TBD'
-        languageMenu: '语言菜单'
+        myProfile: '我的履歷'
+        changePasword: '更改密碼'
+        password: '新密碼'
+        retypePassword: '重新輸入新密碼'
+        passowrdsNoMatch: '密碼不匹配'
+        logout: '登出'
+        goToHome: '首頁'
+        interfaceLang: '更改介面語言（預設為註冊時指定的母語）'
+        languageMenu: '語言選單'
 </i18n>

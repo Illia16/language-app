@@ -146,7 +146,7 @@ const signup_invitation_code = ref<string>('');
 
 // Forgot password
 const userEmail = ref<string>('');
-// 
+//
 
 const getUserData = async () => {
     const userData = await fetch(`${config.public.apiUrl}/${config.public.envName}/data`, {
@@ -169,7 +169,7 @@ const getUserData = async () => {
 
         if (userData.data && userData.data.length) {
             store.setUserLangData(userData.data);
-            
+
             if (!store?.userMotherTongue) {
                 store.setUserMortherTongue(userData.data[0].userMotherTongue);
                 setLocale(store.userMotherTongue);
@@ -245,7 +245,7 @@ const signup = async () => {
         return
     }
 
-    store.setLoading(true);    
+    store.setLoading(true);
     const signupRes = await fetch(`${config.public.apiUrlAuth}/${config.public.envName}/auth/register`, {
         method: 'POST',
         body: JSON.stringify({
@@ -260,7 +260,7 @@ const signup = async () => {
     .catch(err => {
         console.log('err signup API:', err);
     })
-    .finally(() => {        
+    .finally(() => {
         store.setLoading(false);
         store.setModalOpen(false);
         store.setModalType('');
@@ -275,12 +275,12 @@ const signup = async () => {
 
 const handleForgotPassword =async () => {
     console.log('userEmail', userEmail);
-    
+
     if (!userEmail.value) {
         return
     }
 
-    store.setLoading(true);    
+    store.setLoading(true);
     const signupRes = await fetch(`${config.public.apiUrlAuth}/${config.public.envName}/auth/forgot-password`, {
         method: 'POST',
         body: JSON.stringify({
@@ -291,7 +291,7 @@ const handleForgotPassword =async () => {
     .catch(err => {
         console.log('err signup API:', err);
     })
-    .finally(() => {        
+    .finally(() => {
         store.setLoading(false);
         store.setModalOpen(false);
         store.setModalType('');
@@ -409,21 +409,21 @@ onMounted(async() => {
         noUserFoundErr: 'Пользователь не найден'
         languageMenuTitle: 'Выбирите язык который изучаете'
     zh:
-        helloMsg: 'TBD'
-        submit: 'TBD'
-        signup: 'Signup'
-        signupEmailNote: 'You will need to vefiry your email address after. Look for an email from Amazon.'
-        specifyYourEmail: 'Please, specify your email'
-        forgotPassword: 'Forgot password?'
-        createAccount: 'Create account'
-        username: 'TBD'
-        password: 'TBD'
-        retypePassword: 'Retype password'
-        motherTongue: 'Select your mother tongue'
-        invitationCode: 'Invitation code'
-        passowrdsNoMatch: "Passwords don't match"
-        userNameEmptyErr: 'TBD'
-        passwordNameEmptyErr: 'TBD'
-        noUserFoundErr: 'TBD'
-        languageMenuTitle: 'TBD'
+        helloMsg: 請登入以繼續
+        submit: 登入
+        signup: 註冊
+        signupEmailNote: 註冊後，您需要驗證您的電子郵件地址。請查看來自亞馬遜的郵件。
+        forgotPassword: 忘記密碼？
+        specifyYourEmail: 請指定您的電子郵件
+        createAccount: 創建帳戶
+        username: 用戶名
+        password: 密碼
+        retypePassword: 重新輸入密碼
+        motherTongue: 選擇您的母語
+        invitationCode: 邀請碼
+        passowrdsNoMatch: 密碼不匹配
+        userNameEmptyErr: 請輸入您的用戶名
+        passwordNameEmptyErr: 請輸入您的密碼
+        noUserFoundErr: 未找到使用者
+        languageMenuTitle: 選擇您正在學習的語言
 </i18n>

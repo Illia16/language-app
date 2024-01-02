@@ -68,8 +68,8 @@ const irregularVerbs = [
             pastParticiple: '3 форма (Причастие)'
     zh:
         irrgegularVerbs:
-            translation: '翻译'
-            infinitive: '1形式 (不定式)'
-            past: '2形式 (过去式)'
-            pastParticiple: '3形式 (分词)'
+            translation: 翻譯
+            infinitive: 第一形式（不定詞）
+            past: 第二形式（過去式）
+            pastParticiple: 第三形式（分詞）
 </i18n>

@@ -68,7 +68,7 @@ const togglePlay = () => {
 
     button {
         @apply bg-mainGreen w-10 h-10 rounded-full;
- 
+
         span:nth-child(1) {
             content: '';
             @apply inline-block relative top-px left-0.5;
@@ -92,6 +92,5 @@ const togglePlay = () => {
     ru:
         playBtn: 'Воспроизвусти/пауза'
     zh:
-        playBtn: 'TBD'
+        playBtn: '播放/暫停'
 </i18n>
-    

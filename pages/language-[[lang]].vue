@@ -19,7 +19,7 @@
                     </label>
                 </div>
             </div>
-            
+
             <div class="learning-data--itemTypeCategory">
                 <h2>{{ t('selectSubExercise') }}</h2>
                 <div v-for="(itemTypeCategoryEl, i) of itemTypeCategory" :key="i" class="exercise-checkbox" tabindex="0">
@@ -29,7 +29,7 @@
                             class="sr-only"
                             type="checkbox"
                             :name="itemTypeCategoryEl"
-                            v-model="v_selecteditemTypeCategory[itemTypeCategoryEl]" 
+                            v-model="v_selecteditemTypeCategory[itemTypeCategoryEl]"
                         />
                         <span class="checkbox-bg"></span>
                         <span class="input-name">
@@ -100,16 +100,16 @@
                 {{ t('question') }}
             </span>
             <AudioPlayer
-                v-if="currentQuestion.fileUrl && 
+                v-if="currentQuestion.fileUrl &&
                 [mapModes.wordListening, mapModes.wordTranslation, mapModes.wordTranslationMPChoice, mapModes.sentenceWordTranslation].includes(currentQuestion.mode) &&
                 !currentQuestionAnswered
                 "
-                :file="currentQuestion.fileUrl" 
+                :file="currentQuestion.fileUrl"
                 :playRightAway="true"
             >
             </AudioPlayer>
             <span class="lesson-started--question-text">
-                <span 
+                <span
                     v-if="[mapModes.wordTranslation, mapModes.translationWord, mapModes.wordTranslationMPChoice, mapModes.translationWordMPChoice, mapModes.sentenceWordTranslation, mapModes.sentenceTranslationWord, mapModes.random].includes(currentQuestion.mode)"
                     :class="!currentQuestionAnswered ? 'animated-text' : 'font-bold'">
                     {{currentQuestion.question}}
@@ -125,18 +125,18 @@
         </div>
 
         <!--MODE: Write text -->
-        <div 
-            class="form_el" 
-            v-if="currentQuestion.mode === mapModes.wordTranslation || 
+        <div
+            class="form_el"
+            v-if="currentQuestion.mode === mapModes.wordTranslation ||
                 currentQuestion.mode === mapModes.translationWord ||
                 currentQuestion.mode === mapModes.wordListening
             ">
             <label>
-                <input 
-                    type="text" 
-                    v-model="userAnswer" 
-                    :placeholder="t('yourAnswer') + (currentQuestion.mode === mapModes.wordListening ? ' ' + t('studyingLang') : '') " 
-                    :disabled="currentQuestionAnswered" 
+                <input
+                    type="text"
+                    v-model="userAnswer"
+                    :placeholder="t('yourAnswer') + (currentQuestion.mode === mapModes.wordListening ? ' ' + t('studyingLang') : '') "
+                    :disabled="currentQuestionAnswered"
                 />
             </label>
         </div>
@@ -159,7 +159,7 @@
                             {{q.item}}
                         </span>
                         <span
-                            v-if="q.itemTranscription 
+                            v-if="q.itemTranscription
                             && [mapModes.translationWord, mapModes.translationWordMPChoice, mapModes.sentenceTranslationWord].includes(currentQuestion.mode)"
                         >
                             ({{ q.itemTranscription }})
@@ -213,7 +213,7 @@
         <AudioPlayer
             class="invisible"
             v-if="currentQuestion.fileUrl && currentQuestionAnswered"
-            :file="currentQuestion.fileUrl" 
+            :file="currentQuestion.fileUrl"
             :playRightAway="true"
         ></AudioPlayer>
 
@@ -274,21 +274,21 @@ const numQuestionsSelected = ref<number>(0); // num of questions in the lesson s
 
 const initData = computed<UserDataArrayOfObj>((): UserDataArrayOfObj => store.userLangData
     .filter(el => el.languageStudying === route.params.lang)
-    .filter((el, i, arr) => {        
-        return v_selecteditemType.value[el.itemType] && v_selecteditemTypeCategory.value[el.itemTypeCategory] 
+    .filter((el, i, arr) => {
+        return v_selecteditemType.value[el.itemType] && v_selecteditemTypeCategory.value[el.itemTypeCategory]
         || v_selecteditemType.value[el.itemType] && !v_selecteditemTypeCategory.value[el.itemTypeCategory] && v_selecteditemTypeCategory.value[el.itemTypeCategory]
     })
     .map(el => {
         // diff splitter for Eng and Mandarin since the latter doesn't have spaces in sentences
         const splitter = el.languageStudying === 'en' ? ' ' : '';
-        
-        if (modeSelected.value === mapModes.sentenceWordTranslation && el.item.split(splitter).length > 1 || 
+
+        if (modeSelected.value === mapModes.sentenceWordTranslation && el.item.split(splitter).length > 1 ||
             modeSelected.value === mapModes.sentenceTranslationWord && el.item.split(splitter).length > 1) {
             return el;
         }
-            
+
         if (
-            modeSelected.value !== mapModes.sentenceWordTranslation && 
+            modeSelected.value !== mapModes.sentenceWordTranslation &&
             modeSelected.value !== mapModes.sentenceTranslationWord &&
             modeSelected.value !== mapModes.wordListening
         ) {
@@ -376,7 +376,7 @@ const check = ():void => {
     } else {
         console.log('correct...');
         console.log('currentQuestion', currentQuestion.value);
-        
+
         currentQuestionAnswered.value = true;
         recordUserAnswer(true, userAnswer.value, currentQuestion.value);
         numOfCorrectAnswers.value = numOfCorrectAnswers.value + 1;
@@ -412,10 +412,10 @@ const nextQuestion = ():void => {
 watch(() => store.lessonStarted, (v) => {
     if (v) {
         console.log('numQuestionsSelected.value', numQuestionsSelected.value);
-        
+
         lessonData.value = getLesson(modeSelected.value, initData.value).slice(0, numQuestionsSelected.value) as UserDataArrayOfObj;
         console.log('__lessonData.value', lessonData.value);
-        
+
         if (lessonData.value && lessonData.value.length) {
             currentQuestion.value = getQuestion(modeSelected.value, lessonData.value, currentQuestionNum.value);
         }
@@ -625,26 +625,25 @@ section {
         nextQBtn: 'Следующий вопрос'
         rules: 'Подсказка'
     zh:
-        selectExercise: 'TBD'
-        selectSubExercise: 'TBD'
-        modeTitle: 'TBD'
-        numberQ: '选择问题数量:'
-        wordListening: 'TBD'
-        wordTranslation: '翻译 - 单词'
-        translationWord: '单词 - 翻译'
-        wordTranslationMPChoice: '多选: 单词 - 翻译'
-        translationWordMPChoice: '多选: 翻译 - 单词'
-        sentenceWordTranslation: '句子: 单词 - 翻译'
-        sentenceTranslationWord: '句子: 翻译 - 单词'
-        random: '所有'
-        startBtn: "开始"
-        questionNumber: '问题编号 {currentQuestionNum} out of {lessonDataLength}'
-        question: '问题:'
+        selectExercise: '選擇一個部分'
+        selectSubExercise: '選擇一個或多個練習'
+        modeTitle: '選擇學習模式'
+        numberQ: '選擇問題數量'
+        wordListening: '聆聽'
+        wordTranslation: '寫作: 翻譯 - 學習語言'
+        translationWord: '寫作: 翻譯 - 學習語言'
+        wordTranslationMPChoice: '多選: 翻譯 - 學習語言'
+        translationWordMPChoice: '多選: 翻譯 - 學習語言'
+        sentenceWordTranslation: '句子: 翻譯 - 单词'
+        sentenceTranslationWord: '句子: 翻譯 - 學習語言'
+        random: '全部'
+        startBtn: '開始'
+        questionNumber: '問題數量 {currentQuestionNum} out of {lessonDataLength}'
+        question: '問題:'
         yourAnswer: '你的答案'
-        studyingLang: 'the language you are studying'
+        studyingLang: '你正在學習的語言'
         clearBtn: '清除'
-        checkBtn: '检查'
-        nextQBtn: '下一个问题'
-        rules: 'TBD'
+        checkBtn: '檢查'
+        nextQBtn: '下一個問題'
+        rules: '提示'
 </i18n>
-    

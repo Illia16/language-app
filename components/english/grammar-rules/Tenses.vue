@@ -6,7 +6,7 @@
             <li v-for="(item, i) in tensesData[tense].howToBuild" v-html="item" :key="'howToBuild' + '_' + i"></li>
         </ul>
         <p v-html="t('examplesBelow', {v: 'a, b, c'})" class="underline"></p>
-        
+
         <h4>{{t('examples')}}</h4>
         <ul class="grammar-rules--description">
             <li v-for="(item, i) in tensesData[tense].description" v-html="item" :key="'description' + '_' + i"></li>
@@ -55,7 +55,7 @@ const tensesData: Tenses = {
         name: 'Present Simple',
         howToBuild: [
             `<span>
-                <span class="green-underlined">${t('sentense')}:</span>${t('noun')} + 
+                <span class="green-underlined">${t('sentense')}:</span>${t('noun')} +
                 <span class="green-bolded">${t('verb')}(+s/+es)</span> + ${t('restOfTheWords')}
             </span>`,
             `<span>
@@ -325,11 +325,11 @@ const tensesData: Tenses = {
         name: 'Past Simple',
         howToBuild: [
             `<span>
-                <span class="green-underlined">${t('sentense')}:</span>${t('noun')} + 
+                <span class="green-underlined">${t('sentense')}:</span>${t('noun')} +
                 <span class="green-bolded">${t('verb')}(+ed/+d/${t('irregularVerb2')})</span> + ${t('restOfTheWords')}
             </span>`,
             `<span>
-                <span class="green-underlined">${t('negative')}:</span>${t('noun')} + 
+                <span class="green-underlined">${t('negative')}:</span>${t('noun')} +
                 <span class="green-bolded">did + not</span> + <span class="green-bolded">${t('verb')}</span> + ${t('restOfTheWords')}
             </span>`,
             `<span>
@@ -379,28 +379,28 @@ const tensesData: Tenses = {
         name: 'Past Continuous',
         howToBuild: [
             `<span>
-                <span class="green-underlined">${t('sentense')}:</span>${t('noun')} + 
+                <span class="green-underlined">${t('sentense')}:</span>${t('noun')} +
                 <span class="green-bolded">was/were</span>
-                <span class="green-bolded">${t('verb')} + ing</span> + 
+                <span class="green-bolded">${t('verb')} + ing</span> +
                 ${t('restOfTheWords')}
             </span>`,
             `<span>
-                <span class="green-underlined">${t('negative')}:</span>${t('noun')} + 
-                <span class="green-bolded">was + not</span> + 
+                <span class="green-underlined">${t('negative')}:</span>${t('noun')} +
+                <span class="green-bolded">was + not</span> +
                 <span class="green-bolded">${t('verb')} + ing</span> + ${t('restOfTheWords')}
             </span>`,
             `<span>
-                <span class="green-underlined">${t('question')}:</span> 
-                <span class="green-bolded">Was/were</span> + ${t('noun')} + 
+                <span class="green-underlined">${t('question')}:</span>
+                <span class="green-bolded">Was/were</span> + ${t('noun')} +
                 <span class="green-bolded">${t('verb')} + ing
                 </span> + ${t('restOfTheWords')}?
             </span>`,
             `<span>
-                <span class="green-underlined">${t('questionNegative')}:</span> 
-                <span class="green-bolded">Was/were</span> + ${t('noun')} + 
-                <span class="green-bolded">not</span> + 
+                <span class="green-underlined">${t('questionNegative')}:</span>
+                <span class="green-bolded">Was/were</span> + ${t('noun')} +
+                <span class="green-bolded">not</span> +
                 <span class="green-bolded">${t('verb')} + ing
-                </span> + ${t('restOfTheWords')}? 
+                </span> + ${t('restOfTheWords')}?
                 <br />
                 <span class="green-bolded">Was I not cooking this time last night?</span>
             </span>`
@@ -591,7 +591,7 @@ const tensesDataShort: TensesDataShort = {
             description4: Изменения со временем
             description5: Со следующими словами - just, yet, never, already, ever, so far, up to now, recently, since, for
             howToUse: Когда использовать have/has?
-        pastSimple: 
+        pastSimple:
             name: Прошедшее простое
             description1: Мы используем простое прошедшее время, чтобы говорить о событиях, которые произошли в конкретную точку времени в прошлом (last week, yesterday, a few years ago etc.)
             description2: Мы используем простое прошедшее время, чтобы говорить о событиях, которые проиcходили много раз в прошлом
@@ -617,8 +617,70 @@ const tensesDataShort: TensesDataShort = {
         pastSimplePassive:
             name: Прошедшее простое пассивное время
     zh:
-        presentSimpleDescription1: 现在时态由动词的基本形式组成 (例如go, eat, drink, play等)
-        presentContinuousDescription1: 现在时
-        presentPerfectDescription1: 现在时
-        pastSimpleHowToUse: TBD
+        howToBuild: '如何建立'
+        sentense: '句子'
+        noun: '名词'
+        verb: '动词'
+        or: '或'
+        irregularVerb2: '不规则动词第二形式'
+        irregularVerb3: '不规则动词第三形式'
+        restOfTheWords: '其余的词'
+        negative: '否定'
+        question: '问题'
+        questionNegative: '否定问题'
+        examplesBelow: '请参阅以下示例 <span class="green-bolded">{v}</span>'
+        examples: '规则和例子'
+        presentSimple:
+            name: '现在时态'
+            description1: '现在时态是用动词的基本形式构成的（例如go，eat，drink，play等）'
+            description2: '现在时态用于谈论一般真实的事情'
+            description3: '经常或重复发生的事情'
+            description4: '如果计划或安排了未来的事情'
+            description5: '对于大多数动词，我们在基本形式后面加上-s'
+            description6: '当动词以-ch，-ss，-sh，-x或-zz结尾时，我们添加-es'
+            description7: '当动词以辅音+-y结尾时，我们将y改为i并添加-es'
+            description8: '但是当动词以元音+-y结尾时，我们只需添加-s'
+            description9: 'have，go，do和be是不规则动词'
+            howToUse: '何时使用s/es？'
+        presentContinuous:
+            name: '现在进行时'
+            description1: '我们使用现在进行时来谈论正在进行的事件'
+            description2: '我们使用现在进行时来谈论在说话时真实的临时状态'
+            description3: '我们使用现在进行时来描述重复或定期发生的动作，但我们认为它们是临时的'
+            description4: '我们使用现在进行时来谈论渐变'
+            description5: '我们使用现在进行时来谈论未来，当我们谈论已经做出的计划和安排时'
+            howToUse: '何时使用am/is/are？'
+        presentPerfect:
+            name: '现在完成时'
+            description1: '一项在过去开始但尚未完成的持续行动'
+            description2: '当我们谈论到目前为止的经验时'
+            description3: '刚刚完成的行动（通常与just或now一起使用）'
+            description4: '随着时间的推移'
+            description5: '使用以下单词 - just，yet，never，already，ever，so far，up to now，recently，since，for'
+            howToUse: '何时使用have/has？'
+        pastSimple:
+            name: '过去时态'
+            description1: '我们使用过去时态来谈论在过去的某个时间发生的事件（上周，昨天，几年前等）'
+            description2: '我们使用过去时态来谈论在过去发生了很多次的事件'
+            howToUse: '如何使用'
+        pastContinuous:
+            name: '过去进行时'
+            description1: |
+                过去某一时刻发生的持续动作
+                (at that time yesterday, at 5 o'clock, when he came)
+            description2: '两个或更多持续的动作同时发生在过去'
+            description3: '过去的持续动作被另一个（通常是短暂的）动作打断'
+            description4: '描述环境或气氛'
+            description5: '用于表达否定特征'
+            howToUse: '何时使用was/were？'
+        pastPerfect:
+            name: '过去完成时'
+        futureSimple:
+            name: '将来时态'
+        futureContinuous:
+            name: '将来进行时'
+        futurePerfect:
+            name: '将来完成时'
+        pastSimplePassive:
+            name: '过去完成时被动语态'
 </i18n>

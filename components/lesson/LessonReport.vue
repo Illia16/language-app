@@ -131,9 +131,9 @@ const updateUserData = async () => {
         correctAnswer: 'Правильный ответ'
         progress: 'Прогресс'
     zh:
-        results: 'TBD'
-        question: 'TBD'
-        myAnswer: 'TBD'
-        correctAnswer: 'TBD'
-        progress: 'TBD'
+        results: 結果
+        question: 問題
+        myAnswer: 我的答案
+        correctAnswer: 正確答案
+        progress: 進度
 </i18n>
