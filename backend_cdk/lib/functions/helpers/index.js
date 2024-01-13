@@ -7,6 +7,10 @@ const { ListObjectsV2Command, PutObjectCommand, DeleteObjectCommand, GetObjectCo
 const clientS3 = new S3Client({});
 const { getSignedUrl } = require("@aws-sdk/s3-request-presigner");
 
+const { SecretsManagerClient, GetSecretValueCommand  } = require('@aws-sdk/client-secrets-manager');
+const client = new SecretsManagerClient({});
+
+
 module.exports = {
     s3GetFile: async (s3_buckname, filenamepath) => {
         const input = {
@@ -132,5 +136,21 @@ module.exports = {
                 "Access-Control-Allow-Origin": headers,
             },
         }
+    },
+    getSecret: async (secret_name) => {
+        let response;
+        
+        try {
+            response = await client.send(
+                new GetSecretValueCommand({
+                    SecretId: secret_name,
+                    VersionStage: "AWSCURRENT",
+                })
+            );
+        } catch (error) {
+            throw error;
+        }
+
+        return response?.SecretString;
     }
 }

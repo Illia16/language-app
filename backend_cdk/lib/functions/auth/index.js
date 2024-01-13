@@ -7,7 +7,8 @@ const clientSQS = new SQSClient({});
 // const clientSES = new SESClient({});
 const client = new DynamoDBClient({});
 const docClient = DynamoDBDocumentClient.from(client);
-const { responseWithError, checkIfUserExists } = require('../helpers');
+const { responseWithError, checkIfUserExists, cleanUpFileName, s3UploadFile, getSecret } = require('../helpers');
+const { getIncorrectItems, getAudio } = require('../helpers/openai')
 const { v4: uuidv4 } = require("uuid");
 const jwt = require('jsonwebtoken');
 const config = require('../config');
@@ -23,7 +24,7 @@ module.exports = async (event, context) => {
     // Environment variables
     const env = process.env.env;
     const projectName = process.env.projectName;
-    const secretJwt = process.env.secret;
+    const secretJwt = await getSecret(`${projectName}--secret-auth--${env}`);
 
     // Event obj and CORS
     const headers = event.headers;
@@ -33,6 +34,8 @@ module.exports = async (event, context) => {
 
     // AWS Resource names
     const dbUsers = `${projectName}--db-users--${env}`;
+    const dbData = `${projectName}--db-data--${env}`;
+    const s3Files = `${projectName}--s3-files--${env}`;
 
     // Response obj
     let response = {
@@ -163,6 +166,7 @@ module.exports = async (event, context) => {
                         userMotherTongue: userMotherTongue,
                         role: 'user',
                         userEmail: userEmail,
+                        isPremium: false,
                     },
                     ReturnConsumedCapacity: "TOTAL",
                     TableName: dbUsers
@@ -172,6 +176,36 @@ module.exports = async (event, context) => {
                 const resCreateUser = await client.send(commandCreateUser);
                 console.log('resCreateUser', resCreateUser);
                 response.body = JSON.stringify({success: true, data: resCreateUser.Attributes});
+
+                // put 1 welcome item for the new user
+                const welcomeItem = "I like learning English every day"
+                const audioFile = await getAudio(welcomeItem)
+                const fileNameCleaned = cleanUpFileName(welcomeItem);
+                const audioFilePathAi = `audio/${fileNameCleaned}/${fileNameCleaned}.mp3`;
+                await s3UploadFile(s3Files, audioFilePathAi, audioFile);
+                const incorrectItems = await getIncorrectItems("I like learning English every day");
+
+                const input = {
+                    "Item": {
+                        user: username,
+                        itemID: fileNameCleaned + "___" + "welcome_item",
+                        item: welcomeItem,
+                        itemCorrect: "Here goes translation to your mother tongue of the item you want to add.",
+                        incorrectItems: JSON.stringify(incorrectItems),
+                        itemType: "Tenses",
+                        itemTypeCategory: "Present Simple",
+                        userMotherTongue: userMotherTongue,
+                        languageStudying: 'en',
+                        level: '0',
+                        getAudioAI: true,
+                        filePath: audioFilePathAi,
+                    },
+                    "TableName": dbData
+                };
+
+                const command = new PutCommand(input);
+                await client.send(command);
+                // 
 
                 // send verification email to the user
                 const inputSQS = {

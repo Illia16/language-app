@@ -178,6 +178,7 @@ class BackendCdkStack extends cdk.Stack {
         cloudfrontTestUrl: props.env.cloudfrontTestUrl,
         cloudfrontProdUrl: props.env.cloudfrontProdUrl
       },
+      timeout: cdk.Duration.seconds(30),
     });
     authFn.role.addManagedPolicy(
         iam.ManagedPolicy.fromAwsManagedPolicyName('service-role/AWSLambdaBasicExecutionRole')
@@ -267,10 +268,6 @@ class BackendCdkStack extends cdk.Stack {
     //   rotationLambda: rotateSecretFn,
     //   rotateImmediatelyOnUpdate: false,
     // });
-
-    // add this secret to Lambda FN as an env var
-    lambdaFnDynamoDb.addEnvironment('secret', jwtSecret.secretValue.unsafeUnwrap());
-    authFn.addEnvironment('secret', jwtSecret.secretValue.unsafeUnwrap());
 
     const rule = new events.Rule(this, `${props.env.projectName}--secret-update-schedule-rule--${props.env.stage}`, {
       ruleName: `${props.env.projectName}--secret-update-schedule-rule--${props.env.stage}`,

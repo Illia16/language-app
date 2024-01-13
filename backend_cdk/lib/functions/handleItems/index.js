@@ -3,7 +3,7 @@ const { DynamoDBDocumentClient, QueryCommand, ScanCommand, BatchWriteCommand, Pu
 
 const client = new DynamoDBClient({});
 const docClient = DynamoDBDocumentClient.from(client);
-const { s3ListObjects, s3UploadFile, s3DeleteFile, s3GetSignedUrl, cleanUpFileName, getFilePathIfFileIsPresentInBody, responseWithError } = require('../helpers');
+const { s3ListObjects, s3UploadFile, s3DeleteFile, s3GetSignedUrl, cleanUpFileName, getFilePathIfFileIsPresentInBody, responseWithError, getSecret } = require('../helpers');
 const { getIncorrectItems, getAudio } = require('../helpers/openai')
 const multipartParser = require('parse-multipart-data');
 const jwt = require('jsonwebtoken');
@@ -19,8 +19,7 @@ module.exports = async (event, context) => {
     // Environment variables
     const env = process.env.env;
     const projectName = process.env.projectName;
-    const secretJwt = process.env.secret;
-
+    const secretJwt = await getSecret(`${projectName}--secret-auth--${env}`);
     // Event obj and CORS
     const headers = event.headers;
     const allowedOrigins = ["http://localhost:3000", process.env.cloudfrontTestUrl, process.env.cloudfrontProdUrl];
@@ -30,12 +29,14 @@ module.exports = async (event, context) => {
 
     // AWS Resource names
     const dbData = `${projectName}--db-data--${env}`;
+    const dbUsers = `${projectName}--db-users--${env}`;
     const s3Files = `${projectName}--s3-files--${env}`;
 
     // Handle data
     let data;
     let user = '';
     let userRole = '';
+    let isPremium = false;
 
     // Regex
     const englishRegex = /[a-zA-Z]/;
@@ -58,6 +59,8 @@ module.exports = async (event, context) => {
         return
     }
     const token = authToken.split(' ')[1];
+    console.log('secretJwt', secretJwt);
+    console.log('token', token);
     jwt.verify(token, secretJwt, (err, decoded) => {
         console.log('decoded', decoded)
         if (err) {
@@ -152,6 +155,25 @@ module.exports = async (event, context) => {
     }
 
     if (action === 'POST') {
+        // fetch user premiumStatus
+        const params = {
+            TableName: dbUsers,
+            KeyConditionExpression:
+              "#userName = :usr",
+            ExpressionAttributeValues: {
+              ":usr": user,
+            },
+            ExpressionAttributeNames: { "#userName": "user" },
+            ConsistentRead: true,
+        };
+    
+        const command = new QueryCommand(params);
+        const res = await docClient.send(command);
+        console.log('res isPremium:', res.Items[0].isPremium);
+        isPremium = res.Items[0].isPremium;
+        //
+
+
         try {
             const checkIfnoAttachmentButFileExistsInS3 = await s3ListObjects(s3Files, `audio/${cleanUpFileName(data.item)}`);
             const existingFileNameS3 = checkIfnoAttachmentButFileExistsInS3?.Contents?.[0]?.Key;
@@ -164,19 +186,23 @@ module.exports = async (event, context) => {
             }
             //
 
-            // get audio of text from AI
+            // get audio of text from AI if user is premium
             let audioFilePathAi;
-            if (!filePath && !existingFileNameS3 && data.getAudioAI) {
-                console.log('AI audio');
-                const audioFile = await getAudio(data.item)
-                const fileNameCleaned = cleanUpFileName(data?.item);
-                audioFilePathAi = `audio/${fileNameCleaned}/${fileNameCleaned}.mp3`;
-                await s3UploadFile(s3Files, audioFilePathAi, audioFile);
+            let incorrectItems = null;
+            if (isPremium) {
+                console.log('isPremium', isPremium);
+                if (!filePath && !existingFileNameS3 && data.getAudioAI) {
+                    console.log('AI audio');
+                    const audioFile = await getAudio(data.item)
+                    const fileNameCleaned = cleanUpFileName(data?.item);
+                    audioFilePathAi = `audio/${fileNameCleaned}/${fileNameCleaned}.mp3`;
+                    await s3UploadFile(s3Files, audioFilePathAi, audioFile);
+                }
+    
+                // get incorrect answers of the correct item from AI
+                incorrectItems = await getIncorrectItems(data.item);
+                console.log('incorrectItems', incorrectItems);
             }
-
-            // get incorrect answers of the correct item from AI
-            const incorrectItems = await getIncorrectItems(data.item);
-            console.log('incorrectItems', incorrectItems);
 
             const allEls = [];
             if (userRole === 'admin') {

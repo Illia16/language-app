@@ -321,6 +321,7 @@ onMounted(async() => {
     if (cookieUser.value && cookieToken.value && !store.currentUserName && !store.userLangData.length) {
         store.setCurrentUserName(cookieUser.value);
         store.setToken(cookieToken.value);
+        store.setLoading(true);
         await getUserData();
     }
 })
