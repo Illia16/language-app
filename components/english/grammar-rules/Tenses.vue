@@ -525,30 +525,59 @@ const tensesDataShort: TensesDataShort = {
         questionNegative: Question negative
         examplesBelow: See examples <span class="green-bolded">{v}</span> below
         examples: Rules and examples
-        # todo
-        presentSimpleDescription1: The present simple tense is formed with the base form of the verb (e.g. go, eat, drink, play, etc.)
-        presentSimpleDescription2: The present simple tense is used to talk about things that are true in general
-        presentSimpleDescription3: Things that happen regularly or repeatedly
-        presentSimpleDescription4: Things that happen in the future, if they are planned or arranged
-        presentSimpleSpecifics: When to add +s or +es to the verb
-        presentSimpleSpecifics1: For most verbs we add -s to the base form
-        presentSimpleSpecifics2: When the verb ends in -ch, -ss, -sh, -x or -zz, we add -es
-        presentSimpleSpecifics3: When the verb ends in a consonant + -y we change y tow i and add -es
-        presentSimpleSpecifics4: But when the verb ends in a vowel + -y we just add -s
-        presentSimpleSpecifics5: Have, go, do and be are irregular verbs
-        presentContinuousDescription1: We use the present continuous to talk about events which are in progress at the moment of speaking
-        presentContinuousDescription2: We use the present continuous to talk about temporary states which are true around the moment of speaking
-        presentContinuousDescription3: We use the present continuous to describe actions which are repeated or regular, but which we believe to be temporary
-        presentContinuousDescription4: We use the present continuous to talk about a gradual change
-        presentContinuousDescription5: We use the present continuous to refer to the future when we talk about plans and arrangements that have already been made
-        presentContinuousamisare: When to use am/is/are?
-        presentPerfectDescription1: An ongoing action that started in the past, but has not yet been completed
-        presentPerfectDescription2: when we are talking about our experience up to the present
-        presentPerfectDescription3: An action that was/not completed very recently (often used with just or now)
-        presentPerfectDescription4: A change over time
-        presentPerfectDescription5: With the following words - just, yet, never, already, ever, so far, up to now, recently, since, for
-        presentPerfecthavehas: When to use have/has?
-        pastSimpleHowToUse: How to use
+        presentSimple:
+            name: Present Simple
+            description1: Present simple tense is formed with the base form of the verb (e.g. go, eat, drink, play, etc.)
+            description2: Present simple tense is used to talk about things that are true in general
+            description3: Things that happen regularly or repeatedly (Often, every year, from time to time, seldom, rare, usually)
+            description4: Things that happen in the future, if they are planned or arranged
+            description5: For the third person singular (he, she, it), we add -s to the base form
+            description6: When the verb ends in -ch, -ss, -sh, -x or -zz, we add -es
+            description7: When the verb ends in a consonant + -y we change y to i and add -es
+            description8: But when the verb ends in a vowel + -y we just add -s
+            description9: Have, go, do and be are irregular verbs
+            howToUse: When to use +s or +es?
+        presentContinuous:
+            name: Present Continuous
+            description1: We use the present continuous to talk about events which are in progress at the moment of speaking
+            description2: We use the present continuous to talk about temporary states which are true around the moment of speaking
+            description3: We use the present continuous to describe actions which are repeated or regular, but which we believe to be temporary
+            description4: We use the present continuous to talk about a gradual change
+            description5: We use the present continuous to refer to the future when we talk about plans and arrangements that have already been made
+            howToUse: When to use am/is/are?
+        presentPerfect:
+            name: Present Perfect
+            description1: An ongoing action that started in the past, but has not yet been completed
+            description2: when we are talking about our experience up to the present
+            description3: An action that was/not completed very recently (often used with just or now)
+            description4: A change over time
+            description5: With the following words - just, yet, never, already, ever, so far, up to now, recently, since, for
+            howToUse: When to use have/has?
+        pastSimple:
+            name: Past Simple
+            description1: We use the past simple tense to talk about events which happened at a specific point in the past (last week, yesterday, a few years ago etc.)
+            description2: We use the past simple to talk about actions and states which we see as completed in the past
+            howToUse: How to use
+        pastContinuous:
+            name: Past Continuous
+            description1: |
+                Continuous actions in the past that was happening at a specific time
+                (at that time yesterday, at 5 o'clock, when he came)
+            description2: Two or more actions happening at the same time in the past
+            description3: Continuous actions in the past that was interrupted by another action
+            description4: When we are describing the background of a story in the past
+            description5: While describing something negative in the past
+            howToUse: When to use was/were?
+        pastPerfect:
+            name: Past Perfect
+        futureSimple:
+            name: Future Simple
+        futureContinuous:
+            name: Future Continuous
+        futurePerfect:
+            name: Future Perfect
+        pastSimplePassive:
+            name: Past Simple Passive
     ru:
         howToBuild: Как построить
         sentense: Предложение
