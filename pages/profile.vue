@@ -2,6 +2,19 @@
     <div v-if="store.currentUserName" class="listOfWords">
         <h1>{{ t('listOfWords') }}</h1>
 
+        <div class="filter">
+            <h2>{{ t('filterItems') }}</h2>
+            <div class="filter-list">
+                <CustomSelect
+                    v-if="userLanguagesInProgress.length > 1"
+                    v-model="v_filterLearningLang"
+                    :options="userLanguagesInProgress"
+                    >
+                    <template v-slot:label>{{t('languageStudying')}}</template>
+                </CustomSelect>
+            </div>
+        </div>
+
         <ul>
             <li class="listOfWords-item">
                 <span>{{ t('item') }}:</span>
@@ -25,7 +38,7 @@
             <li class="lastLi"></li>
         </ul>
 
-        <ul v-for="(el, i) of store.userLangData" :key="i">
+        <ul v-for="(el, i) of userLangDataFiltered" :key="i">
             <li class="listOfWords-item">
                 <span>{{ el.item }}</span>
                 <span v-if="el.fileUrl" class="listOfWords-item--audio">
@@ -357,6 +370,7 @@
 import { useMainStore } from 'store/main';
 import { UserDataArrayOfObj, UserData } from 'types/helperTypes'
 import { v4 as uuidv4  } from "uuid";
+import { mapLanguage } from 'helper/helpers';
 
 const { t } = useI18n({useScope: 'local'});
 const store = useMainStore();
@@ -377,6 +391,9 @@ const v_itemID = ref<string>('');
 const v_itemCorrect = ref<string>('');
 const v_file = ref<Object>({});
 const v_itemTranscription = ref<string>('');
+
+// v-models for filtering items
+const v_filterLearningLang = ref<string>('');
 //
 
 // select lists
@@ -397,15 +414,27 @@ const itemTypeCategory = computed<{ name: string, value: string }[]>(() => store
         return {name: el, value: el}
     })
 )
+
+const userLanguagesInProgress = computed<{ name: string, value: string }[]>(() => store.userLangData.reduce(function (accumulator:string[], currentValue:UserData) {
+    if (!accumulator.includes(currentValue.languageStudying)){
+        accumulator.push(currentValue.languageStudying)
+    }
+    return accumulator
+    }, [])
+    .map(el => {
+        return {name: mapLanguage(el), value: el}
+    })
+)
 //
 
-onMounted(() => {
-    console.log('store.userLangData', store.userLangData);
-})
+const userLangDataFiltered = computed<UserDataArrayOfObj>(() => store.userLangData
+    .filter(el => el.languageStudying === v_filterLearningLang.value)
+);
 
-// watch(() => itemType, (v) => {
-//     console.log('itemType', v.value);
-// }, {deep: true});
+onMounted(() => {    
+    console.log('store.userLangData', store.userLangData);
+    v_filterLearningLang.value = store.userLangData[0].languageStudying;
+})
 
 // watch(() => itemTypeCategory, (v) => {
 //     console.log('itemTypeCategory', v.value);
@@ -686,6 +715,14 @@ watch(v_file, function() {
     }
 }
 
+.filter {
+    @apply mb-4;
+
+    .filter-list {
+        @apply flex;
+    }
+}
+
 .listOfWords {
     @apply overflow-x-auto w-[calc(100vw-1.25rem-1.25rem)];
 
@@ -798,6 +835,7 @@ watch(v_file, function() {
         itemTypeCategory: 'Sub-category'
         newItemTypeCategory: 'New sub-category'
         languageStudying: 'Language'
+        filterItems: 'Filter'
         level: 'My level'
         addNewItem: 'Add new item'
         add: 'Add'
@@ -819,6 +857,7 @@ watch(v_file, function() {
         itemTypeCategory: 'Сабкатегория'
         newItemTypeCategory: 'Новая сабкатегория'
         languageStudying: 'Язык'
+        filterItems: 'Фильтр'
         level: 'Мой уровень'
         addNewItem: 'Добавить новое слово/предложение'
         add: 'Добавить'
@@ -840,6 +879,7 @@ watch(v_file, function() {
         itemTypeCategory: '子類別'
         newItemTypeCategory: '新增子類別'
         languageStudying: '語言'
+        filterItems: '筛选'
         level: '我的程度'
         addNewItem: '新增詞語/句子'
         add: '新增'
