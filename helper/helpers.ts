@@ -2,6 +2,7 @@ import { UserData, UserDataArrayOfObj, SortableArray, Question, MpChoices, MpCho
 
 // Replaced () and all what's inside with empty string so that the hint OR transcription is not included in the answer
 const replaceAllinsideParantheses = new RegExp(/\s*\([^)]*\)/);
+const replaceAllSpecialCharsEngZh = new RegExp(/[,\.\s!\?;:\|\/。、，！？：-；]/g);
 
 export const sortArray = (arr: SortableArray): SortableArray => {
     for (let i = arr.length - 1; i > 0; i--) {
@@ -129,7 +130,7 @@ export const fillMpChoiceArray = (data: UserDataArrayOfObj, correctAnswer:string
 }
 
 export const isCorrect = (currentQuestion: Question, answer: string): boolean => {
-    return answer.toLowerCase().trim() === currentQuestion.qAnswer.toLowerCase().trim();
+    return answer.toLowerCase().replace(replaceAllSpecialCharsEngZh, '').trim() === currentQuestion.qAnswer.toLowerCase().replace(replaceAllSpecialCharsEngZh, '').trim();
 }
 
 // function outputs a lesson array for sentence-builder mode ONLY

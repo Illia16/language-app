@@ -224,6 +224,12 @@
         </teleport>
 
         <teleport to="body">
+            <Modal v-if="store.modalOpen && store.modalType === 'grammar' && $route.params.lang === 'zh'">
+                <p>{{ currentQuestion.itemTranscription }}</p>
+            </Modal>
+        </teleport>
+
+        <teleport to="body">
             <Modal v-if="store.modalOpen && store.modalType === 'report'">
                 <LessonReport :report="report" :numOfCorrectAnswers="numOfCorrectAnswers" />
             </Modal>
@@ -494,17 +500,13 @@ section {
             @apply text-center mb-8 flex flex-col;
 
             .lesson-started--question-text {
-                @apply flex justify-center items-center text-2xl;
+                @apply flex flex-col justify-center items-center text-2xl;
 
                 .lesson-started--question-text-transcription {
                     @apply text-xl;
                 }
             }
         }
-
-        // .form_el {
-        //     @apply border border-black p-4 w-full text-center;
-        // }
 
         .lesson-started-mp-choice {
             @apply my-3;
@@ -571,7 +573,7 @@ section {
     .lesson-started {
         .lesson-started--question {
             .lesson-started--question-text {
-                @apply  text-6xl leading-normal;
+                @apply  text-6xl leading-none;
             }
         }
     }

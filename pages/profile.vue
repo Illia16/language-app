@@ -1,10 +1,28 @@
 <template>
     <div v-if="store.currentUserName" class="listOfWords">
         <h1>{{ t('listOfWords') }}</h1>
+        <h2>{{ t('filterItems') }} &#8594;</h2>
 
-        <div class="filter">
-            <h2>{{ t('filterItems') }}</h2>
-            <div class="filter-list">
+        <ul>
+            <li class="listOfWords-item"></li>
+            <li class="listOfWords-itemCorrect"></li>
+            <li class="listOfWords-itemType">
+                <CustomSelect
+                    v-if="userItemTypes.length > 1"
+                    v-model="v_filterItemType"
+                    :options="[
+                        {
+                            name: t('all'),
+                            value: 'all'
+                        },
+                        ...userItemTypes,
+                    ]"
+                    >
+                    <template v-slot:label>{{t('itemType')}}</template>
+                </CustomSelect>
+            </li>
+            <li class="listOfWords-itemTypeCategory"></li>
+            <li class="listOfWords-languageStudying">
                 <CustomSelect
                     v-if="userLanguagesInProgress.length > 1"
                     v-model="v_filterLearningLang"
@@ -12,8 +30,11 @@
                     >
                     <template v-slot:label>{{t('languageStudying')}}</template>
                 </CustomSelect>
-            </div>
-        </div>
+            </li>
+            <li class="listOfWords-level"></li>
+            <li class="lastLi"></li>
+            <li class="lastLi"></li>
+        </ul>
 
         <ul>
             <li class="listOfWords-item">
@@ -394,6 +415,7 @@ const v_itemTranscription = ref<string>('');
 
 // v-models for filtering items
 const v_filterLearningLang = ref<string>('');
+const v_filterItemType = ref<string>('all');
 //
 
 // select lists
@@ -415,6 +437,7 @@ const itemTypeCategory = computed<{ name: string, value: string }[]>(() => store
     })
 )
 
+// rework these
 const userLanguagesInProgress = computed<{ name: string, value: string }[]>(() => store.userLangData.reduce(function (accumulator:string[], currentValue:UserData) {
     if (!accumulator.includes(currentValue.languageStudying)){
         accumulator.push(currentValue.languageStudying)
@@ -425,20 +448,31 @@ const userLanguagesInProgress = computed<{ name: string, value: string }[]>(() =
         return {name: mapLanguage(el), value: el}
     })
 )
+
+const userItemTypes = computed<{ name: string, value: string }[]>(() => store.userLangData.reduce(function (accumulator:string[], currentValue:UserData) {
+    if (!accumulator.includes(currentValue.itemType) && currentValue.languageStudying === v_filterLearningLang.value) {
+        accumulator.push(currentValue.itemType)
+    }
+    return accumulator
+    }, [])
+    .map(el => {
+        return {name: el, value: el}
+    })
+)
 //
 
 const userLangDataFiltered = computed<UserDataArrayOfObj>(() => store.userLangData
     .filter(el => el.languageStudying === v_filterLearningLang.value)
+    .filter(el => v_filterItemType.value === 'all' || el.itemType === v_filterItemType.value)
 );
 
 onMounted(() => {    
-    console.log('store.userLangData', store.userLangData);
     v_filterLearningLang.value = store.userLangData[0].languageStudying;
 })
 
-// watch(() => itemTypeCategory, (v) => {
-//     console.log('itemTypeCategory', v.value);
-// }, {deep: true});
+watch(() => v_filterLearningLang.value, () => {
+    v_filterItemType.value = 'all';
+});
 
 
 const closeConfirmModal = (): void => {
@@ -715,16 +749,20 @@ watch(v_file, function() {
     }
 }
 
-.filter {
-    @apply mb-4;
-
-    .filter-list {
-        @apply flex;
-    }
-}
-
 .listOfWords {
     @apply overflow-x-auto w-[calc(100vw-1.25rem-1.25rem)];
+
+    &::-webkit-scrollbar {
+        @apply w-3;
+    };
+
+    &::-webkit-scrollbar-track {
+        box-shadow: inset 0 0 12px rgba(0, 0, 0, 0.3);
+    }
+
+    &::-webkit-scrollbar-thumb {
+        @apply bg-gray-400;
+    }
 
     h1 {
         @apply text-2xl my-3 text-center;
@@ -753,7 +791,7 @@ watch(v_file, function() {
             }
 
             &.listOfWords-languageStudying {
-                @apply flex-grow-0 min-w-[4.6875rem];
+                @apply flex-grow-0 min-w-[6.6875rem];
             }
 
             &.listOfWords-level {
@@ -843,6 +881,7 @@ watch(v_file, function() {
         delete: 'Delete'
         confirm: 'Confirm'
         cancel: 'Cancel'
+        all: 'All'
     ru:
         listOfWords: 'Список моих слов/предложений'
         modalTitle: '{activeModalAction} слово/предложение:'
@@ -865,6 +904,7 @@ watch(v_file, function() {
         delete: 'Удалить'
         confirm: 'Подтвердить'
         cancel: 'Отменить'
+        all: 'Все'
     zh:
         listOfWords: '我的詞彙表'
         modalTitle: '{activeModalAction} 詞語/句子:'
@@ -887,4 +927,5 @@ watch(v_file, function() {
         delete: '刪除'
         confirm: '確認'
         cancel: '取消'
+        all: '都'
 </i18n>

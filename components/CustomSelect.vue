@@ -142,10 +142,6 @@ onBeforeUnmount(() => {
 	}
 }
 
-.select-input {
-	@apply min-w-[100px];
-}
-
 .select-input-interfaceLang {
 	@apply md:max-w-[16rem];
 
