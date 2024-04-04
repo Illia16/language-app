@@ -4,13 +4,14 @@ const config = require('../deploy.config');
 
 // const baseSentence = "I have never been to France.";
 // const baseSentence = "I like apples.";
-const baseSentence = "I didn't like that cake.";
+const baseSentence = "I didn't like that cake";
 const outputFileName = 'results.txt';
 const openai = new OpenAI({ apiKey: config.openAiKey });
 
 async function main(prompt) {
   const completion = await openai.chat.completions.create({
-    messages: [{ role: "user", content: `Given the sentence: ${prompt}. Give 3 incorrect similar sentences. Feel free to use other English tenses if needed.` }],
+    messages: [{ role: "user", content: `Given the sentence: ${prompt}, provide three grammatically incorrect sentences with similar meaning and keeping the input's word order but containing errors or deviations in grammar.` }],
+    // Feel free to use other English tenses if needed.
     // model: "text-davinci-003", soon will be deprecated
     model: "gpt-3.5-turbo",
     max_tokens: 40,

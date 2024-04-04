@@ -11,7 +11,9 @@
 					@click="isOpen = !isOpen"
 					type="button"
 					:disabled="isDisabled">
-					<span v-if="modelValue">{{ options?.map(el => el.value === modelValue && el.name).filter(el=>el)[0] }}</span>
+					<span v-if="modelValue">{{ 
+						modelValueComputed
+					}}</span>
 					<span v-else class="sr-only">Select a state</span>
 				</button>
 				<div class="custom-select-options">
@@ -52,6 +54,11 @@ const props = defineProps({
 const customSelectRef = ref<HTMLElement>(null);
 const isOpen = ref<boolean>(false);
 
+const modelValueComputed = computed<string>(():string => {
+	const selectLabel: string = props.options?.map(el => el.value === props.modelValue && el.name).filter(el=>el)[0] as string;	
+	return selectLabel.length > 10 ? selectLabel.slice(0, 7) + '...' : selectLabel;
+});
+
 const handleSelect = (e: Event):void => {	
 	emit('update:modelValue', (e.target as HTMLButtonElement).value)
 	isOpen.value = false;
@@ -61,7 +68,7 @@ const clickOutside = (e: Event):void => {
 	if (!customSelectRef.value.contains(e.target as HTMLElement)) isOpen.value = false;
 }
 
-onMounted(() => {
+onMounted(() => {	
 	document.addEventListener('mousedown', clickOutside);
 })
 
@@ -80,7 +87,7 @@ onBeforeUnmount(() => {
 		}
 
 		> button {
-			@apply flex items-center h-[30px] w-full px-2 bg-white;
+			@apply flex items-center h-[30px] w-full px-2 bg-white whitespace-nowrap;
 
 			&:disabled {
 				@apply bg-gray-200;

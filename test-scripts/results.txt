@@ -108,3 +108,81 @@ Base sentence: I didn't like that cake.
 1. I didn't liked that cake.
 2. I not liked that cake.
 3. I dislike that cake.
+ 
+ 
+Base sentence: I didn't like that cake
+1. I did like that cake.
+2. I didn't dislike that cake.
+3. I like that cake.
+ 
+ 
+Base sentence: I didn't like that cake
+1. I didn't liked that cake.
+2. I didn't liking that cake.
+3. I didn't likes that cake.
+ 
+ 
+Base sentence: I didn't like that cake
+1. Like I didn't that cake.
+2. I did not like that cake.
+3. That cake, I didn't like.
+ 
+ 
+Base sentence: I didn't like that cake
+1. I did not liked that cake.
+2. I not liked that cake.
+3. I didn't liking that cake.
+ 
+ 
+Base sentence: I didn't like that cake
+1. That cake I didn't like.
+2. I not liked that cake.
+3. That cake didn't I like.
+ 
+ 
+Base sentence: I didn't like that cake
+1. That cake, I didn't like.
+2. Like, I didn't that cake.
+3. Didn't that cake, I like.
+ 
+ 
+Base sentence: I didn't like that cake
+1. Didn't I like that cake.
+2. That cake I didn't like.
+3. I that cake didn't like.
+ 
+ 
+Base sentence: I didn't like that cake
+1. I not liked that cake.
+2. I did not liking that cake.
+3. I no like that cake.
+ 
+ 
+Base sentence: I didn't like that cake
+1. I didn't liked that cake.
+2. That cake I didn't like.
+3. That cake, I didn't like it.
+ 
+ 
+Base sentence: I didn't like that cake
+1. Didn't I like that cake?
+2. I like didn't that cake.
+3. That cake I didn't like.
+ 
+ 
+Base sentence: I didn't like that cake
+1. I not like that cake.
+2. I not liked that cake.
+3. Not I liked that cake.
+ 
+ 
+Base sentence: I didn't like that cake
+1. That cake I didn't like.
+2. Didn't like I that cake.
+3. Like that cake I didn't.
+ 
+ 
+Base sentence: I didn't like that cake
+1. Cake didn't like I that.
+2. That cake I didn't like.
+3. I like didn't that cake.

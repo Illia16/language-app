@@ -575,7 +575,13 @@ const deleteUserData = async () => {
 
 // POST API
 const addUserData = async () => {
+    // validate empty
     if (!v_level.value || !v_languageStudying.value || !v_itemType.value || !v_itemTypeCategory.value || !v_item.value || !v_itemCorrect.value) {
+        return;
+    }
+
+    // validate length
+    if (v_level.value.length > 100 || v_languageStudying.value.length > 100  || v_itemType.value.length > 100  || v_itemTypeCategory.value.length > 100  || v_item.value.length > 100 || v_itemCorrect.value.length > 100 ) {
         return;
     }
 
@@ -811,7 +817,7 @@ watch(v_file, function() {
             }
 
             &.listOfWords-itemType {
-                @apply min-w-[5.5rem];
+                @apply min-w-[7.5rem];
             }
 
             &.listOfWords-itemTypeCategory {
