@@ -11,9 +11,7 @@
 					@click="isOpen = !isOpen"
 					type="button"
 					:disabled="isDisabled">
-					<span v-if="modelValue">{{ 
-						modelValueComputed
-					}}</span>
+					<span v-if="modelValue">{{ modelValueComputed }}</span>
 					<span v-else class="sr-only">Select a state</span>
 				</button>
 				<div class="custom-select-options">
@@ -55,8 +53,13 @@ const customSelectRef = ref<HTMLElement>(null);
 const isOpen = ref<boolean>(false);
 
 const modelValueComputed = computed<string>(():string => {
-	const selectLabel: string = props.options?.map(el => el.value === props.modelValue && el.name).filter(el=>el)[0] as string;	
-	return selectLabel.length > 10 ? selectLabel.slice(0, 7) + '...' : selectLabel;
+	const selectLabel: string = props.options?.map(el => el.value === props.modelValue && el.name).filter(el=>el)[0] as string;
+
+	if (props.state === 'table') {
+		return selectLabel.length > 10 ? selectLabel.slice(0, 7) + '...' : selectLabel;
+	} else {
+		return selectLabel;
+	}
 });
 
 const handleSelect = (e: Event):void => {	

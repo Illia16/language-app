@@ -3,7 +3,7 @@
         <h1>{{ t('listOfWords') }}</h1>
         <h2>{{ t('filterItems') }} &#8594;</h2>
 
-        <ul>
+        <ul v-if="userItemTypes.length > 1 || userLanguagesInProgress.length > 1">
             <li class="listOfWords-item"></li>
             <li class="listOfWords-itemCorrect"></li>
             <li class="listOfWords-itemType">
@@ -17,6 +17,7 @@
                         },
                         ...userItemTypes,
                     ]"
+                    state="table"
                     >
                     <template v-slot:label>{{t('itemType')}}</template>
                 </CustomSelect>
@@ -27,6 +28,7 @@
                     v-if="userLanguagesInProgress.length > 1"
                     v-model="v_filterLearningLang"
                     :options="userLanguagesInProgress"
+                    state="table"
                     >
                     <template v-slot:label>{{t('languageStudying')}}</template>
                 </CustomSelect>
@@ -98,7 +100,7 @@
 
     <teleport to="body">
         <Modal v-if="store.modalOpen && store.modalType === 'delete'" @closeCallback="closeConfirmModal" class="modal-delete-item">
-            <h2>{{ t('modalTitle', { activeModalAction: activeModalAction }) }}</h2>
+            <h2>{{ t('modalTitle', { activeModalAction: t(activeModalAction) }) }}</h2>
             <ul>
                 <li>
                     <span>
@@ -148,7 +150,7 @@
         </Modal>
 
         <Modal v-if="store.modalOpen && store.modalType === 'add'" @closeCallback="closeConfirmModal" class="modal-add-item">
-            <h2>{{ t('modalTitle', { activeModalAction: activeModalAction }) }}</h2>
+            <h2>{{ t('modalTitle', { activeModalAction: t(activeModalAction) }) }}</h2>
                 <div class="form_el">
                     <label>{{t('item')}}</label>
                     <input type="text" v-model="v_item" />
@@ -161,6 +163,26 @@
                     <label>{{t('itemCorrect')}}</label>
                     <input type="text" v-model="v_itemCorrect" />
                 </div>
+
+                <CustomSelect
+                    v-model="v_languageStudying"
+                    :options="[
+                        {
+                            name: 'English',
+                            value: 'en',
+                        },
+                        {
+                            name: 'Chinese',
+                            value: 'zh',
+                        },
+                    ]"
+                    state="lang"
+                >
+                    <template v-slot:label>{{t('languageStudying')}}</template>
+                    <template v-slot:field-error>
+                        <div class="field-error">Please select a languageStudying.</div>
+                    </template>
+                </CustomSelect>
 
                 <CustomSelect
                     v-model="v_itemType"
@@ -205,26 +227,6 @@
                     <label>{{t('newItemTypeCategory')}}</label>
                     <input type="text" v-model="v_newItemTypeCategory" />
                 </div>
-
-                <CustomSelect
-                    v-model="v_languageStudying"
-                    :options="[
-                        {
-                            name: 'English',
-                            value: 'en',
-                        },
-                        {
-                            name: 'Chinese',
-                            value: 'zh',
-                        },
-                    ]"
-                    state="lang"
-                >
-                    <template v-slot:label>{{t('languageStudying')}}</template>
-                    <template v-slot:field-error>
-                        <div class="field-error">Please select a languageStudying.</div>
-                    </template>
-                </CustomSelect>
 
                 <CustomSelect
                     v-model="v_level"
@@ -286,7 +288,7 @@
         </Modal>
 
         <Modal v-if="store.modalOpen && store.modalType === 'update'" @closeCallback="closeConfirmModal" class="modal-update-item">
-            <h2>{{ t('modalTitle', { activeModalAction: activeModalAction }) }}</h2>
+            <h2>{{ t('modalTitle', { activeModalAction: t(activeModalAction) }) }}</h2>
             <div class="form_el">
                 <label>{{t('item')}}</label>
                 <input type="text" v-model="v_item" />
@@ -298,14 +300,6 @@
             <div class="form_el">
                 <label>{{t('itemCorrect')}}</label>
                 <input type="text" v-model="v_itemCorrect" />
-            </div>
-            <div class="form_el">
-                <label>{{t('itemType')}}</label>
-                <input type="text" v-model="v_itemType" />
-            </div>
-            <div class="form_el">
-                <label>{{t('itemTypeCategory')}}</label>
-                <input type="text" v-model="v_itemTypeCategory" />
             </div>
             <CustomSelect
                 v-model="v_languageStudying"
@@ -326,6 +320,14 @@
                     <div class="field-error">Please select a languageStudying.</div>
                 </template>
             </CustomSelect>
+            <div class="form_el">
+                <label>{{t('itemType')}}</label>
+                <input type="text" v-model="v_itemType" />
+            </div>
+            <div class="form_el">
+                <label>{{t('itemTypeCategory')}}</label>
+                <input type="text" v-model="v_itemTypeCategory" />
+            </div>
             <CustomSelect
                 v-model="v_level"
                 :options="[
@@ -466,8 +468,12 @@ const userLangDataFiltered = computed<UserDataArrayOfObj>(() => store.userLangDa
     .filter(el => v_filterItemType.value === 'all' || el.itemType === v_filterItemType.value)
 );
 
-onMounted(() => {    
-    v_filterLearningLang.value = store.userLangData[0].languageStudying;
+onMounted(() => {
+    if (store.userLangData[0]) {
+        v_filterLearningLang.value = store.userLangData[0].languageStudying;
+    } else {
+        navigateTo('/');
+    }
 })
 
 watch(() => v_filterLearningLang.value, () => {
