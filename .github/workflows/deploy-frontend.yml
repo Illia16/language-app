@@ -16,9 +16,17 @@ jobs:
         with:
           node-version: '20'
           
+      - name: Extract Environment from Branch Name
+        id: extract_env
+        run: echo "ENVIRONMENT=${GITHUB_REF#refs/heads/deploy/}" >> $GITHUB_ENV
+        
       - name: Install Dependencies
         run: npm install
-        
+
+      - run: echo "🎉 env is ${{ env.ENVIRONMENT }}."
+      - name: Build Project
+        run: npm run generate:${{ env.ENVIRONMENT }}
+
       - run: echo "🎉 AWS_ACCESS_KEY_ID is ${{ secrets.AWS_ACCESS_KEY_ID }}."
       - run: echo "🎉 AWS_SECRET_ACCESS_KEY is ${{ secrets.AWS_SECRET_ACCESS_KEY }}."
 
