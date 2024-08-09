@@ -3,7 +3,7 @@ run-name: ${{ github.actor }} is deploying (AWS CloudFront)  🚀
 on:
   push:
     branches:
-      - deploy/test
+      - deploy/*
 jobs:
   deploy-frontend:
     runs-on: ubuntu-latest
@@ -22,6 +22,17 @@ jobs:
         
       - name: Install Dependencies
         run: npm install
+
+      - name: Set up Environment Variables
+        run: |
+          if [ "${{ env.ENVIRONMENT }}" == "test" ]; then
+            echo "API_URL=${{ secrets.TEST_API_URL }}" >> $GITHUB_ENV
+            echo "API_URL_AUTH=${{ secrets.TEST_API_URL_AUTH }}" >> $GITHUB_ENV
+          elif [ "${{ env.ENVIRONMENT }}" == "prod" ]; then
+            echo "API_URL=${{ secrets.PROD_API_URL }}" >> $GITHUB_ENV
+            echo "API_URL_AUTH=${{ secrets.PROD_API_URL_AUTH }}" >> $GITHUB_ENV
+          fi
+        shell: bash
 
       - run: echo "🎉 env is ${{ env.ENVIRONMENT }}."
       - name: Build Project
