@@ -18,19 +18,19 @@ jobs:
           
       - name: Extract Environment from Branch Name
         id: extract_env
-        run: echo "ENVIRONMENT=${GITHUB_REF#refs/heads/deploy/}" >> $GITHUB_ENV
+        run: echo "ENV_NAME=${GITHUB_REF#refs/heads/deploy/}" >> $GITHUB_ENV
         
       - name: Install Dependencies
         run: npm install
 
       - name: Set up Environment Variables
         run: |
-          if [ "${{ env.ENVIRONMENT }}" == "test" ]; then
+          if [ "${{ env.ENV_NAME }}" == "test" ]; then
             echo "API_URL=${{ secrets.API_URL_TEST }}" >> $GITHUB_ENV
             echo "API_URL_AUTH=${{ secrets.API_URL_AUTH_TEST }}" >> $GITHUB_ENV
             echo "S3_BUCKET_NAME=${{ secrets.S3_BUCKET_NAME_TEST }}" >> $GITHUB_ENV
             echo "CLOUDFRONT_DISTRIBUTION_ID=${{ secrets.CLOUDFRONT_DISTRIBUTION_ID_TEST }}" >> $GITHUB_ENV
-          elif [ "${{ env.ENVIRONMENT }}" == "prod" ]; then
+          elif [ "${{ env.ENV_NAME }}" == "prod" ]; then
             echo "API_URL=${{ secrets.API_URL_PROD }}" >> $GITHUB_ENV
             echo "API_URL_AUTH=${{ secrets.API_URL_AUTH_PROD }}" >> $GITHUB_ENV
             echo "S3_BUCKET_NAME=${{ secrets.S3_BUCKET_NAME_PROD }}" >> $GITHUB_ENV
@@ -39,7 +39,7 @@ jobs:
         shell: bash
 
       - name: Build Project
-        run: npm run generate:${{ env.ENVIRONMENT }}
+        run: npm run generate:${{ env.ENV_NAME }}
 
       - name: Deploy to S3
         run: |
@@ -56,4 +56,4 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
       - name: Post-deployment Notification
-        run: echo "Deployment to ${{ env.ENVIRONMENT }} environment completed. Status is ${{ job.status }}"
+        run: echo "Deployment to ${{ env.ENV_NAME }} environment completed. Status is ${{ job.status }}"
