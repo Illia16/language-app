@@ -1,20 +1,14 @@
 name: Deploy Frontend
 run-name: ${{ github.actor }} is deploying (AWS CloudFront)  🚀
 on:
-  push:
-    branches:
-      - deploy/*
   workflow_run:
-    workflows: ["Deploy Backend"]
+    workflows: [Deploy Backend]
     types: [completed]
-    branches:
-      - deploy/*
 jobs:
   deploy-frontend:
     runs-on: ubuntu-latest
     if: |
-      github.event.workflow_run.conclusion == 'success' &&
-      startsWith(github.ref, 'refs/heads/deploy/')
+      github.event.workflow_run.conclusion == 'success'
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -23,10 +17,9 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          
-      - name: Extract Environment from Branch Name
-        id: extract_env
-        run: echo "ENV_NAME=${GITHUB_REF#refs/heads/deploy/}" >> $GITHUB_ENV
+
+      - name: Set environment variable
+        run: echo "ENV_NAME=${{ needs.deploy-backend.outputs.branch-name }}" >> $GITHUB_ENV
         
       - name: Install Dependencies
         run: npm install
