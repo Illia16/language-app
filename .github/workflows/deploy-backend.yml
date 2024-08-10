@@ -15,7 +15,9 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          
-      - name: Extract Environment from Branch Name
-        id: extract_env
-        run: echo "ENV_NAME=${GITHUB_REF#refs/heads/deploy/}" >> $GITHUB_ENV
+
+      - name: Extract branch name
+        id: extract-branch
+        run: echo "::set-output name=branch-name::${GITHUB_REF#refs/heads/deploy/}"
+    outputs:
+      branch-name: ${{ steps.extract-branch.outputs.branch-name }}
