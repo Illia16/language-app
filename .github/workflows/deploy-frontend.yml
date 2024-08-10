@@ -1,11 +1,14 @@
 name: Deploy Frontend
 run-name: ${{ github.actor }} is deploying (AWS CloudFront)  🚀
 on:
+  push:
+    branches:
+      - deploy/*
   workflow_run:
     workflows: ["Deploy Backend"]
     types: [completed]
     branches:
-      - 'deploy/**'
+      - deploy/*
 jobs:
   deploy-frontend:
     runs-on: ubuntu-latest
