@@ -375,7 +375,7 @@ onMounted(async() => {
 <i18n lang="yaml">
     en:
         helloMsg: 'Please, sign in to continue'
-        submit: 'Login'
+        submit: 'Sign in'
         signup: 'Signup'
         signupEmailNote: 'You will need to vefiry your email address after registration. Look for an email from Amazon.'
         forgotPassword: 'Forgot password?'
