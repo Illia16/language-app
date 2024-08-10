@@ -4,8 +4,6 @@ on:
   workflow_run:
     workflows: [Deploy Backend]
     types: [completed]
-    branches:
-      - deploy/*
 jobs:
   deploy-frontend:
     runs-on: ubuntu-latest
@@ -21,7 +19,7 @@ jobs:
           node-version: '20'
 
       - name: Set environment variable
-        run: echo "ENV_NAME=${{ needs.deploy.outputs.branch-name }}" >> $GITHUB_ENV
+        run: echo "ENV_NAME=${{ needs.deploy-backend.outputs.branch-name }}" >> $GITHUB_ENV
         
       - name: Install Dependencies
         run: npm install
