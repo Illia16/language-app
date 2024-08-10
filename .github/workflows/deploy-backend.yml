@@ -1,0 +1,21 @@
+name: Deploy Backend
+run-name: ${{ github.actor }} is deploying backend (AWS)  🚀
+on:
+  push:
+    branches:
+      - deploy/*
+jobs:
+  deploy-backend:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+  
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          
+      - name: Extract Environment from Branch Name
+        id: extract_env
+        run: echo "ENV_NAME=${GITHUB_REF#refs/heads/deploy/}" >> $GITHUB_ENV
