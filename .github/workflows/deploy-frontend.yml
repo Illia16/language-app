@@ -1,13 +1,18 @@
 name: Deploy Frontend
 run-name: ${{ github.actor }} is deploying (AWS CloudFront)  🚀
 on:
+  push:
+    branches:
+      - deploy/*
   workflow_run:
     workflows: ["Deploy Backend"]
     types: [completed]
 jobs:
   deploy-frontend:
     runs-on: ubuntu-latest
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    if: |
+      github.event_name == 'push' &&
+      github.event.workflow_run.conclusion == 'success'
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
