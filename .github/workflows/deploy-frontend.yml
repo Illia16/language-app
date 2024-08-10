@@ -5,7 +5,7 @@ on:
     branches:
       - deploy/*
   workflow_run:
-    workflows: ["Deploy Backend"]
+    workflows: [Deploy Backend]
     types: [completed]
     branches:
       - deploy/*
