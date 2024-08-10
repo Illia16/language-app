@@ -1,0 +1,69 @@
+name: Deploy Frontend
+run-name: ${{ github.actor }} is deploying (AWS CloudFront)  🚀
+on:
+  push:
+    branches:
+      - deploy/*
+jobs:
+  deploy-frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+  
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          
+      - name: Extract Environment from Branch Name
+        id: extract_env
+        run: echo "ENVIRONMENT=${GITHUB_REF#refs/heads/deploy/}" >> $GITHUB_ENV
+        
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Set up Environment Variables
+        run: |
+          if [ "${{ env.ENVIRONMENT }}" == "test" ]; then
+            echo "API_URL=${{ secrets.API_URL_TEST }}" >> $GITHUB_ENV
+            echo "API_URL_AUTH=${{ secrets.API_URL_AUTH_TEST }}" >> $GITHUB_ENV
+            echo "S3_BUCKET_NAME=${{ secrets.S3_BUCKET_NAME_TEST }}" >> $GITHUB_ENV
+            echo "CLOUDFRONT_DISTRIBUTION_ID=${{ secrets.CLOUDFRONT_DISTRIBUTION_ID_TEST }}" >> $GITHUB_ENV
+          elif [ "${{ env.ENVIRONMENT }}" == "prod" ]; then
+            echo "API_URL=${{ secrets.API_URL_PROD }}" >> $GITHUB_ENV
+            echo "API_URL_AUTH=${{ secrets.API_URL_AUTH_PROD }}" >> $GITHUB_ENV
+            echo "S3_BUCKET_NAME=${{ secrets.S3_BUCKET_NAME_PROD }}" >> $GITHUB_ENV
+            echo "CLOUDFRONT_DISTRIBUTION_ID=${{ secrets.CLOUDFRONT_DISTRIBUTION_ID_PROD }}" >> $GITHUB_ENV
+          fi
+        shell: bash
+
+      - name: Build Project
+        run: npm run generate:${{ env.ENVIRONMENT }}
+
+      - name: Deploy to S3
+        run: |
+          aws s3 sync .output/public/ s3://${{ env.S3_BUCKET_NAME }} --region us-east-1 --debug
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+      - name: Invalidate CloudFront Cache
+        run: |
+          aws cloudfront create-invalidation --distribution-id ${{ env.CLOUDFRONT_DISTRIBUTION_ID }} --region us-east-1 --paths "/*" --debug
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+      - name: Post-deployment Notification
+        run: echo "Deployment to ${{ env.ENVIRONMENT }} environment completed."
+
+      - run: echo "🎉 The job was automatically triggered by a ${{ github.event_name }} event."
+      - run: echo "🐧 This job is now running on a ${{ runner.os }} server hosted by GitHub!"
+      - run: echo "🔎 The name of your branch is ${{ github.ref }} and your repository is ${{ github.repository }}."
+      - run: echo "💡 The ${{ github.repository }} repository has been cloned to the runner."
+      - run: echo "🖥️ The workflow is now ready to test your code on the runner."
+      - name: List files in the repository
+        run: |
+          ls ${{ github.workspace }}
+      - run: echo "🍏 This job's status is ${{ job.status }}."
