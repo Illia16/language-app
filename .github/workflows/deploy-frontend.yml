@@ -1,14 +1,11 @@
 name: Deploy Frontend
 run-name: ${{ github.actor }} is deploying (AWS CloudFront)  🚀
 on:
-  workflow_run:
-    workflows: [Deploy Backend]
-    types: [completed]
+  repository_dispatch:
+    types: [deploy-backend]
 jobs:
   deploy-frontend:
     runs-on: ubuntu-latest
-    if: |
-      github.event.workflow_run.conclusion == 'success'
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -19,7 +16,7 @@ jobs:
           node-version: '20'
 
       - name: Set environment variable
-        run: echo "ENV_NAME=${{ needs.deploy-backend.outputs.branch-name }}" >> $GITHUB_ENV
+        run: echo "ENV_NAME=${{ github.event.client_payload.env }}" >> $GITHUB_ENV
         
       - name: Install Dependencies
         run: npm install
