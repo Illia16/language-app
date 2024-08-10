@@ -4,12 +4,13 @@ on:
   workflow_run:
     workflows: ["Deploy Backend"]
     types: [completed]
+    branches:
+      - 'deploy/**'
 jobs:
   deploy-frontend:
     runs-on: ubuntu-latest
     if: |
-      github.event.workflow_run.conclusion == 'success' &&
-      startsWith(github.ref, 'refs/heads/deploy/')
+      github.event.workflow_run.conclusion == 'success'
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
