@@ -19,5 +19,5 @@ jobs:
       - name: Repository Dispatch
         uses: peter-evans/repository-dispatch@v3
         with:
-          event-type: extract-env
+          event-type: deploy-backend
           client-payload: '{"env": "${{ GITHUB_REF#refs/heads/deploy/ }}"}'
