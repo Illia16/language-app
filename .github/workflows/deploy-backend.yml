@@ -25,3 +25,23 @@ jobs:
         with:
           event-type: deploy-backend
           client-payload: '{"env": "${{ env.ENV_NAME }}"}'
+
+      - name: Install CDK Dependencies
+        run: npm install
+        working-directory: backend_cdk
+
+      - name: Install Lambda Function Dependencies
+        run: npm install
+        working-directory: backend_cdk/lib/functions
+
+      - name: Synthesize CloudFormation Template
+        env:
+          SENDER_EMAIL: ${{ secrets.SENDER_EMAIL }}
+          OPEN_AI_KEY: ${{ secrets.OPEN_AI_KEY }}
+          SQS_URL_TEST: ${{ secrets.SQS_URL_TEST }}
+          SQS_URL_PROD: ${{ secrets.SQS_URL_PROD }}
+        run: npm run synth:${{ env.ENV_NAME }}
+        working-directory: backend_cdk
+
+      - name: Show CDK Output Folder
+        run: ls -R backend_cdk/cdk.out

@@ -8,8 +8,6 @@ const { SESClient, SendEmailCommand, VerifyEmailIdentityCommand } = require("@aw
 const clientEmail = new SESClient({});
 // Helpers
 const { findUserByEmail } = require('../helpers');
-// Cfg
-const config = require('../config');
 
 module.exports = async (event, context) => {
     console.log('-----------------------------');
@@ -27,7 +25,7 @@ module.exports = async (event, context) => {
         // if found, sent to user their creds. TODO: add a url where they can set new creds themselves.
         if (resUserByEmail && resUserByEmail?.userEmail) {
             const input = {
-                Source: config.senderEmail,
+                Source: process.env.senderEmail,
                 Destination: {
                     ToAddresses: [resUserByEmail.userEmail],
                 },

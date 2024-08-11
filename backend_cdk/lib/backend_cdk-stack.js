@@ -11,7 +11,6 @@ const eventsTargets = require('aws-cdk-lib/aws-events-targets');
 const sqs = require('aws-cdk-lib/aws-sqs');
 const lambdaEventSource = require('aws-cdk-lib/aws-lambda-event-sources');
 const path = require('path');
-const config = require('./functions/config');
 
 class BackendCdkStack extends cdk.Stack {
   constructor(scope, id, props) {
@@ -154,7 +153,8 @@ class BackendCdkStack extends cdk.Stack {
           env: props.env.stage,
           projectName: props.env.projectName,
           cloudfrontTestUrl: props.env.cloudfrontTestUrl,
-          cloudfrontProdUrl: props.env.cloudfrontProdUrl
+          cloudfrontProdUrl: props.env.cloudfrontProdUrl,
+          OPENAI_KEY: props.env.openAiKey,
         },
         timeout: cdk.Duration.seconds(30),
         // layers: [helperFns],
@@ -177,7 +177,9 @@ class BackendCdkStack extends cdk.Stack {
         env: props.env.stage,
         projectName: props.env.projectName,
         cloudfrontTestUrl: props.env.cloudfrontTestUrl,
-        cloudfrontProdUrl: props.env.cloudfrontProdUrl
+        cloudfrontProdUrl: props.env.cloudfrontProdUrl,
+        sqsUrl: props.env.stage !== 'prod' ? props.env.sqsUrlTest : props.env.sqsUrlProd,
+        OPENAI_KEY: props.env.openAiKey,
       },
       timeout: cdk.Duration.seconds(30),
     });
@@ -298,6 +300,9 @@ class BackendCdkStack extends cdk.Stack {
         code: lambda.Code.fromAsset(path.join(__dirname, 'functions')),
         functionName: `${props.env.projectName}--lambda-fn-handleSQS--${props.env.stage}`,
         role: myIam,
+        environment: {
+          senderEmail: props.env.senderEmail,
+        },
         events: [new lambdaEventSource.SqsEventSource(myQueue, {
           // enabled: true,
           batchSize: 1,
@@ -365,7 +370,7 @@ class BackendCdkStack extends cdk.Stack {
               effect: iam.Effect.ALLOW,
               conditions: {
                 StringEquals: {
-                  "ses:FromAddress": config.senderEmail,
+                  "ses:FromAddress": props.env.senderEmail,
                 }
               }
             }),

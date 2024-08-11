@@ -1,6 +1,5 @@
 const OpenAI = require("openai");
-const config = require('../config');
-const openai = new OpenAI({ apiKey: config.openAiKey });
+const openai = new OpenAI({ apiKey: process.env.OPENAI_KEY });
 
 module.exports = {
     getIncorrectItems: async (prompt) => {
