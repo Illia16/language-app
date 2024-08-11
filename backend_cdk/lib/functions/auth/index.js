@@ -11,7 +11,6 @@ const { responseWithError, checkIfUserExists, cleanUpFileName, s3UploadFile, get
 const { getIncorrectItems, getAudio } = require('../helpers/openai')
 const { v4: uuidv4 } = require("uuid");
 const jwt = require('jsonwebtoken');
-const config = require('../config');
 
 module.exports = async (event, context) => {
     console.log('-----------------------------');
@@ -25,6 +24,7 @@ module.exports = async (event, context) => {
     const env = process.env.env;
     const projectName = process.env.projectName;
     const secretJwt = await getSecret(`${projectName}--secret-auth--${env}`);
+    const sqsUrl = process.env.sqsUrl;
 
     // Event obj and CORS
     const headers = event.headers;
@@ -209,7 +209,7 @@ module.exports = async (event, context) => {
 
                 // send verification email to the user
                 const inputSQS = {
-                    QueueUrl: config[env].sqsUrl,
+                    QueueUrl: sqsUrl,
                     MessageBody: JSON.stringify({eventName: 'verify-email', userEmail: userEmail}),
                 };
                 const commandSQS = new SendMessageCommand(inputSQS);
@@ -222,7 +222,7 @@ module.exports = async (event, context) => {
     // if (event.path === '/auth/delete-account') {}
     if (event.path === '/auth/forgot-password') {
         const inputSQS = {
-            QueueUrl: config[env].sqsUrl,
+            QueueUrl: sqsUrl,
             MessageBody: JSON.stringify({eventName: 'forgot-password', dbUsers: dbUsers, userEmail: body.userEmail}),
         };
         const commandSQS = new SendMessageCommand(inputSQS);
@@ -242,7 +242,7 @@ module.exports = async (event, context) => {
             const decoded = jwt.verify(token, secretJwt);
             console.log('Token is ok.', decoded);
             const inputSQS = {
-                QueueUrl: config[env].sqsUrl,
+                QueueUrl: sqsUrl,
                 MessageBody: JSON.stringify({eventName: 'change-password', dbUsers: dbUsers, user: decoded.user, userId: body.userId, password: body.password}),
             };
             const commandSQS = new SendMessageCommand(inputSQS);

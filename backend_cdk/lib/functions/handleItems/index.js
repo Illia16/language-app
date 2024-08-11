@@ -367,10 +367,11 @@ module.exports = async (event, context) => {
         const command = new BatchWriteCommand(input);
         const res = await client.send(command);
 
-        // Delete from S3
-        if (userRole === 'admin' && data.filePath) {
-            await s3DeleteFile(s3Files, data.filePath)
-        }
+        // (TODO: do not delete for now since other users may wanna use the audio file OR if deleting the file, then delete the item from every's user DB (above^))
+        // Delete from S3 
+        // if (userRole === 'admin' && data.filePath) {
+        //     await s3DeleteFile(s3Files, data.filePath)
+        // }
         //
         console.log('res DELETE:', res);
         response.body = JSON.stringify({success: true});
