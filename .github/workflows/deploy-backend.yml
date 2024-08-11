@@ -40,8 +40,7 @@ jobs:
           OPEN_AI_KEY: ${{ secrets.OPEN_AI_KEY }}
           SQS_URL_TEST: ${{ secrets.SQS_URL_TEST }}
           SQS_URL_PROD: ${{ secrets.SQS_URL_PROD }}
-        run: npm run synth:${{ env.ENV_NAME }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        run: npm run deploy:${{ env.ENV_NAME }}
         working-directory: backend_cdk
-
-      - name: Show CDK Output Folder
-        run: ls -R backend_cdk/cdk.out
