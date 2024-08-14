@@ -24,6 +24,9 @@ jobs:
         run: npm install
         working-directory: backend_cdk
 
+      - name: Install CDK Globally
+        run: npm install -g aws-cdk
+
       - name: Install Lambda Function Dependencies
         run: npm install
         working-directory: backend_cdk/lib/functions
@@ -41,7 +44,7 @@ jobs:
           OPEN_AI_KEY: ${{ secrets.OPEN_AI_KEY }}
           SQS_URL_TEST: ${{ secrets.SQS_URL_TEST }}
           SQS_URL_PROD: ${{ secrets.SQS_URL_PROD }}
-        run: npx cdk deploy -c env=${{ env.ENV_NAME }}
+        run: cdk deploy -c env=${{ env.ENV_NAME }}
         working-directory: backend_cdk
 
       - name: Repository Dispatch
