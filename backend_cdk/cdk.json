@@ -1,6 +1,5 @@
 {
   "app": "node bin/backend_cdk.js",
-  "profile": "personal",
   "watch": {
     "include": [
       "**"
