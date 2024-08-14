@@ -44,7 +44,7 @@ jobs:
           OPEN_AI_KEY: ${{ secrets.OPEN_AI_KEY }}
           SQS_URL_TEST: ${{ secrets.SQS_URL_TEST }}
           SQS_URL_PROD: ${{ secrets.SQS_URL_PROD }}
-        run: cdk deploy -c env=${{ env.ENV_NAME }} --profile default
+        run: cdk deploy -c env=${{ env.ENV_NAME }}
         working-directory: backend_cdk
 
       - name: Repository Dispatch
