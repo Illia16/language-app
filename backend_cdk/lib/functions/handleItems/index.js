@@ -8,7 +8,7 @@ const { getIncorrectItems, getAudio } = require('../helpers/openai')
 const multipartParser = require('parse-multipart-data');
 const jwt = require('jsonwebtoken');
 
-module.exports = async (event, context) => {
+module.exports.handler = async (event, context) => {
     console.log('-----------------------------');
     console.log('Language app dynamoDB handler');
     console.log('event', event);

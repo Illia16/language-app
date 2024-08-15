@@ -12,7 +12,7 @@ const { getIncorrectItems, getAudio } = require('../helpers/openai')
 const { v4: uuidv4 } = require("uuid");
 const jwt = require('jsonwebtoken');
 
-module.exports = async (event, context) => {
+module.exports.handler = async (event, context) => {
     console.log('-----------------------------');
     console.log('Auth handler');
     console.log('event', event);

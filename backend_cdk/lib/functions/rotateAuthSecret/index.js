@@ -1,7 +1,7 @@
 const { SecretsManagerClient, GetSecretValueCommand, UpdateSecretCommand, RotateSecretCommand, GetRandomPasswordCommand  } = require('@aws-sdk/client-secrets-manager');
 const client = new SecretsManagerClient({});
 
-module.exports = async (event, context) => {
+module.exports.handler = async (event, context) => {
     console.log('-----------------------------');
     console.log('Rotate secrete handler');
     console.log('event', event);

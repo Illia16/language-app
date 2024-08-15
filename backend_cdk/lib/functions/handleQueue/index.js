@@ -9,7 +9,7 @@ const clientEmail = new SESClient({});
 // Helpers
 const { findUserByEmail } = require('../helpers');
 
-module.exports = async (event, context) => {
+module.exports.handler = async (event, context) => {
     console.log('-----------------------------');
     console.log('Handle queue SQS handler');
     console.log('event', event);

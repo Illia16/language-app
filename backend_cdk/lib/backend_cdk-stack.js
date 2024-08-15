@@ -145,7 +145,7 @@ class BackendCdkStack extends cdk.Stack {
 
     const lambdaFnDynamoDb = new lambda.Function(this, `${props.env.projectName}--lambda-fn-db-data--${props.env.stage}`, {
         runtime: lambda.Runtime.NODEJS_18_X,
-        handler: 'index.handleItems',
+        handler: 'handleItems/index.handler',
         code: lambda.Code.fromAsset(path.join(__dirname, 'functions')),
         functionName: `${props.env.projectName}--lambda-fn-db-data--${props.env.stage}`,
         role: myIam,
@@ -169,7 +169,7 @@ class BackendCdkStack extends cdk.Stack {
 
     const authFn = new lambda.Function(this, `${props.env.projectName}--lambda-fn-db-users--${props.env.stage}`, {
       runtime: lambda.Runtime.NODEJS_18_X,
-      handler: 'index.auth',
+      handler: 'auth/index.handler',
       code: lambda.Code.fromAsset(path.join(__dirname, 'functions')),
       functionName: `${props.env.projectName}--lambda-fn-db-users--${props.env.stage}`,
       role: myIam,
@@ -252,12 +252,12 @@ class BackendCdkStack extends cdk.Stack {
     // Define a Lambda function for the rotation
     const rotateSecretFn = new lambda.Function(this, `${props.env.projectName}--secret-rotation-fn--${props.env.stage}`, {
         runtime: lambda.Runtime.NODEJS_18_X,
-        handler: 'index.rotateAuthSecret',
+        handler: 'rotateAuthSecret/index.handler',
+        code: lambda.Code.fromAsset(path.join(__dirname, 'functions')),
         functionName: `${props.env.projectName}--secret-rotation-fn--${props.env.stage}`,
         environment: {
             secretId: `${props.env.projectName}--secret-auth--${props.env.stage}`,
         },
-        code: lambda.Code.fromAsset(path.join(__dirname, 'functions')),
         role: myIam,
 
     });
@@ -296,7 +296,7 @@ class BackendCdkStack extends cdk.Stack {
     });
     const lambdaFnSQS = new lambda.Function(this, `${props.env.projectName}--lambda-fn-handleSQS--${props.env.stage}`, {
         runtime: lambda.Runtime.NODEJS_18_X,
-        handler: 'index.handleQueue',
+        handler: 'handleQueue/index.handler',
         code: lambda.Code.fromAsset(path.join(__dirname, 'functions')),
         functionName: `${props.env.projectName}--lambda-fn-handleSQS--${props.env.stage}`,
         role: myIam,
