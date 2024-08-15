@@ -83,47 +83,87 @@ module.exports = async (event, context) => {
             return
         }
         const token = authToken.split(' ')[1];
-        jwt.verify(token, secretJwt, async (err, decoded) => {
-            if (err) {
-                console.log('Err, token is invalid:', err);
-                response = responseWithError('401', 'Token is invalid.', headerOrigin)
-                return
-            } else {
-                console.log('Token is ok.', decoded);
+        // jwt.verify(token, secretJwt, async (err, decoded) => {
+        //     if (err) {
+        //         console.log('Err, token is invalid:', err);
+        //         response = responseWithError('401', 'Token is invalid.', headerOrigin)
+        //         return
+        //     } else {
+        //         console.log('Token is ok.', decoded);
 
-                if (decoded.role !== 'admin') {
-                    console.log('User is not an admin...');
-                    response = responseWithError('401', `User ${decoded.user} is not authorized to do this action.`, headerOrigin)
-                    return
-                }
+        //         if (decoded.role !== 'admin') {
+        //             console.log('User is not an admin...');
+        //             response = responseWithError('401', `User ${decoded.user} is not authorized to do this action.`, headerOrigin)
+        //             return
+        //         }
 
-                const genInvitationCode = uuidv4();
-                console.log('genInvitationCode', genInvitationCode);
-                try {
-                    const input = {
-                        "Item": {
-                            user: genInvitationCode,
-                            userId: genInvitationCode,
-                            role: 'user',
-                        },
-                        "ReturnConsumedCapacity": "TOTAL",
-                        "TableName": dbUsers
-                    };
-                    console.log('genInvitationCode input:', input);
+        //         const genInvitationCode = uuidv4();
+        //         console.log('genInvitationCode', genInvitationCode);
+        //         try {
+        //             const input = {
+        //                 "Item": {
+        //                     user: genInvitationCode,
+        //                     userId: genInvitationCode,
+        //                     role: 'user',
+        //                 },
+        //                 "ReturnConsumedCapacity": "TOTAL",
+        //                 "TableName": dbUsers
+        //             };
+        //             console.log('genInvitationCode input:', input);
 
-                    const command = new PutCommand(input);
-                    const res = await client.send(command);
-                    console.log('res POST generate-invitation-code:', res);
-                    response.body = JSON.stringify({success: true});
-                } catch (error) {
-                    response.statusCode = '500';
-                    response.body = JSON.stringify({
-                        success: false,
-                        message: error.message,
-                    })
-                }
+        //             const command = new PutCommand(input);
+        //             const res = await client.send(command);
+        //             console.log('res POST generate-invitation-code:', res);
+        //             response.body = JSON.stringify({success: true});
+        //         } catch (error) {
+        //             response.statusCode = '500';
+        //             response.body = JSON.stringify({
+        //                 success: false,
+        //                 message: error.message,
+        //             })
+        //         }
+        //     }
+        // })
+
+        try {
+            const decoded = jwt.verify(token, secretJwt);
+            console.log('decoded', decoded);
+        } catch (err) {
+            console.log('Err, token is invalid:', err);
+            response = responseWithError('401', 'Token is invalid.',  )
+        }
+
+        console.log('Token is ok.', decoded);
+        if (decoded.role !== 'admin') {
+            console.log('User is not an admin...');
+            response = responseWithError('401', `User ${decoded.user} is not authorized to do this action.`, headerOrigin)
+        } else {
+            const genInvitationCode = uuidv4();
+            console.log('genInvitationCode', genInvitationCode);
+            try {
+                const input = {
+                    "Item": {
+                        user: genInvitationCode,
+                        userId: genInvitationCode,
+                        role: 'user',
+                    },
+                    "ReturnConsumedCapacity": "TOTAL",
+                    "TableName": dbUsers
+                };
+                console.log('genInvitationCode input:', input);
+    
+                const command = new PutCommand(input);
+                const res = await client.send(command);
+                console.log('res POST generate-invitation-code:', res);
+                response.body = JSON.stringify({success: true});
+            } catch (error) {
+                response.statusCode = '500';
+                response.body = JSON.stringify({
+                    success: false,
+                    message: error.message,
+                })
             }
-        })
+        }
     }
 
     if (event.path === '/auth/register') {
