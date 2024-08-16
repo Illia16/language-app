@@ -8,7 +8,8 @@ const clientSQS = new SQSClient({});
 const client = new DynamoDBClient({});
 const docClient = DynamoDBDocumentClient.from(client);
 const { responseWithError, checkIfUserExists, cleanUpFileName, s3UploadFile, getSecret } = require('../helpers');
-const { getIncorrectItems, getAudio } = require('../helpers/openai')
+const { getIncorrectItems, getAudio } = require('../helpers/openai');
+const { checkPassword, hashPassword } = require('../helpers/auth');
 const { v4: uuidv4 } = require("uuid");
 const jwt = require('jsonwebtoken');
 
@@ -52,11 +53,9 @@ module.exports.handler = async (event, context) => {
 
         const params = {
             TableName: dbUsers,
-            FilterExpression: "password = :filterExp",
             KeyConditionExpression: "#userName = :usr",
             ExpressionAttributeValues: {
               ":usr": username,
-              ":filterExp": password,
             },
             ExpressionAttributeNames: { "#userName": "user" },
             ConsistentRead: true,
@@ -66,7 +65,8 @@ module.exports.handler = async (event, context) => {
         const res = await docClient.send(command);
         console.log('res /auth/login GET QUERY:', res);
 
-        if (res.Items && res.Items.length) {
+        const isPwCorrect = await checkPassword(res.Items[0].password, password);
+        if (res.Items && res.Items.length && isPwCorrect) {
             const userObj = res.Items[0];
             const token = jwt.sign({user: userObj.user, ...(userObj.role === 'admin' && {role: userObj.role})}, secretJwt, { expiresIn: '25 days' });
             response.body = JSON.stringify({success: true, data: {user: res.Items[0].user, userId: res.Items[0].userId, userMotherTongue: res.Items[0].userMotherTongue, token: token}});
@@ -156,11 +156,14 @@ module.exports.handler = async (event, context) => {
                 const resDeleteInvCode = await client.send(commandDeleteInvCode);
                 console.log('resDeleteInvCode', resDeleteInvCode);
 
+                const hashedPassword = await hashPassword(password)
+                console.log('hashedPassword - register', hashedPassword);
+
                 const inputCreateUser = {
                     Item: {
                         user: username,
                         userId: username+"___"+invitationCode,
-                        password: password,
+                        password: hashedPassword,
                         userMotherTongue: userMotherTongue,
                         role: 'user',
                         userEmail: userEmail,
@@ -236,12 +239,21 @@ module.exports.handler = async (event, context) => {
         }
         const token = authToken.split(' ')[1];
 
+        const hashedPassword = await hashPassword(body.password)
+        console.log('hashedPassword - change-password', hashedPassword);
+
         try {
             const decoded = jwt.verify(token, secretJwt);
             console.log('Token is ok.', decoded);
             const inputSQS = {
                 QueueUrl: sqsUrl,
-                MessageBody: JSON.stringify({eventName: 'change-password', dbUsers: dbUsers, user: decoded.user, userId: body.userId, password: body.password}),
+                MessageBody: JSON.stringify({
+                    eventName: 'change-password', 
+                    dbUsers: dbUsers, 
+                    user: decoded.user, 
+                    userId: body.userId, 
+                    password: hashedPassword
+                }),
             };
             const commandSQS = new SendMessageCommand(inputSQS);
             await clientSQS.send(commandSQS);
