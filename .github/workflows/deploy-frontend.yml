@@ -3,6 +3,7 @@ run-name: ${{ github.actor }} is deploying (AWS CloudFront)  🚀
 on:
   repository_dispatch:
     types: [deploy-backend]
+
 jobs:
   deploy-frontend:
     runs-on: ubuntu-latest
@@ -17,31 +18,48 @@ jobs:
 
       - name: Set environment variable
         run: echo "ENV_NAME=${{ github.event.client_payload.env }}" >> $GITHUB_ENV
+
+      - name: Get S3 Bucket site
+        id: get-s3-site-bucket
+        run: |
+          S3_SITE=$(aws s3api list-buckets --query "Buckets[?Name=='${{ secrets.PROJECT_NAME }}--s3-site--${{ env.ENV_NAME }}'].Name" --region us-east-1 --output text)
+          echo "S3_SITE=$S3_SITE" >> $GITHUB_ENV
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+      - name: Get CloudFront ID
+        id: get-cloudfront-id
+        run: |
+          CLOUDFRONT_DISTRIBUTION_ID=$(aws cloudformation describe-stack-resources --stack-name ${{ secrets.PROJECT_NAME }}-stack-test --region us-east-1 --query "StackResources[?ResourceType=='AWS::CloudFront::Distribution'].PhysicalResourceId" --output text)
+          echo "CLOUDFRONT_DISTRIBUTION_ID=$CLOUDFRONT_DISTRIBUTION_ID" >> $GITHUB_ENV
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      
+      - name: Get API urls
+        id: get-api-urls
+        run: |
+          API_ID_USERS=$(aws apigateway get-rest-apis --query "items[?name=='${{ secrets.PROJECT_NAME }}--api-users--${{ env.ENV_NAME }}'].id" --region us-east-1 --output text)
+          API_URL_USERS="https://${API_ID_USERS}.execute-api.us-east-1.amazonaws.com"
+          echo "API_URL_USERS=$API_URL_USERS" >> $GITHUB_ENV
+
+          API_ID_DATA=$(aws apigateway get-rest-apis --query "items[?name=='${{ secrets.PROJECT_NAME }}--api-data--${{ env.ENV_NAME }}'].id" --region us-east-1 --output text)
+          API_URL_DATA="https://${API_ID_DATA}.execute-api.us-east-1.amazonaws.com"
+          echo "API_URL_DATA=$API_URL_DATA" >> $GITHUB_ENV
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         
       - name: Install Dependencies
         run: npm install
-
-      - name: Set up Environment Variables
-        run: |
-          if [ "${{ env.ENV_NAME }}" == "test" ]; then
-            echo "API_URL=${{ secrets.API_URL_TEST }}" >> $GITHUB_ENV
-            echo "API_URL_AUTH=${{ secrets.API_URL_AUTH_TEST }}" >> $GITHUB_ENV
-            echo "S3_BUCKET_NAME=${{ secrets.S3_BUCKET_NAME_TEST }}" >> $GITHUB_ENV
-            echo "CLOUDFRONT_DISTRIBUTION_ID=${{ secrets.CLOUDFRONT_DISTRIBUTION_ID_TEST }}" >> $GITHUB_ENV
-          elif [ "${{ env.ENV_NAME }}" == "prod" ]; then
-            echo "API_URL=${{ secrets.API_URL_PROD }}" >> $GITHUB_ENV
-            echo "API_URL_AUTH=${{ secrets.API_URL_AUTH_PROD }}" >> $GITHUB_ENV
-            echo "S3_BUCKET_NAME=${{ secrets.S3_BUCKET_NAME_PROD }}" >> $GITHUB_ENV
-            echo "CLOUDFRONT_DISTRIBUTION_ID=${{ secrets.CLOUDFRONT_DISTRIBUTION_ID_PROD }}" >> $GITHUB_ENV
-          fi
-        shell: bash
 
       - name: Build Project
         run: npm run generate:${{ env.ENV_NAME }}
 
       - name: Deploy to S3
         run: |
-          aws s3 sync .output/public/ s3://${{ env.S3_BUCKET_NAME }} --region us-east-1
+          aws s3 sync .output/public/ s3://${{ env.S3_SITE }} --region us-east-1
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}

@@ -149,7 +149,7 @@ const userEmail = ref<string>('');
 //
 
 const getUserData = async () => {
-    const userData = await fetch(`${config.public.apiUrl}/${config.public.envName}/data`, {
+    const userData = await fetch(`${config.public.API_URL_DATA}/${config.public.ENV_NAME}/data`, {
         headers: {
             "Authorization": `Bearer ${store.token}`
         }
@@ -211,7 +211,7 @@ const login = async () => {
     }
 
     store.setLoading(true);
-    const authUser = await fetch(`${config.public.apiUrlAuth}/${config.public.envName}/auth/login`, {
+    const authUser = await fetch(`${config.public.API_URL_USERS}/${config.public.ENV_NAME}/users/login`, {
         method: 'POST',
         body: JSON.stringify({user: user.value, password: password.value})
     })
@@ -246,7 +246,7 @@ const signup = async () => {
     }
 
     store.setLoading(true);
-    const signupRes = await fetch(`${config.public.apiUrlAuth}/${config.public.envName}/auth/register`, {
+    const signupRes = await fetch(`${config.public.API_URL_USERS}/${config.public.ENV_NAME}/users/register`, {
         method: 'POST',
         body: JSON.stringify({
             "user": signup_user.value,
@@ -281,7 +281,7 @@ const handleForgotPassword =async () => {
     }
 
     store.setLoading(true);
-    const signupRes = await fetch(`${config.public.apiUrlAuth}/${config.public.envName}/auth/forgot-password`, {
+    const signupRes = await fetch(`${config.public.API_URL_USERS}/${config.public.ENV_NAME}/users/forgot-password`, {
         method: 'POST',
         body: JSON.stringify({
             "userEmail": userEmail.value,
@@ -314,8 +314,8 @@ const handleForgotPassword =async () => {
 // }
 
 onMounted(async() => {
-    console.log('Runtime config API_URL:', config.public.apiUrl)
-    console.log('Runtime config ENV_NAME:', config.public.envName)
+    console.log('Runtime config API_URL_DATA:', config.public.API_URL_DATA)
+    console.log('Runtime config ENV_NAME:', config.public.ENV_NAME)
     // getUserDataNuxt();
 
     if (cookieUser.value && cookieToken.value && !store.currentUserName && !store.userLangData.length) {

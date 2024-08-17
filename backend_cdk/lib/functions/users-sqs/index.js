@@ -25,7 +25,7 @@ module.exports.handler = async (event, context) => {
         // if found, sent to user their creds. TODO: add a url where they can set new creds themselves.
         if (resUserByEmail && resUserByEmail?.userEmail) {
             const input = {
-                Source: process.env.senderEmail,
+                Source: process.env.SENDER_EMAIL,
                 Destination: {
                     ToAddresses: [resUserByEmail.userEmail],
                 },

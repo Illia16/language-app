@@ -6,7 +6,7 @@ const config = require('../deploy.config');
 // const baseSentence = "I like apples.";
 const baseSentence = "I didn't like that cake";
 const outputFileName = 'results.txt';
-const openai = new OpenAI({ apiKey: config.openAiKey });
+const openai = new OpenAI({ apiKey: config.OPEN_AI_KEY });
 
 async function main(prompt) {
   const completion = await openai.chat.completions.create({

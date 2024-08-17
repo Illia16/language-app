@@ -62,7 +62,7 @@ const updateUserData = async () => {
             payload.append('itemID', el.id);
             payload.append('level', JSON.stringify(Number(el.level) + 1));
 
-            await fetch(`${config.public.apiUrl}/${config.public.envName}/data`, {
+            await fetch(`${config.public.API_URL_DATA}/${config.public.ENV_NAME}/data`, {
                 method: 'PUT',
                 body: payload,
                 headers: {

@@ -4,26 +4,16 @@ const cdk = require('aws-cdk-lib');
 const { BackendCdkStack } = require('../lib/backend_cdk-stack');
 
 const app = new cdk.App();
-const environment = app.node.tryGetContext('env');
-const account = app.node.tryGetContext('account');
-const projectName = app.node.tryGetContext('projectName');
-const cloudfrontTestUrl = app.node.tryGetContext('cloudfrontTestUrl');
-const cloudfrontProdUrl = app.node.tryGetContext('cloudfrontProdUrl');
-console.log('environment', environment);
-console.log('account', account);
 
-new BackendCdkStack(app, `${projectName}-stack-${environment}`, {
+new BackendCdkStack(app, `${process.env.PROJECT_NAME}-stack-${process.env.ENV_NAME}`, {
     env: { 
-        account, 
         region: 'us-east-1', 
-        stage: environment, 
-        projectName, 
-        cloudfrontTestUrl,
-        cloudfrontProdUrl,
-        openAiKey: process.env.OPEN_AI_KEY,
-        senderEmail: process.env.SENDER_EMAIL,
-        sqsUrlTest: process.env.SQS_URL_TEST,
-        sqsUrlProd: process.env.SQS_URL_PROD,
+        STAGE: process.env.ENV_NAME, 
+        PROJECT_NAME: process.env.PROJECT_NAME,
+        CLOUDFRONT_URL: `https://${process.env.CLOUDFRONT_URL}`,
+        OPEN_AI_KEY: process.env.OPEN_AI_KEY,
+        SENDER_EMAIL: process.env.SENDER_EMAIL,
+        SQS_URL: process.env.SQS_URL,
     },
-    description: `Backend stack for ${projectName} for ${environment} environment.`
+    description: `Backend stack for ${process.env.PROJECT_NAME} for ${process.env.ENV_NAME} environment.`
 });
