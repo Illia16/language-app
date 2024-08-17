@@ -253,11 +253,11 @@ class BackendCdkStack extends cdk.Stack {
     });
 
     // Define a Lambda function for the rotation
-    const rotateSecretFn = new lambda.Function(this, `${PROJECT_NAME}--secret-rotation-fn--${STAGE}`, {
+    const rotateSecretFn = new lambda.Function(this, `${PROJECT_NAME}--lambda-fn-secret-rotation--${STAGE}`, {
         runtime: lambda.Runtime.NODEJS_18_X,
         handler: 'secret-rotation/index.handler',
         code: lambda.Code.fromAsset(path.join(__dirname, 'functions')),
-        functionName: `${PROJECT_NAME}--secret-rotation-fn--${STAGE}`,
+        functionName: `${PROJECT_NAME}--lambda-fn-secret-rotation--${STAGE}`,
         environment: {
             SECRET_ID: `${PROJECT_NAME}--secret-auth--${STAGE}`,
         },
