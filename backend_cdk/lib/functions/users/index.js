@@ -8,11 +8,12 @@ const clientSQS = new SQSClient({});
 const client = new DynamoDBClient({});
 const docClient = DynamoDBDocumentClient.from(client);
 const { responseWithError, checkIfUserExists, cleanUpFileName, s3UploadFile, getSecret } = require('../helpers');
-const { getIncorrectItems, getAudio } = require('../helpers/openai')
+const { getIncorrectItems, getAudio } = require('../helpers/openai');
+const { checkPassword, hashPassword } = require('../helpers/auth');
 const { v4: uuidv4 } = require("uuid");
 const jwt = require('jsonwebtoken');
 
-module.exports = async (event, context) => {
+module.exports.handler = async (event, context) => {
     console.log('-----------------------------');
     console.log('Auth handler');
     console.log('event', event);
@@ -21,21 +22,21 @@ module.exports = async (event, context) => {
     console.log('-----------------------------');
 
     // Environment variables
-    const env = process.env.env;
-    const projectName = process.env.projectName;
-    const secretJwt = await getSecret(`${projectName}--secret-auth--${env}`);
-    const sqsUrl = process.env.sqsUrl;
+    const STAGE = process.env.STAGE;
+    const PROJECT_NAME = process.env.PROJECT_NAME;
+    const secretJwt = await getSecret(`${PROJECT_NAME}--secret-auth--${STAGE}`);
+    const SQS_URL = process.env.SQS_URL;
 
     // Event obj and CORS
     const headers = event.headers;
-    const allowedOrigins = ["http://localhost:3000", process.env.cloudfrontTestUrl, process.env.cloudfrontProdUrl];
+    const allowedOrigins = ["http://localhost:3000", process.env.CLOUDFRONT_URL];
     const headerOrigin = allowedOrigins.includes(headers?.origin) ? headers?.origin : null
     const body = JSON.parse(event.body);
 
     // AWS Resource names
-    const dbUsers = `${projectName}--db-users--${env}`;
-    const dbData = `${projectName}--db-data--${env}`;
-    const s3Files = `${projectName}--s3-files--${env}`;
+    const dbUsers = `${PROJECT_NAME}--db-users--${STAGE}`;
+    const dbData = `${PROJECT_NAME}--db-data--${STAGE}`;
+    const s3Files = `${PROJECT_NAME}--s3-files--${STAGE}`;
 
     // Response obj
     let response = {
@@ -46,17 +47,15 @@ module.exports = async (event, context) => {
         body: null,
     };
 
-    if (event.path === '/auth/login') {
+    if (event.path === '/users/login') {
         const username = body.user;
         const password = body.password;
 
         const params = {
             TableName: dbUsers,
-            FilterExpression: "password = :filterExp",
             KeyConditionExpression: "#userName = :usr",
             ExpressionAttributeValues: {
               ":usr": username,
-              ":filterExp": password,
             },
             ExpressionAttributeNames: { "#userName": "user" },
             ConsistentRead: true,
@@ -64,9 +63,10 @@ module.exports = async (event, context) => {
 
         const command = new QueryCommand(params);
         const res = await docClient.send(command);
-        console.log('res /auth/login GET QUERY:', res);
+        console.log('res /users/login GET QUERY:', res);
 
-        if (res.Items && res.Items.length) {
+        const isPwCorrect = await checkPassword(res.Items[0].password, password);
+        if (res.Items && res.Items.length && isPwCorrect) {
             const userObj = res.Items[0];
             const token = jwt.sign({user: userObj.user, ...(userObj.role === 'admin' && {role: userObj.role})}, secretJwt, { expiresIn: '25 days' });
             response.body = JSON.stringify({success: true, data: {user: res.Items[0].user, userId: res.Items[0].userId, userMotherTongue: res.Items[0].userMotherTongue, token: token}});
@@ -75,7 +75,7 @@ module.exports = async (event, context) => {
         }
     }
 
-    if (event.path === '/auth/generate-invitation-code') {
+    if (event.path === '/users/generate-invitation-code') {
         const authToken = headers.authorization || headers.Authorization;
         console.log('authToken', authToken);
         if (!authToken) {
@@ -83,50 +83,48 @@ module.exports = async (event, context) => {
             return
         }
         const token = authToken.split(' ')[1];
-        jwt.verify(token, secretJwt, async (err, decoded) => {
-            if (err) {
-                console.log('Err, token is invalid:', err);
-                response = responseWithError('401', 'Token is invalid.', headerOrigin)
-                return
+
+        try {
+            const decoded = jwt.verify(token, secretJwt);
+            console.log('Token is ok.', decoded);
+            if (decoded.role !== 'admin') {
+                console.log('User is not an admin...');
+                response = responseWithError('401', `User ${decoded.user} is not authorized to do this action.`, headerOrigin)
             } else {
-                console.log('Token is ok.', decoded);
-
-                if (decoded.role !== 'admin') {
-                    console.log('User is not an admin...');
-                    response = responseWithError('401', `User ${decoded.user} is not authorized to do this action.`, headerOrigin)
-                    return
-                }
-
                 const genInvitationCode = uuidv4();
                 console.log('genInvitationCode', genInvitationCode);
-                try {
-                    const input = {
-                        "Item": {
-                            user: genInvitationCode,
-                            userId: genInvitationCode,
-                            role: 'user',
-                        },
-                        "ReturnConsumedCapacity": "TOTAL",
-                        "TableName": dbUsers
-                    };
-                    console.log('genInvitationCode input:', input);
-
-                    const command = new PutCommand(input);
-                    const res = await client.send(command);
-                    console.log('res POST generate-invitation-code:', res);
-                    response.body = JSON.stringify({success: true});
-                } catch (error) {
-                    response.statusCode = '500';
-                    response.body = JSON.stringify({
-                        success: false,
-                        message: error.message,
-                    })
-                }
+                const input = {
+                    "Item": {
+                        user: genInvitationCode,
+                        userId: genInvitationCode,
+                        role: 'user',
+                    },
+                    "ReturnConsumedCapacity": "TOTAL",
+                    "TableName": dbUsers
+                };
+                console.log('genInvitationCode input:', input);
+    
+                const command = new PutCommand(input);
+                const res = await client.send(command);
+                console.log('res POST generate-invitation-code:', res);
+                response.body = JSON.stringify({success: true});
             }
-        })
+        } catch (error) {
+            if (error.name === 'JsonWebTokenError' || error.name === 'TokenExpiredError') {
+                console.log('Err, token is invalid:', error.message);
+                response = responseWithError('401', 'Token is invalid.', headerOrigin);
+            } else {
+                console.error('Internal server error:', error.message);
+                response.statusCode = '500';
+                response.body = JSON.stringify({
+                    success: false,
+                    message: error.message,
+                });
+            }
+        }
     }
 
-    if (event.path === '/auth/register') {
+    if (event.path === '/users/register') {
         const username = body.user;
         const password = body.password;
         const userEmail = body.userEmail;
@@ -158,11 +156,14 @@ module.exports = async (event, context) => {
                 const resDeleteInvCode = await client.send(commandDeleteInvCode);
                 console.log('resDeleteInvCode', resDeleteInvCode);
 
+                const hashedPassword = await hashPassword(password)
+                console.log('hashedPassword - register', hashedPassword);
+
                 const inputCreateUser = {
                     Item: {
                         user: username,
                         userId: username+"___"+invitationCode,
-                        password: password,
+                        password: hashedPassword,
                         userMotherTongue: userMotherTongue,
                         role: 'user',
                         userEmail: userEmail,
@@ -209,7 +210,7 @@ module.exports = async (event, context) => {
 
                 // send verification email to the user
                 const inputSQS = {
-                    QueueUrl: sqsUrl,
+                    QueueUrl: SQS_URL,
                     MessageBody: JSON.stringify({eventName: 'verify-email', userEmail: userEmail}),
                 };
                 const commandSQS = new SendMessageCommand(inputSQS);
@@ -219,17 +220,17 @@ module.exports = async (event, context) => {
             }
         }
     }
-    // if (event.path === '/auth/delete-account') {}
-    if (event.path === '/auth/forgot-password') {
+    // if (event.path === '/users/delete-account') {}
+    if (event.path === '/users/forgot-password') {
         const inputSQS = {
-            QueueUrl: sqsUrl,
+            QueueUrl: SQS_URL,
             MessageBody: JSON.stringify({eventName: 'forgot-password', dbUsers: dbUsers, userEmail: body.userEmail}),
         };
         const commandSQS = new SendMessageCommand(inputSQS);
         await clientSQS.send(commandSQS);
     }
 
-    if (event.path === '/auth/change-password') {
+    if (event.path === '/users/change-password') {
         const authToken = headers.authorization || headers.Authorization;
         console.log('authToken', authToken);
         if (!authToken) {
@@ -238,12 +239,21 @@ module.exports = async (event, context) => {
         }
         const token = authToken.split(' ')[1];
 
+        const hashedPassword = await hashPassword(body.password)
+        console.log('hashedPassword - change-password', hashedPassword);
+
         try {
             const decoded = jwt.verify(token, secretJwt);
             console.log('Token is ok.', decoded);
             const inputSQS = {
-                QueueUrl: sqsUrl,
-                MessageBody: JSON.stringify({eventName: 'change-password', dbUsers: dbUsers, user: decoded.user, userId: body.userId, password: body.password}),
+                QueueUrl: SQS_URL,
+                MessageBody: JSON.stringify({
+                    eventName: 'change-password', 
+                    dbUsers: dbUsers, 
+                    user: decoded.user, 
+                    userId: body.userId, 
+                    password: hashedPassword
+                }),
             };
             const commandSQS = new SendMessageCommand(inputSQS);
             await clientSQS.send(commandSQS);

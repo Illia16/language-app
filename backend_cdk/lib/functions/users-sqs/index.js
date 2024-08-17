@@ -9,7 +9,7 @@ const clientEmail = new SESClient({});
 // Helpers
 const { findUserByEmail } = require('../helpers');
 
-module.exports = async (event, context) => {
+module.exports.handler = async (event, context) => {
     console.log('-----------------------------');
     console.log('Handle queue SQS handler');
     console.log('event', event);
@@ -25,7 +25,7 @@ module.exports = async (event, context) => {
         // if found, sent to user their creds. TODO: add a url where they can set new creds themselves.
         if (resUserByEmail && resUserByEmail?.userEmail) {
             const input = {
-                Source: process.env.senderEmail,
+                Source: process.env.SENDER_EMAIL,
                 Destination: {
                     ToAddresses: [resUserByEmail.userEmail],
                 },

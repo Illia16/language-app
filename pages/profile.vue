@@ -529,7 +529,7 @@ const openConfirmModal = (item: UserData | null, action: string):void => {
 // GET API (in this component for update UI after put/update/delete API calls)
 const getUserData = async () => {
     store.setLoading(true);
-    const res = await fetch(`${config.public.apiUrl}/${config.public.envName}/data`, {
+    const res = await fetch(`${config.public.API_URL_DATA}/${config.public.ENV_NAME}/data`, {
         headers: {
             "Authorization": `Bearer ${store.token}`
         }
@@ -549,7 +549,7 @@ const getUserData = async () => {
 // DELETE API
 const deleteUserData = async () => {
     store.setLoading(true);
-    const resDeleteApi = await fetch(`${config.public.apiUrl}/${config.public.envName}/data`, {
+    const resDeleteApi = await fetch(`${config.public.API_URL_DATA}/${config.public.ENV_NAME}/data`, {
         method: 'DELETE',
         body: JSON.stringify({
             "itemID": v_itemID.value,
@@ -614,7 +614,7 @@ const addUserData = async () => {
 
     console.log('payload', payload);
     store.setLoading(true);
-    const resPostApi = await fetch(`${config.public.apiUrl}/${config.public.envName}/data`, {
+    const resPostApi = await fetch(`${config.public.API_URL_DATA}/${config.public.ENV_NAME}/data`, {
         method: 'POST',
         body: payload,
         headers: {
@@ -687,7 +687,7 @@ const updateUserData = async () => {
     console.log('anyChanges', anyChanges);
     if (anyChanges) {
         store.setLoading(true);
-        const resPutApi = await fetch(`${config.public.apiUrl}/${config.public.envName}/data`, {
+        const resPutApi = await fetch(`${config.public.API_URL_DATA}/${config.public.ENV_NAME}/data`, {
             method: 'PUT',
             body: payload,
             headers: {

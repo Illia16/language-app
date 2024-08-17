@@ -1,9 +1,9 @@
 import { resolve } from 'path'
 import type { NuxtConfig } from '@nuxt/types'
 
-console.log('apiUrl:', process.env.API_URL,);
-console.log('apiUrlAuth:', process.env.API_URL_AUTH,);
-console.log('envName:', process.env.ENV_NAME,);
+console.log('API_URL_DATA:', process.env.API_URL_DATA,);
+console.log('API_URL_USERS:', process.env.API_URL_USERS,);
+console.log('ENV_NAME:', process.env.ENV_NAME,);
 
 const config: NuxtConfig = {
     // typescript: {
@@ -12,12 +12,12 @@ const config: NuxtConfig = {
     //     // strict: true
     // },
     runtimeConfig: {
-        apiUrl: process.env.API_URL,
-        envName: process.env.ENV_NAME,
+        API_URL_DATA: process.env.API_URL_DATA,
+        ENV_NAME: process.env.ENV_NAME,
         public: {
-            apiUrl: process.env.API_URL,
-            apiUrlAuth: process.env.API_URL_AUTH,
-            envName: process.env.ENV_NAME,
+            API_URL_DATA: process.env.API_URL_DATA,
+            API_URL_USERS: process.env.API_URL_USERS,
+            ENV_NAME: process.env.ENV_NAME,
         }
     },
     app: {

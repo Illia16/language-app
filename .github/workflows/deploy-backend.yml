@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - deploy/*
+
 jobs:
   deploy-backend:
     runs-on: ubuntu-latest
@@ -19,6 +20,33 @@ jobs:
       - name: Set Environment Name
         id: set-env
         run: echo "ENV_NAME=${GITHUB_REF#refs/heads/deploy/}" >> $GITHUB_ENV
+
+      - name: Get CloudFront ID
+        id: get-cloudfront-id
+        run: |
+          CLOUDFRONT_DISTRIBUTION_ID=$(aws cloudformation describe-stack-resources --stack-name ${{ secrets.PROJECT_NAME }}-stack-${{ env.ENV_NAME }} --region us-east-1 --query "StackResources[?ResourceType=='AWS::CloudFront::Distribution'].PhysicalResourceId" --output text)
+          echo "CLOUDFRONT_DISTRIBUTION_ID=$CLOUDFRONT_DISTRIBUTION_ID" >> $GITHUB_ENV
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+      - name: Get CloudFront URL
+        id: get-cloudfront-url
+        run: |
+          CLOUDFRONT_URL=$(aws cloudfront get-distribution --id ${{ env.CLOUDFRONT_DISTRIBUTION_ID }} --query "Distribution.DomainName" --region us-east-1 --output text)
+          echo "CLOUDFRONT_URL=$CLOUDFRONT_URL" >> $GITHUB_ENV
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+      - name: Get SQS Url
+        id: get-sqs-url
+        run: |
+          SQS_URL=$(aws sqs get-queue-url --queue-name ${{ secrets.PROJECT_NAME }}--sqs--${{ env.ENV_NAME }} --region us-east-1 --output text)
+          echo "SQS_URL=$SQS_URL" >> $GITHUB_ENV
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
       - name: Install CDK Dependencies
         run: npm install
@@ -39,12 +67,16 @@ jobs:
           SQS_URL_PROD: ${{ secrets.SQS_URL_PROD }}
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        run: cdk deploy -c env=${{ env.ENV_NAME }}
+          PROJECT_NAME: ${{ secrets.PROJECT_NAME }}
+          ENV_NAME: ${{ env.ENV_NAME }}
+          CLOUDFRONT_URL: ${{ env.CLOUDFRONT_URL }}
+          SQS_URL: ${{ env.SQS_URL }}
+        run: cdk deploy -c env=${{ env.ENV_NAME }} --require-approval never
         working-directory: backend_cdk
 
-      - name: Repository Dispatch
-        if: ${{ success() }}
-        uses: peter-evans/repository-dispatch@v3
-        with:
-          event-type: deploy-backend
-          client-payload: '{"env": "${{ env.ENV_NAME }}"}'
+      # - name: Repository Dispatch
+      #   if: ${{ success() }}
+      #   uses: peter-evans/repository-dispatch@v3
+      #   with:
+      #     event-type: deploy-backend
+      #     client-payload: '{"env": "${{ env.ENV_NAME }}"}'
