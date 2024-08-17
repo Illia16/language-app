@@ -4,14 +4,16 @@ const openai = new OpenAI({ apiKey: process.env.OPEN_AI_KEY });
 module.exports = {
     getIncorrectItems: async (prompt) => {
         const completion = await openai.chat.completions.create({
-            messages: [{ role: "user", content: `Given the sentence: ${prompt}. Give 3 incorrect similar sentences. Feel free to use other English tenses if needed.` }],
-            // model: "text-davinci-003", soon will be deprecated
-            model: "gpt-3.5-turbo",
-            max_tokens: 40,
-            temperature: 0.7,
+            messages: [{ 
+                role: "user", 
+                content: `Given the sentence: "${prompt}", generate three grammatically incorrect sentences. The errors should vary in type, such as tense mismatches, incorrect verb forms, incorrect words or word order issues. Output only sentenses.`
+            }],
+            model: "gpt-4o-mini",
+            max_tokens: 50,
+            temperature: 1.0,
           });
         
-          console.log('completion', completion);
+          console.log('completion', completion.choices[0].message.content);
           const arrRes = completion.choices[0].message.content.split('\n').map(sentence => sentence.replace(/^(\d+\.|\d+\))\s/, '').trim())
           console.log('arrRes', arrRes);
           return arrRes;
