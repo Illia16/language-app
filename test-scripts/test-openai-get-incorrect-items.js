@@ -21,11 +21,12 @@ async function main(prompt) {
   });
 
   console.log('completion', completion.choices[0].message.content);
-  const results = '\n \n \n' + `Base sentence: ${prompt}\n` + completion.choices[0].message.content;
-  fs.appendFileSync(outputFileName, results);
-  console.log(`Results have been written to ${outputFileName}. The results are: ${completion.choices[0].message.content}`);
-  const arrRes = completion.choices[0].message.content.split('\n').map(sentence => sentence.replace(/^(\d+\.|\d+\))\s/, '').trim())
+  const arrRes = completion.choices[0].message.content
+    .split('\n')
+    .map(sentence => sentence.replace(/^(\d+\.|\d+\))\s/, '').trim())
+    .map(sentence => sentence.replace(/^["']|["']$/g, ''));
   console.log('arrRes', arrRes);
+  fs.appendFileSync(outputFileName, '\n \n \n' + `Base sentence: ${prompt}\n` + arrRes);
 }
 
 main(baseSentence);
