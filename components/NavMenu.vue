@@ -97,7 +97,7 @@ const handleChangePassword = async () => {
     }
 
     store.setLoading(true);
-    const changePwRes = await fetch(`${config.public.apiUrlAuth}/${config.public.envName}/auth/change-password`, {
+    const changePwRes = await fetch(`${config.public.API_URL_USERS}/${config.public.ENV_NAME}/auth/change-password`, {
         method: 'POST',
         body: JSON.stringify({
             "userId": store.currentUserId,
