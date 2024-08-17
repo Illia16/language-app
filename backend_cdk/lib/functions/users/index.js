@@ -47,7 +47,7 @@ module.exports.handler = async (event, context) => {
         body: null,
     };
 
-    if (event.path === '/auth/login') {
+    if (event.path === '/users/login') {
         const username = body.user;
         const password = body.password;
 
@@ -63,7 +63,7 @@ module.exports.handler = async (event, context) => {
 
         const command = new QueryCommand(params);
         const res = await docClient.send(command);
-        console.log('res /auth/login GET QUERY:', res);
+        console.log('res /users/login GET QUERY:', res);
 
         const isPwCorrect = await checkPassword(res.Items[0].password, password);
         if (res.Items && res.Items.length && isPwCorrect) {
@@ -75,7 +75,7 @@ module.exports.handler = async (event, context) => {
         }
     }
 
-    if (event.path === '/auth/generate-invitation-code') {
+    if (event.path === '/users/generate-invitation-code') {
         const authToken = headers.authorization || headers.Authorization;
         console.log('authToken', authToken);
         if (!authToken) {
@@ -124,7 +124,7 @@ module.exports.handler = async (event, context) => {
         }
     }
 
-    if (event.path === '/auth/register') {
+    if (event.path === '/users/register') {
         const username = body.user;
         const password = body.password;
         const userEmail = body.userEmail;
@@ -220,8 +220,8 @@ module.exports.handler = async (event, context) => {
             }
         }
     }
-    // if (event.path === '/auth/delete-account') {}
-    if (event.path === '/auth/forgot-password') {
+    // if (event.path === '/users/delete-account') {}
+    if (event.path === '/users/forgot-password') {
         const inputSQS = {
             QueueUrl: SQS_URL,
             MessageBody: JSON.stringify({eventName: 'forgot-password', dbUsers: dbUsers, userEmail: body.userEmail}),
@@ -230,7 +230,7 @@ module.exports.handler = async (event, context) => {
         await clientSQS.send(commandSQS);
     }
 
-    if (event.path === '/auth/change-password') {
+    if (event.path === '/users/change-password') {
         const authToken = headers.authorization || headers.Authorization;
         console.log('authToken', authToken);
         if (!authToken) {

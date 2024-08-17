@@ -211,7 +211,7 @@ const login = async () => {
     }
 
     store.setLoading(true);
-    const authUser = await fetch(`${config.public.API_URL_USERS}/${config.public.ENV_NAME}/auth/login`, {
+    const authUser = await fetch(`${config.public.API_URL_USERS}/${config.public.ENV_NAME}/users/login`, {
         method: 'POST',
         body: JSON.stringify({user: user.value, password: password.value})
     })
@@ -246,7 +246,7 @@ const signup = async () => {
     }
 
     store.setLoading(true);
-    const signupRes = await fetch(`${config.public.API_URL_USERS}/${config.public.ENV_NAME}/auth/register`, {
+    const signupRes = await fetch(`${config.public.API_URL_USERS}/${config.public.ENV_NAME}/users/register`, {
         method: 'POST',
         body: JSON.stringify({
             "user": signup_user.value,
@@ -281,7 +281,7 @@ const handleForgotPassword =async () => {
     }
 
     store.setLoading(true);
-    const signupRes = await fetch(`${config.public.API_URL_USERS}/${config.public.ENV_NAME}/auth/forgot-password`, {
+    const signupRes = await fetch(`${config.public.API_URL_USERS}/${config.public.ENV_NAME}/users/forgot-password`, {
         method: 'POST',
         body: JSON.stringify({
             "userEmail": userEmail.value,

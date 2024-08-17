@@ -148,11 +148,11 @@ class BackendCdkStack extends cdk.Stack {
     //     layerVersionName: `${PROJECT_NAME}--helper-fn-layer--${STAGE}`,
     // })
 
-    const lambdaFnDynamoDb = new lambda.Function(this, `${PROJECT_NAME}--lambda-fn-db-data--${STAGE}`, {
+    const lambdaFnDynamoDb = new lambda.Function(this, `${PROJECT_NAME}--lambda-fn-data--${STAGE}`, {
         runtime: lambda.Runtime.NODEJS_18_X,
-        handler: 'handleItems/index.handler',
+        handler: 'data/index.handler',
         code: lambda.Code.fromAsset(path.join(__dirname, 'functions')),
-        functionName: `${PROJECT_NAME}--lambda-fn-db-data--${STAGE}`,
+        functionName: `${PROJECT_NAME}--lambda-fn-data--${STAGE}`,
         role: myIam,
         environment: {
           STAGE: STAGE,
@@ -171,11 +171,11 @@ class BackendCdkStack extends cdk.Stack {
         iam.ManagedPolicy.fromAwsManagedPolicyName('service-role/AWSLambdaBasicExecutionRole')
     )
 
-    const authFn = new lambda.Function(this, `${PROJECT_NAME}--lambda-fn-db-users--${STAGE}`, {
+    const authFn = new lambda.Function(this, `${PROJECT_NAME}--lambda-fn-users--${STAGE}`, {
       runtime: lambda.Runtime.NODEJS_18_X,
-      handler: 'auth/index.handler',
+      handler: 'users/index.handler',
       code: lambda.Code.fromAsset(path.join(__dirname, 'functions')),
-      functionName: `${PROJECT_NAME}--lambda-fn-db-users--${STAGE}`,
+      functionName: `${PROJECT_NAME}--lambda-fn-users--${STAGE}`,
       role: myIam,
       environment: {
         STAGE: STAGE,
@@ -234,7 +234,7 @@ class BackendCdkStack extends cdk.Stack {
       },
     });
 
-    const routesApiAuth = myApiAuth.root.addResource('auth');
+    const routesApiAuth = myApiAuth.root.addResource('users');
     const item = routesApiAuth.addResource('{item}');
     item.addMethod('POST');
     item.addMethod('DELETE');
@@ -255,7 +255,7 @@ class BackendCdkStack extends cdk.Stack {
     // Define a Lambda function for the rotation
     const rotateSecretFn = new lambda.Function(this, `${PROJECT_NAME}--secret-rotation-fn--${STAGE}`, {
         runtime: lambda.Runtime.NODEJS_18_X,
-        handler: 'rotateAuthSecret/index.handler',
+        handler: 'secret-rotation/index.handler',
         code: lambda.Code.fromAsset(path.join(__dirname, 'functions')),
         functionName: `${PROJECT_NAME}--secret-rotation-fn--${STAGE}`,
         environment: {
@@ -297,11 +297,11 @@ class BackendCdkStack extends cdk.Stack {
       //   queue: myDeadLetterQueue,
       // }
     });
-    const lambdaFnSQS = new lambda.Function(this, `${PROJECT_NAME}--lambda-fn-handleSQS--${STAGE}`, {
+    const lambdaFnSQS = new lambda.Function(this, `${PROJECT_NAME}--lambda-fn-users-sqs--${STAGE}`, {
         runtime: lambda.Runtime.NODEJS_18_X,
-        handler: 'handleQueue/index.handler',
+        handler: 'users-sqs/index.handler',
         code: lambda.Code.fromAsset(path.join(__dirname, 'functions')),
-        functionName: `${PROJECT_NAME}--lambda-fn-handleSQS--${STAGE}`,
+        functionName: `${PROJECT_NAME}--lambda-fn-users-sqs--${STAGE}`,
         role: myIam,
         environment: {
           SENDER_EMAIL: SENDER_EMAIL,
