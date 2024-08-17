@@ -22,21 +22,21 @@ module.exports.handler = async (event, context) => {
     console.log('-----------------------------');
 
     // Environment variables
-    const env = process.env.env;
-    const projectName = process.env.projectName;
-    const secretJwt = await getSecret(`${projectName}--secret-auth--${env}`);
-    const sqsUrl = process.env.sqsUrl;
+    const STAGE = process.env.STAGE;
+    const PROJECT_NAME = process.env.PROJECT_NAME;
+    const secretJwt = await getSecret(`${PROJECT_NAME}--secret-auth--${STAGE}`);
+    const SQS_URL = process.env.SQS_URL;
 
     // Event obj and CORS
     const headers = event.headers;
-    const allowedOrigins = ["http://localhost:3000", process.env.cloudfrontTestUrl, process.env.cloudfrontProdUrl];
+    const allowedOrigins = ["http://localhost:3000", process.env.CLOUDFRONT_URL];
     const headerOrigin = allowedOrigins.includes(headers?.origin) ? headers?.origin : null
     const body = JSON.parse(event.body);
 
     // AWS Resource names
-    const dbUsers = `${projectName}--db-users--${env}`;
-    const dbData = `${projectName}--db-data--${env}`;
-    const s3Files = `${projectName}--s3-files--${env}`;
+    const dbUsers = `${PROJECT_NAME}--db-users--${STAGE}`;
+    const dbData = `${PROJECT_NAME}--db-data--${STAGE}`;
+    const s3Files = `${PROJECT_NAME}--s3-files--${STAGE}`;
 
     // Response obj
     let response = {
@@ -210,7 +210,7 @@ module.exports.handler = async (event, context) => {
 
                 // send verification email to the user
                 const inputSQS = {
-                    QueueUrl: sqsUrl,
+                    QueueUrl: SQS_URL,
                     MessageBody: JSON.stringify({eventName: 'verify-email', userEmail: userEmail}),
                 };
                 const commandSQS = new SendMessageCommand(inputSQS);
@@ -223,7 +223,7 @@ module.exports.handler = async (event, context) => {
     // if (event.path === '/auth/delete-account') {}
     if (event.path === '/auth/forgot-password') {
         const inputSQS = {
-            QueueUrl: sqsUrl,
+            QueueUrl: SQS_URL,
             MessageBody: JSON.stringify({eventName: 'forgot-password', dbUsers: dbUsers, userEmail: body.userEmail}),
         };
         const commandSQS = new SendMessageCommand(inputSQS);
@@ -246,7 +246,7 @@ module.exports.handler = async (event, context) => {
             const decoded = jwt.verify(token, secretJwt);
             console.log('Token is ok.', decoded);
             const inputSQS = {
-                QueueUrl: sqsUrl,
+                QueueUrl: SQS_URL,
                 MessageBody: JSON.stringify({
                     eventName: 'change-password', 
                     dbUsers: dbUsers, 

@@ -17,20 +17,20 @@ module.exports.handler = async (event, context) => {
     console.log('-----------------------------');
 
     // Environment variables
-    const env = process.env.env;
-    const projectName = process.env.projectName;
-    const secretJwt = await getSecret(`${projectName}--secret-auth--${env}`);
+    const STAGE = process.env.STAGE;
+    const PROJECT_NAME = process.env.PROJECT_NAME;
+    const secretJwt = await getSecret(`${PROJECT_NAME}--secret-auth--${STAGE}`);
     // Event obj and CORS
     const headers = event.headers;
-    const allowedOrigins = ["http://localhost:3000", process.env.cloudfrontTestUrl, process.env.cloudfrontProdUrl];
+    const allowedOrigins = ["http://localhost:3000", process.env.CLOUDFRONT_URL];
     const headerOrigin = allowedOrigins.includes(headers?.origin) ? headers?.origin : null
     const action = event.httpMethod;
     const isBase64Encoded = event.isBase64Encoded;
 
     // AWS Resource names
-    const dbData = `${projectName}--db-data--${env}`;
-    const dbUsers = `${projectName}--db-users--${env}`;
-    const s3Files = `${projectName}--s3-files--${env}`;
+    const dbData = `${PROJECT_NAME}--db-data--${STAGE}`;
+    const dbUsers = `${PROJECT_NAME}--db-users--${STAGE}`;
+    const s3Files = `${PROJECT_NAME}--s3-files--${STAGE}`;
 
     // Handle data
     let data;

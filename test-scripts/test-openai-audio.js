@@ -4,7 +4,7 @@ const OpenAI = require("openai");
 
 const config = require('../deploy.config');
 
-const openai = new OpenAI({ apiKey: config.openAiKey });
+const openai = new OpenAI({ apiKey: config.OPEN_AI_KEY });
 
 const baseSentence = "The man needs help.";
 const speechFile = path.resolve("./audio-generated/speech.mp3");
