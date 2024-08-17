@@ -14,7 +14,10 @@ module.exports = {
           });
         
           console.log('completion', completion.choices[0].message.content);
-          const arrRes = completion.choices[0].message.content.split('\n').map(sentence => sentence.replace(/^(\d+\.|\d+\))\s/, '').trim())
+          const arrRes = completion.choices[0].message.content
+            .split('\n')
+            .map(sentence => sentence.replace(/^(\d+\.|\d+\))\s/, '').trim())
+            .map(sentence => sentence.replace(/^["']|["']$/g, ''));
           console.log('arrRes', arrRes);
           return arrRes;
     },

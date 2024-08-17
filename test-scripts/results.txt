@@ -529,3 +529,7 @@ Base sentence: Will you be there?
 1. "Will you was there?"  
 2. "Be you there will?"  
 3. "Are you being there?"
+ 
+ 
+Base sentence: Will you be there?
+Will you was there?,You be there will?,Are you there be?
