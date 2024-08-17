@@ -4,21 +4,23 @@ const config = require('../deploy.config');
 
 // const baseSentence = "I have never been to France.";
 // const baseSentence = "I like apples.";
-const baseSentence = "I didn't like that cake";
+const baseSentence = "Will you be there?";
+// const baseSentence = "I didn't like that cake";
 const outputFileName = 'results.txt';
 const openai = new OpenAI({ apiKey: config.OPEN_AI_KEY });
 
 async function main(prompt) {
   const completion = await openai.chat.completions.create({
-    messages: [{ role: "user", content: `Given the sentence: ${prompt}, provide three grammatically incorrect sentences with similar meaning and keeping the input's word order but containing errors or deviations in grammar.` }],
-    // Feel free to use other English tenses if needed.
-    // model: "text-davinci-003", soon will be deprecated
-    model: "gpt-3.5-turbo",
-    max_tokens: 40,
-    temperature: 0.7,
+    messages: [{ 
+      role: "user", 
+      content: `Given the sentence: "${prompt}", generate three grammatically incorrect sentences. The errors should vary in type, such as tense mismatches, incorrect verb forms, incorrect words or word order issues. Output only sentenses.`
+    }],
+    model: "gpt-4o-mini",
+    max_tokens: 50,
+    temperature: 1.0,
   });
 
-  console.log('completion', completion);
+  console.log('completion', completion.choices[0].message.content);
   const results = '\n \n \n' + `Base sentence: ${prompt}\n` + completion.choices[0].message.content;
   fs.appendFileSync(outputFileName, results);
   console.log(`Results have been written to ${outputFileName}. The results are: ${completion.choices[0].message.content}`);
