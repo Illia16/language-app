@@ -74,9 +74,9 @@ jobs:
         run: cdk deploy -c env=${{ env.ENV_NAME }} --require-approval never
         working-directory: backend_cdk
 
-      # - name: Repository Dispatch
-      #   if: ${{ success() }}
-      #   uses: peter-evans/repository-dispatch@v3
-      #   with:
-      #     event-type: deploy-backend
-      #     client-payload: '{"env": "${{ env.ENV_NAME }}"}'
+      - name: Repository Dispatch
+        if: ${{ success() }}
+        uses: peter-evans/repository-dispatch@v3
+        with:
+          event-type: deploy-backend
+          client-payload: '{"env": "${{ env.ENV_NAME }}"}'

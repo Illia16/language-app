@@ -7,15 +7,16 @@
   "scripts": {
     "build": "echo \"The build step is not required when using JavaScript!\" && exit 0",
     "cdk": "cdk",
-    "synth:test": "cdk synth -c env=test",
-    "synth:prod": "cdk synth -c env=prod",
-    "deploy:test": "cdk deploy -c env=test",
-    "deploy:prod": "cdk deploy -c env=prod",
+    "synth:test": "dotenv -e .env.test -- cdk synth",
+    "deploy:test": "dotenv -e .env.test -- cdk deploy",
+    "synth:prod": "dotenv -e .env.prod -- cdk synth",
+    "deploy:prod": "dotenv -e .env.prod -- cdk deploy",
     "test": "jest"
   },
   "devDependencies": {
     "@aws-sdk/s3-request-presigner": "^3.451.0",
     "aws-cdk": "2.99.1",
+    "dotenv-cli": "^7.4.2",
     "jest": "^29.7.0"
   },
   "dependencies": {
