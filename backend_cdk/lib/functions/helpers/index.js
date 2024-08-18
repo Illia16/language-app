@@ -110,20 +110,21 @@ module.exports = {
         return res;
     },
     findUserByEmail: async (tableName, v) => {
-        // Used to check during forgot-password call
         const params = {
             TableName: tableName,
-            ProjectionExpression: '#emailAlias, #userPw, #userLogin',
+            IndexName: 'userEmailIndex',
+            KeyConditionExpression: '#emailAlias = :emailValue',
             ExpressionAttributeNames: {
-              '#emailAlias': 'userEmail',
-              '#userPw': 'password',
-              '#userLogin': 'user',
-            }
+                '#emailAlias': 'userEmail',
+            },
+            ExpressionAttributeValues: {
+                ':emailValue': v,
+            },
         };
-
-        const command = new ScanCommand(params);
+        
+        const command = new QueryCommand(params);
         const res = await docClient.send(command);
-        return res.Items.filter(item => item.userEmail === v)[0];
+        return res.Items[0];
     },
     responseWithError: (errorCode = '500', errorMsg = 'Something went wrong...', headers) => {
         return {

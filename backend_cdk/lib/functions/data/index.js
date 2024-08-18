@@ -55,8 +55,7 @@ module.exports.handler = async (event, context) => {
     let isTokenValid = false;
     const authToken = headers['authorization'] || headers['Authorization'];
     if (!authToken) {
-        response = responseWithError('401', 'Token is invalid.', headerOrigin)
-        return
+        return responseWithError('401', 'No token provided.', headerOrigin)
     }
     const token = authToken.split(' ')[1];
     console.log('secretJwt', secretJwt);
@@ -75,7 +74,7 @@ module.exports.handler = async (event, context) => {
     })
     console.log('isTokenValid', isTokenValid);
     if (!isTokenValid) {
-        return response;
+        return responseWithError('401', 'Invalid token.', headerOrigin);
     }
     //
 
@@ -294,11 +293,7 @@ module.exports.handler = async (event, context) => {
             console.log('allEls', allEls);
             response.body = JSON.stringify({success: true, data: allEls});
         } catch (error) {
-            response.statusCode = '500';
-            response.body = JSON.stringify({
-                success: false,
-                message: error.message,
-            })
+            return responseWithError('500', "Failed to post data", headerOrigin);
         }
     }
 
@@ -342,11 +337,7 @@ module.exports.handler = async (event, context) => {
 
             response.body = JSON.stringify({success: true, data: allEls});
         } catch (error) {
-            response.statusCode = '500';
-            response.body = JSON.stringify({
-                success: false,
-                message: error.message,
-            })
+            return responseWithError('500', "Failed to PUT data", headerOrigin);
         }
     }
 

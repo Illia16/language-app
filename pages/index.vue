@@ -122,6 +122,7 @@ useHead({
 })
 
 const cookieUser = useCookie('user', { maxAge: 2160000});
+const cookieUserId = useCookie('userId', { maxAge: 2160000});
 const cookieToken = useCookie('token', { maxAge: 2160000});
 const user = ref<string>('');
 const password = ref<string>('');
@@ -165,6 +166,7 @@ const getUserData = async () => {
     console.log('!!!!res!!!!', userData);
     if (userData.success) {
         cookieUser.value = store.currentUserName;
+        cookieUserId.value = store.currentUserId;
         cookieToken.value = store.token;
 
         if (userData.data && userData.data.length) {
@@ -230,6 +232,7 @@ const login = async () => {
     } else {
         errMsg.value = '';
         cookieUser.value = authUser.data.user;
+        cookieUserId.value = authUser.data.userId;
         cookieToken.value = authUser.data.token;
         store.setCurrentUserName(authUser.data.user);
         store.setCurrentUserId(authUser.data.userId);
@@ -318,8 +321,9 @@ onMounted(async() => {
     console.log('Runtime config ENV_NAME:', config.public.ENV_NAME)
     // getUserDataNuxt();
 
-    if (cookieUser.value && cookieToken.value && !store.currentUserName && !store.userLangData.length) {
+    if (cookieUser.value && cookieUserId.value && cookieToken.value && !store.currentUserName && !store.userLangData.length) {
         store.setCurrentUserName(cookieUser.value);
+        store.setCurrentUserId(cookieUserId.value);
         store.setToken(cookieToken.value);
         store.setLoading(true);
         await getUserData();

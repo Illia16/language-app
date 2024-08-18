@@ -4,8 +4,8 @@
         <h2>{{ t('filterItems') }} &#8594;</h2>
 
         <ul v-if="userItemTypes.length > 1 || userLanguagesInProgress.length > 1">
-            <li class="listOfWords-item"></li>
-            <li class="listOfWords-itemCorrect"></li>
+            <li class="listOfWords-item" aria-hidden="true"></li>
+            <li class="listOfWords-itemCorrect" aria-hidden="true"></li>
             <li class="listOfWords-itemType">
                 <CustomSelect
                     v-if="userItemTypes.length > 1"
@@ -22,7 +22,7 @@
                     <template v-slot:label>{{t('itemType')}}</template>
                 </CustomSelect>
             </li>
-            <li class="listOfWords-itemTypeCategory"></li>
+            <li class="listOfWords-itemTypeCategory" aria-hidden="true"></li>
             <li class="listOfWords-languageStudying">
                 <CustomSelect
                     v-if="userLanguagesInProgress.length > 1"
@@ -33,9 +33,9 @@
                     <template v-slot:label>{{t('languageStudying')}}</template>
                 </CustomSelect>
             </li>
-            <li class="listOfWords-level"></li>
-            <li class="lastLi"></li>
-            <li class="lastLi"></li>
+            <li class="listOfWords-level" aria-hidden="true"></li>
+            <li class="lastLi" aria-hidden="true"></li>
+            <li class="lastLi" aria-hidden="true"></li>
         </ul>
 
         <ul>
@@ -57,8 +57,8 @@
             <li class="listOfWords-level">
                 <span>{{ t('level') }}:</span>
             </li>
-            <li class="lastLi"></li>
-            <li class="lastLi"></li>
+            <li class="lastLi" aria-hidden="true"></li>
+            <li class="lastLi" aria-hidden="true"></li>
         </ul>
 
         <ul v-for="(el, i) of userLangDataFiltered" :key="i">
@@ -471,7 +471,9 @@ const userLangDataFiltered = computed<UserDataArrayOfObj>(() => store.userLangDa
 onMounted(() => {
     if (store.userLangData[0]) {
         v_filterLearningLang.value = store.userLangData[0].languageStudying;
-    } else {
+    } 
+    
+    if (!store.currentUserName) {
         navigateTo('/');
     }
 })

@@ -139,6 +139,16 @@ class BackendCdkStack extends cdk.Stack {
         name: 'userId',
         type: dynamoDb.AttributeType.STRING
       },
+      globalSecondaryIndexes: [
+        {
+          indexName: 'userEmailIndex',
+          partitionKey: {
+            name: 'userEmail',
+            type: dynamoDb.AttributeType.STRING
+          },
+          projectionType: dynamoDb.ProjectionType.ALL,
+        }
+      ]
     })
 
     // const helperFns = new lambda.LayerVersion(this, `${PROJECT_NAME}--helper-fn-layer--${STAGE}`, {
@@ -305,6 +315,9 @@ class BackendCdkStack extends cdk.Stack {
         role: myIam,
         environment: {
           SENDER_EMAIL: SENDER_EMAIL,
+          CLOUDFRONT_URL: CLOUDFRONT_URL,
+          PROJECT_NAME: PROJECT_NAME,
+          STAGE: STAGE,
         },
         events: [new lambdaEventSource.SqsEventSource(myQueue, {
           // enabled: true,
@@ -335,7 +348,11 @@ class BackendCdkStack extends cdk.Stack {
                 // dynamodb:Query
                 // dynamodb:Scan
                 // dynamodb:UpdateItem
-                resources: [myTable.tableArn, myTableUsers.tableArn],
+                resources: [
+                  myTable.tableArn, 
+                  myTableUsers.tableArn, 
+                  `${myTableUsers.tableArn}/index/*`
+                ],
                 effect: iam.Effect.ALLOW,
             }),
             new iam.PolicyStatement({
