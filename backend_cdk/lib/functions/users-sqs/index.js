@@ -6,8 +6,9 @@ const clientDynamoDB = new DynamoDBClient({});
 // SES
 const { SESClient, SendEmailCommand, VerifyEmailIdentityCommand } = require("@aws-sdk/client-ses");
 const clientEmail = new SESClient({});
+const jwt = require('jsonwebtoken');
 // Helpers
-const { findUserByEmail } = require('../helpers');
+const { findUserByEmail, getSecret } = require('../helpers');
 
 module.exports.handler = async (event, context) => {
     console.log('-----------------------------');
@@ -20,10 +21,12 @@ module.exports.handler = async (event, context) => {
     const { eventName, dbUsers, userEmail, user, userId, password } = JSON.parse(event.Records[0].body);
     console.log('SQS data:', eventName, dbUsers, userEmail, user, userId, password);
     if (eventName === 'forgot-password') {
+        const secretJwt = await getSecret(`${process.env.PROJECT_NAME}--secret-auth--${process.env.STAGE}`);
         const resUserByEmail = await findUserByEmail(dbUsers, userEmail);
-    
-        // if found, sent to user their creds. TODO: add a url where they can set new creds themselves.
-        if (resUserByEmail && resUserByEmail?.userEmail) {
+
+        if (resUserByEmail && resUserByEmail.userEmail) {
+            const token = jwt.sign({user: resUserByEmail.user, ...(resUserByEmail.role === 'admin' && {role: resUserByEmail.role})}, secretJwt, { expiresIn: '5m' });
+
             const input = {
                 Source: process.env.SENDER_EMAIL,
                 Destination: {
@@ -35,8 +38,9 @@ module.exports.handler = async (event, context) => {
                         Charset: "UTF-8",
                     },
                     Body: {
-                        Text: {
-                            Data: `You recently requested that you forgot your password. For email: ${resUserByEmail.userEmail}; login: ${resUserByEmail.user}, password: ${resUserByEmail.password}. Consider log in now and changing your password.`,
+                        Html: {
+                            Data: `You recently requested that you forgot your password. 
+                            Click <a href=${process.env.CLOUDFRONT_URL}/change-password?token=${token}&userId=${resUserByEmail.userId}&userMotherTongue=${resUserByEmail.userMotherTongue}>here</a> to set a new password. ${resUserByEmail}. The link expires in 5 minutes.`,
                             Charset: "UTF-8",
                         },
                     },
@@ -44,8 +48,7 @@ module.exports.handler = async (event, context) => {
             };
     
             const command = new SendEmailCommand(input);
-            const response = await clientEmail.send(command);
-            console.log('response forgot-password:', response);
+            await clientEmail.send(command);
         }
     }
 
@@ -71,8 +74,7 @@ module.exports.handler = async (event, context) => {
         };
 
         const commandChangePW = new UpdateCommand(inputChangePW);
-        const resChangePW = await clientDynamoDB.send(commandChangePW);
-        console.log('resChangePW1', resChangePW);
+        await clientDynamoDB.send(commandChangePW);
     }
 
     if (eventName === 'verify-email') {        
