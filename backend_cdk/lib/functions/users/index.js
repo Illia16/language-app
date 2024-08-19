@@ -79,7 +79,7 @@ module.exports.handler = async (event, context) => {
         const authToken = headers.authorization || headers.Authorization;
         console.log('authToken', authToken);
         if (!authToken) {
-            return responseWithError('401', 'Token is invalid.', headerOrigin)
+            return responseWithError('401', 'Token is missing.', headerOrigin)
         }
         const token = authToken.split(' ')[1];
 
@@ -127,6 +127,7 @@ module.exports.handler = async (event, context) => {
         const userMotherTongue = body.userMotherTongue;
 
         // Check if username is available
+        // TODO: check by username only
         const resCheckUserName = await checkIfUserExists(dbUsers, username, userEmail);
         console.log('resCheckUserName', resCheckUserName);
 
@@ -236,7 +237,7 @@ module.exports.handler = async (event, context) => {
         const authToken = headers.authorization || headers.Authorization;
         console.log('authToken', authToken);
         if (!authToken) {
-            return responseWithError('401', 'Token is invalid.', headerOrigin)
+            return responseWithError('401', 'Token is missing.', headerOrigin)
         }
         const token = authToken.split(' ')[1];
 
