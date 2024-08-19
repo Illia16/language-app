@@ -40,7 +40,7 @@ module.exports.handler = async (event, context) => {
                     Body: {
                         Html: {
                             Data: `You recently requested that you forgot your password. 
-                            Click <a href=${process.env.CLOUDFRONT_URL}/change-password?token=${token}&userId=${resUserByEmail.userId}&userMotherTongue=${resUserByEmail.userMotherTongue}>here</a> to set a new password. ${resUserByEmail}. The link expires in 5 minutes.`,
+                            Click <a href=${process.env.CLOUDFRONT_URL}/change-password?token=${token}&userId=${resUserByEmail.userId}&userMotherTongue=${resUserByEmail.userMotherTongue}>here</a> to set a new password. The link expires in 5 minutes.`,
                             Charset: "UTF-8",
                         },
                     },
