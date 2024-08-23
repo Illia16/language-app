@@ -7,7 +7,7 @@ const clientSQS = new SQSClient({});
 // const clientSES = new SESClient({});
 const client = new DynamoDBClient({});
 const docClient = DynamoDBDocumentClient.from(client);
-const { responseWithError, checkIfUserExists, cleanUpFileName, s3UploadFile, getSecret } = require('../helpers');
+const { responseWithError, cleanUpFileName, s3UploadFile, getSecret, findUser } = require('../helpers');
 const { getIncorrectItems, getAudio } = require('../helpers/openai');
 const { checkPassword, hashPassword } = require('../helpers/auth');
 const { v4: uuidv4 } = require("uuid");
@@ -51,25 +51,14 @@ module.exports.handler = async (event, context) => {
         const username = body.user;
         const password = body.password;
 
-        const params = {
-            TableName: dbUsers,
-            KeyConditionExpression: "#userName = :usr",
-            ExpressionAttributeValues: {
-              ":usr": username,
-            },
-            ExpressionAttributeNames: { "#userName": "user" },
-            ConsistentRead: true,
-        };
+        const userInfo = await findUser(dbUsers, username)
+        console.log('res /users/login GET QUERY:', userInfo);
 
-        const command = new QueryCommand(params);
-        const res = await docClient.send(command);
-        console.log('res /users/login GET QUERY:', res);
-
-        const isPwCorrect = await checkPassword(res.Items[0].password, password);
-        if (res.Items && res.Items.length && isPwCorrect) {
-            const userObj = res.Items[0];
+        const isPwCorrect = await checkPassword(userInfo.Items[0].password, password);
+        if (userInfo.Items && userInfo.Items.length && isPwCorrect) {
+            const userObj = userInfo.Items[0];
             const token = jwt.sign({user: userObj.user, ...(userObj.role === 'admin' && {role: userObj.role})}, secretJwt, { expiresIn: '25 days' });
-            response.body = JSON.stringify({success: true, data: {user: res.Items[0].user, userId: res.Items[0].userId, userMotherTongue: res.Items[0].userMotherTongue, token: token}});
+            response.body = JSON.stringify({success: true, data: {user: userObj.user, userId: userObj.userId, userMotherTongue: userObj.userMotherTongue, token: token}});
         } else {
             return responseWithError('500', 'Either user does not exist or wrong password.', headerOrigin)
         }
@@ -126,16 +115,15 @@ module.exports.handler = async (event, context) => {
         const invitationCode = body.invitationCode;
         const userMotherTongue = body.userMotherTongue;
 
-        // Check if username is available
-        // TODO: check by username only
-        const resCheckUserName = await checkIfUserExists(dbUsers, username, userEmail);
-        console.log('resCheckUserName', resCheckUserName);
+        // Check if username is available (also check is email is already used for another account)
+        const findByUsernameAndEmailRes = await findUser(dbUsers, username, userEmail);
+        console.log('findByUsernameAndEmailRes', findByUsernameAndEmailRes);
 
-        if (resCheckUserName.Items && resCheckUserName.Items.length) {
+        if (findByUsernameAndEmailRes.Items && findByUsernameAndEmailRes.Items.length) {
             return responseWithError('500', 'Either username already taken or inivation code is wrong.', headerOrigin)
         } else {
             // Check inv code
-            const resInvCode = await checkIfUserExists(dbUsers, invitationCode);
+            const resInvCode = await findUser(dbUsers, invitationCode) 
             console.log('resInvCode', resInvCode);
 
             if (resInvCode.Items && resInvCode.Items.length) {

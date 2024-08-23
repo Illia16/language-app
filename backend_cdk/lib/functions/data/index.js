@@ -3,7 +3,7 @@ const { DynamoDBDocumentClient, QueryCommand, ScanCommand, BatchWriteCommand, Pu
 
 const client = new DynamoDBClient({});
 const docClient = DynamoDBDocumentClient.from(client);
-const { s3ListObjects, s3UploadFile, s3DeleteFile, s3GetSignedUrl, cleanUpFileName, getFilePathIfFileIsPresentInBody, responseWithError, getSecret } = require('../helpers');
+const { s3ListObjects, s3UploadFile, s3DeleteFile, s3GetSignedUrl, cleanUpFileName, getFilePathIfFileIsPresentInBody, responseWithError, getSecret, findUser } = require('../helpers');
 const { getIncorrectItems, getAudio } = require('../helpers/openai')
 const multipartParser = require('parse-multipart-data');
 const jwt = require('jsonwebtoken');
@@ -119,23 +119,9 @@ module.exports.handler = async (event, context) => {
     }
 
     if (action === 'GET') {
-        const params = {
-            TableName: dbData,
-            KeyConditionExpression:
-              "#userName = :usr",
-            ExpressionAttributeValues: {
-              ":usr": user,
-            },
-            ExpressionAttributeNames: { "#userName": "user" },
-            ConsistentRead: true,
-        };
-
-        const command = new QueryCommand(params);
-        const res = await docClient.send(command);
-        console.log('res GET QUERY:', res);
-
+        const userData = await findUser(dbData, user);
         const data = await Promise.all(
-            res.Items
+            userData.Items
             .map((async (el) => {
                 if (el.filePath) {
                     const url = await s3GetSignedUrl(s3Files, el.filePath);
@@ -155,23 +141,10 @@ module.exports.handler = async (event, context) => {
 
     if (action === 'POST') {
         // fetch user premiumStatus
-        const params = {
-            TableName: dbUsers,
-            KeyConditionExpression:
-              "#userName = :usr",
-            ExpressionAttributeValues: {
-              ":usr": user,
-            },
-            ExpressionAttributeNames: { "#userName": "user" },
-            ConsistentRead: true,
-        };
-    
-        const command = new QueryCommand(params);
-        const res = await docClient.send(command);
-        console.log('res isPremium:', res.Items[0].isPremium);
-        isPremium = res.Items[0].isPremium;
+        const userInfo = await findUser(dbUsers, user);
+        console.log('res isPremium:', userInfo.Items[0].isPremium);
+        isPremium = userInfo.Items[0].isPremium;
         //
-
 
         try {
             const checkIfnoAttachmentButFileExistsInS3 = await s3ListObjects(s3Files, `audio/${cleanUpFileName(data.item)}`);

@@ -89,24 +89,23 @@ module.exports = {
         
         return filePath;
     },
-    checkIfUserExists: async (tableName, v, email = null) => {
-        // Used to check during registration: check invitation code, check if user exists (email and login)
-        const input = {
+    findUser: async (tableName, user, email = null) => {
+        // email is only for users table
+        const params = {
             TableName: tableName,
             ...(email && {FilterExpression: "userEmail = :userEmailExp",}),
-            KeyConditionExpression: "#userName = :usr",
+            KeyConditionExpression:
+              "#userName = :usr",
             ExpressionAttributeValues: {
-                ":usr": v,
-                ...(email && {":userEmailExp": email}),
+              ":usr": user,
+              ...(email && {":userEmailExp": email}),
             },
-            ExpressionAttributeNames: {
-                "#userName": "user"
-            },
+            ExpressionAttributeNames: { "#userName": "user" },
             ConsistentRead: true,
-        }
+        };
 
-        const commandCheckUserName = new QueryCommand(input);
-        const res = await docClient.send(commandCheckUserName);
+        const command = new QueryCommand(params);
+        const res = await docClient.send(command);
         return res;
     },
     findUserByEmail: async (tableName, v) => {
