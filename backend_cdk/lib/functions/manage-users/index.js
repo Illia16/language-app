@@ -34,7 +34,7 @@ module.exports.handler = async (event, context) => {
             },
         };
         const commandInputDeleteUser = new DeleteCommand(inputDeleteUser);
-        await client.send(commandInputDeleteUser);
+        await docClient.send(commandInputDeleteUser);
         return user.user;
     }
     
@@ -51,7 +51,7 @@ module.exports.handler = async (event, context) => {
             };
 
             const commandInputDeleteItem = new DeleteCommand(inputDeleteItem);
-            return client.send(commandInputDeleteItem);
+            return docClient.send(commandInputDeleteItem);
         });
     
         return Promise.all(deleteCommands);

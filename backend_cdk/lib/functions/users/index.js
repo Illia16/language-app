@@ -97,7 +97,7 @@ module.exports.handler = async (event, context) => {
                 console.log('genInvitationCode input:', input);
     
                 const command = new PutCommand(input);
-                const res = await client.send(command);
+                const res = await docClient.send(command);
                 console.log('res POST generate-invitation-code:', res);
                 response.body = JSON.stringify({success: true});
             }
@@ -141,7 +141,7 @@ module.exports.handler = async (event, context) => {
                 }
 
                 const commandDeleteInvCode = new DeleteCommand(inputDeleteInvCode);
-                const resDeleteInvCode = await client.send(commandDeleteInvCode);
+                const resDeleteInvCode = await docClient.send(commandDeleteInvCode);
                 console.log('resDeleteInvCode', resDeleteInvCode);
 
                 const hashedPassword = await hashPassword(password)
@@ -162,7 +162,7 @@ module.exports.handler = async (event, context) => {
                 };
 
                 const commandCreateUser = new PutCommand(inputCreateUser);
-                const resCreateUser = await client.send(commandCreateUser);
+                const resCreateUser = await docClient.send(commandCreateUser);
                 console.log('resCreateUser', resCreateUser);
                 response.body = JSON.stringify({success: true, data: resCreateUser.Attributes});
 
@@ -193,7 +193,7 @@ module.exports.handler = async (event, context) => {
                 };
 
                 const command = new PutCommand(input);
-                await client.send(command);
+                await docClient.send(command);
                 // 
 
                 // send verification email to the user

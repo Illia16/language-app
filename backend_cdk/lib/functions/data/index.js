@@ -258,7 +258,7 @@ module.exports.handler = async (event, context) => {
                 };
 
                 const command = new PutCommand(input);
-                const res = await client.send(command);
+                const res = await docClient.send(command);
                 console.log('_____res POST not admin:', res);
                 allEls.push(res.Attributes);
             }
@@ -303,7 +303,7 @@ module.exports.handler = async (event, context) => {
                     };
 
                     const command = new UpdateCommand(input);
-                    const res = await client.send(command);
+                    const res = await docClient.send(command);
                     allEls.push(res.Attributes);
                 }
             }
@@ -329,7 +329,7 @@ module.exports.handler = async (event, context) => {
         };
 
         const command = new BatchWriteCommand(input);
-        const res = await client.send(command);
+        const res = await docClient.send(command);
 
         // (TODO: do not delete for now since other users may wanna use the audio file OR if deleting the file, then delete the item from every's user DB (above^))
         // Delete from S3 
