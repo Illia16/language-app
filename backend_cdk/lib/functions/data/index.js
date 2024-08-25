@@ -36,7 +36,7 @@ module.exports.handler = async (event, context) => {
     let data;
     let user = '';
     let userRole = '';
-    let isPremium = false;
+    let userTierPremium = false;
 
     // Regex
     const englishRegex = /[a-zA-Z]/;
@@ -142,8 +142,8 @@ module.exports.handler = async (event, context) => {
     if (action === 'POST') {
         // fetch user premiumStatus
         const userInfo = await findUser(dbUsers, user);
-        console.log('res isPremium:', userInfo[0].isPremium);
-        isPremium = userInfo[0].isPremium;
+        console.log('res userTierPremium:', userInfo[0].userTier);
+        userTierPremium = userInfo[0].userTier === 'premium';
         //
 
         try {
@@ -161,8 +161,8 @@ module.exports.handler = async (event, context) => {
             // get audio of text from AI if user is premium
             let audioFilePathAi;
             let incorrectItems = null;
-            if (isPremium) {
-                console.log('isPremium', isPremium);
+            if (userTierPremium) {
+                console.log('userTierPremium', userTierPremium);
                 if (!filePath && !existingFileNameS3 && data.getAudioAI) {
                     console.log('AI audio');
                     const audioFile = await getAudio(data.item)

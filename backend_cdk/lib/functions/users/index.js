@@ -155,8 +155,7 @@ module.exports.handler = async (event, context) => {
                         userMotherTongue: userMotherTongue,
                         role: 'user',
                         userEmail: userEmail,
-                        // userTier: 'default',
-                        isPremium: false,
+                        userTier: 'default',
                     },
                     ReturnConsumedCapacity: "TOTAL",
                     TableName: dbUsers
