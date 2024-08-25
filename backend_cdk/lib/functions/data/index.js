@@ -121,7 +121,7 @@ module.exports.handler = async (event, context) => {
     if (action === 'GET') {
         const userData = await findUser(dbData, user);
         const data = await Promise.all(
-            userData.Items
+            userData
             .map((async (el) => {
                 if (el.filePath) {
                     const url = await s3GetSignedUrl(s3Files, el.filePath);
@@ -142,8 +142,8 @@ module.exports.handler = async (event, context) => {
     if (action === 'POST') {
         // fetch user premiumStatus
         const userInfo = await findUser(dbUsers, user);
-        console.log('res isPremium:', userInfo.Items[0].isPremium);
-        isPremium = userInfo.Items[0].isPremium;
+        console.log('res isPremium:', userInfo[0].isPremium);
+        isPremium = userInfo[0].isPremium;
         //
 
         try {

@@ -1,5 +1,5 @@
 const { DynamoDBClient } = require("@aws-sdk/client-dynamodb");
-const { DynamoDBDocumentClient, QueryCommand, PutCommand, DeleteCommand } = require("@aws-sdk/lib-dynamodb");
+const { DynamoDBDocumentClient, QueryCommand, PutCommand, DeleteCommand, UpdateCommand, ScanCommand } = require("@aws-sdk/lib-dynamodb");
 // const { SESClient, VerifyEmailIdentityCommand } = require("@aws-sdk/client-ses");
 const { SQSClient, SendMessageCommand } = require("@aws-sdk/client-sqs");
 
@@ -7,7 +7,7 @@ const clientSQS = new SQSClient({});
 // const clientSES = new SESClient({});
 const client = new DynamoDBClient({});
 const docClient = DynamoDBDocumentClient.from(client);
-const { responseWithError, cleanUpFileName, s3UploadFile, getSecret, findUser } = require('../helpers');
+const { responseWithError, cleanUpFileName, s3UploadFile, getSecret, findUser, findAll, findAllByPrimaryKey } = require('../helpers');
 const { getIncorrectItems, getAudio } = require('../helpers/openai');
 const { checkPassword, hashPassword } = require('../helpers/auth');
 const { v4: uuidv4 } = require("uuid");
@@ -47,6 +47,8 @@ module.exports.handler = async (event, context) => {
         body: null,
     };
 
+    const getToken = () => (headers.authorization || headers.Authorization || '').split(' ')[1] || false;
+
     if (event.path === '/users/login') {
         const username = body.user;
         const password = body.password;
@@ -54,23 +56,25 @@ module.exports.handler = async (event, context) => {
         const userInfo = await findUser(dbUsers, username)
         console.log('res /users/login GET QUERY:', userInfo);
 
-        const isPwCorrect = await checkPassword(userInfo.Items[0].password, password);
-        if (userInfo.Items && userInfo.Items.length && isPwCorrect) {
-            const userObj = userInfo.Items[0];
-            const token = jwt.sign({user: userObj.user, ...(userObj.role === 'admin' && {role: userObj.role})}, secretJwt, { expiresIn: '25 days' });
-            response.body = JSON.stringify({success: true, data: {user: userObj.user, userId: userObj.userId, userMotherTongue: userObj.userMotherTongue, token: token}});
-        } else {
+        if (!userInfo.length) {
             return responseWithError('500', 'Either user does not exist or wrong password.', headerOrigin)
         }
+
+        const isPwCorrect = await checkPassword(userInfo[0].password, password);
+        if (!isPwCorrect) {
+            return responseWithError('500', 'Either user does not exist or wrong password.', headerOrigin)
+        }
+
+        const userObj = userInfo[0];
+        const token = jwt.sign({user: userObj.user, ...(userObj.role === 'admin' && {role: userObj.role})}, secretJwt, { expiresIn: '25 days' });
+        response.body = JSON.stringify({success: true, data: {user: userObj.user, userId: userObj.userId, userMotherTongue: userObj.userMotherTongue, token: token, role: userObj.role}});
     }
 
     if (event.path === '/users/generate-invitation-code') {
-        const authToken = headers.authorization || headers.Authorization;
-        console.log('authToken', authToken);
-        if (!authToken) {
+        const token = getToken();
+        if (!token) {
             return responseWithError('401', 'Token is missing.', headerOrigin)
         }
-        const token = authToken.split(' ')[1];
 
         try {
             const decoded = jwt.verify(token, secretJwt);
@@ -119,14 +123,14 @@ module.exports.handler = async (event, context) => {
         const findByUsernameAndEmailRes = await findUser(dbUsers, username, userEmail);
         console.log('findByUsernameAndEmailRes', findByUsernameAndEmailRes);
 
-        if (findByUsernameAndEmailRes.Items && findByUsernameAndEmailRes.Items.length) {
+        if (findByUsernameAndEmailRes && findByUsernameAndEmailRes.length) {
             return responseWithError('500', 'Either username already taken or inivation code is wrong.', headerOrigin)
         } else {
             // Check inv code
             const resInvCode = await findUser(dbUsers, invitationCode) 
             console.log('resInvCode', resInvCode);
 
-            if (resInvCode.Items && resInvCode.Items.length) {
+            if (resInvCode && resInvCode.length) {
                 // if inv code is correct, delete it and create a user
                 const inputDeleteInvCode = {
                     TableName: dbUsers,
@@ -151,6 +155,7 @@ module.exports.handler = async (event, context) => {
                         userMotherTongue: userMotherTongue,
                         role: 'user',
                         userEmail: userEmail,
+                        // userTier: 'default',
                         isPremium: false,
                     },
                     ReturnConsumedCapacity: "TOTAL",
@@ -204,7 +209,39 @@ module.exports.handler = async (event, context) => {
             }
         }
     }
-    // if (event.path === '/users/delete-account') {}
+    if (event.path === '/users/delete-account') {
+        const token = getToken();
+        if (!token) {
+            return responseWithError('401', 'Token is missing.', headerOrigin)
+        }
+
+        try {
+            const decoded = jwt.verify(token, secretJwt);
+            console.log('Token is ok.', decoded);
+        } catch(err) {
+            console.log('Err, token is invalid:', err);
+            return responseWithError('401', 'Token is invalid.', headerOrigin)
+        }
+
+        const username = body.user;
+        const userId = body.userId;
+        const toBeDeleted = body.toBeDeleted ? 'delete' : 'user';
+
+        const inputSQS = {
+            QueueUrl: SQS_URL,
+            MessageBody: JSON.stringify({eventName: 'delete-account', dbUsers: dbUsers, username: username, userId: userId, toBeDeleted: toBeDeleted}),
+        };
+        const commandSQS = new SendMessageCommand(inputSQS);
+
+        try {
+            await clientSQS.send(commandSQS);
+            response.body = JSON.stringify({success: true, message: 'processed'});
+        } catch (error) {
+            console.log('Err, /users/delete-account:', error);
+            return responseWithError('500', "Something went wrong.", headerOrigin)
+        }  
+    }
+
     if (event.path === '/users/forgot-password') {
         const inputSQS = {
             QueueUrl: SQS_URL,
@@ -222,12 +259,10 @@ module.exports.handler = async (event, context) => {
     }
 
     if (event.path === '/users/change-password') {
-        const authToken = headers.authorization || headers.Authorization;
-        console.log('authToken', authToken);
-        if (!authToken) {
+        const token = getToken();
+        if (!token) {
             return responseWithError('401', 'Token is missing.', headerOrigin)
         }
-        const token = authToken.split(' ')[1];
 
         const hashedPassword = await hashPassword(body.password)
         console.log('hashedPassword - change-password', hashedPassword);
@@ -248,10 +283,10 @@ module.exports.handler = async (event, context) => {
             const commandSQS = new SendMessageCommand(inputSQS);
             await clientSQS.send(commandSQS);
             response.body = JSON.stringify({success: true, message: 'processed'});
-          } catch(err) {
+        } catch(err) {
             console.log('Err, token is invalid:', err);
             return responseWithError('401', 'Token is invalid.', headerOrigin)
-          }
+        }
     }
 
     return response;

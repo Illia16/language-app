@@ -1,5 +1,5 @@
 const { DynamoDBClient } = require("@aws-sdk/client-dynamodb");
-const { DynamoDBDocumentClient, QueryCommand, ScanCommand } = require("@aws-sdk/lib-dynamodb");
+const { DynamoDBDocumentClient, QueryCommand, ScanCommand, GetCommand } = require("@aws-sdk/lib-dynamodb");
 const clientDynamoDB = new DynamoDBClient({});
 const docClient = DynamoDBDocumentClient.from(clientDynamoDB);
 
@@ -106,7 +106,7 @@ module.exports = {
 
         const command = new QueryCommand(params);
         const res = await docClient.send(command);
-        return res;
+        return res.Items;
     },
     findUserByEmail: async (tableName, v) => {
         const params = {
@@ -124,6 +124,32 @@ module.exports = {
         const command = new QueryCommand(params);
         const res = await docClient.send(command);
         return res.Items[0];
+    },
+    findAll: async (tableName) => {
+        const params = {
+            TableName: tableName,
+        };
+        const command = new ScanCommand(params);
+        const data = await docClient.send(command);
+        return data.Items;
+    },
+    findAllByPrimaryKey: async (tableName, v) => {
+        const params = {
+            TableName: tableName,
+            ProjectionExpression: '#aliasForUser, #aliasforItemId',
+            ExpressionAttributeNames: {
+              '#aliasForUser': 'user',
+              '#aliasforItemId': 'itemID',
+            },
+            FilterExpression: '#aliasForUser = :valueUsr',
+            ExpressionAttributeValues: {
+                ':valueUsr': v,
+            },
+        };
+
+        const command = new ScanCommand(params);
+        const data = await docClient.send(command);
+        return data.Items;
     },
     responseWithError: (errorCode = '500', errorMsg = 'Something went wrong...', headers) => {
         return {

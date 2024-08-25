@@ -31,7 +31,7 @@
             </div>
         </form>
         <!-- User languages in progress -->
-        <template v-if="store.currentUserName">
+        <template v-if="store.currentUserName && store.userRole !== 'delete'">
             <h1>{{ t('languageMenuTitle') }}</h1>
             <ul class="list-items">
                 <li v-for="(user_language, i) of userLanguagesInProgress" :key="i">
@@ -220,13 +220,14 @@ const login = async () => {
     .then(res => res.json())
     .catch(er => {
         console.log('er', er);
+    })
+    .finally(() => {
         store.setLoading(false);
     })
     console.log('!!!!authUser!!!!', authUser);
 
     if (!authUser.success) {
         console.log('Error logging in....');
-        store.setLoading(false);
         errMsg.value = authUser?.message;
         return
     } else {
@@ -239,7 +240,13 @@ const login = async () => {
         store.setToken(authUser.data.token);
         store.setUserMortherTongue(authUser.data.userMotherTongue);
         setLocale(authUser.data.userMotherTongue);
-        await getUserData();
+
+        if (authUser.data.role === 'delete') {
+            store.setUserRole(authUser.data.role)
+        } else {
+            store.setUserRole('');
+            await getUserData();
+        }
     }
 }
 
@@ -277,8 +284,6 @@ const signup = async () => {
 }
 
 const handleForgotPassword =async () => {
-    console.log('userEmail', userEmail);
-
     if (!userEmail.value) {
         return
     }
