@@ -7,7 +7,7 @@ const clientSQS = new SQSClient({});
 // const clientSES = new SESClient({});
 const client = new DynamoDBClient({});
 const docClient = DynamoDBDocumentClient.from(client);
-const { responseWithError, cleanUpFileName, s3UploadFile, getSecret, findUser, findAll, findAllByPrimaryKey } = require('../helpers');
+const { responseWithError, cleanUpFileName, s3UploadFile, getSecret, findUser, findAll, findAllByPrimaryKey, getEventBridgeRuleInfo, getRateExpressionNextRun } = require('../helpers');
 const { getIncorrectItems, getAudio } = require('../helpers/openai');
 const { checkPassword, hashPassword } = require('../helpers/auth');
 const { v4: uuidv4 } = require("uuid");
@@ -37,6 +37,7 @@ module.exports.handler = async (event, context) => {
     const dbUsers = `${PROJECT_NAME}--db-users--${STAGE}`;
     const dbData = `${PROJECT_NAME}--db-data--${STAGE}`;
     const s3Files = `${PROJECT_NAME}--s3-files--${STAGE}`;
+    const eventBridgeManageUsers = `${PROJECT_NAME}--manage-users-schedule-rule--${STAGE}`;
 
     // Response obj
     let response = {
@@ -66,8 +67,24 @@ module.exports.handler = async (event, context) => {
         }
 
         const userObj = userInfo[0];
+
+        let accountDeleteAt;
+        if (userObj.role === 'delete') {
+            const eventBridgeManageUsersData = await getEventBridgeRuleInfo(eventBridgeManageUsers);
+            accountDeleteAt = getRateExpressionNextRun(eventBridgeManageUsersData.ScheduleExpression)
+        }
+
         const token = jwt.sign({user: userObj.user, ...(userObj.role === 'admin' && {role: userObj.role})}, secretJwt, { expiresIn: '25 days' });
-        response.body = JSON.stringify({success: true, data: {user: userObj.user, userId: userObj.userId, userMotherTongue: userObj.userMotherTongue, token: token, role: userObj.role}});
+        response.body = JSON.stringify({
+            success: true, 
+            data: {
+                user: userObj.user, 
+                userId: userObj.userId, 
+                userMotherTongue: userObj.userMotherTongue, 
+                token: token, role: 
+                userObj.role,
+                ...(userObj.role === 'delete' && {accountDeletionTime: accountDeleteAt})
+            }});
     }
 
     if (event.path === '/users/generate-invitation-code') {

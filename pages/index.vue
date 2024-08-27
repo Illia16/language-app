@@ -40,6 +40,10 @@
             </ul>
         </template>
 
+        <template v-if="store.userRole === 'delete'">
+            <h1 v-html="t('accountDeletionTime', {v: accountDeletionTime})"></h1>
+        </template>
+
         <teleport to="body">
             <Modal v-if="store.modalOpen && store.modalType === 'signup'" class="modal-signup">
                 <!-- @closeCallback="closeConfirmModal" -->
@@ -129,6 +133,7 @@ const password = ref<string>('');
 const userErrMsg = ref<string>('');
 const errMsg = ref<string>('');
 const passwordErrMsg = ref<string>('');
+const accountDeletionTime = ref<number>(0);
 const userLanguagesInProgress = computed<string[]>(() => store.userLangData.reduce(function (accumulator:string[], currentValue:UserData) {
     if (!accumulator.includes(currentValue.languageStudying)){
         accumulator.push(currentValue.languageStudying)
@@ -243,6 +248,7 @@ const login = async () => {
 
         if (authUser.data.role === 'delete') {
             store.setUserRole(authUser.data.role)
+            accountDeletionTime.value = Number(authUser.data.accountDeletionTime)/(1000 * 60 * 60 * 24);
         } else {
             store.setUserRole('');
             await getUserData();
@@ -390,6 +396,7 @@ onMounted(async() => {
         forgotPassword: 'Forgot password?'
         specifyYourEmail: 'Please, specify your email'
         createAccount: 'Create account'
+        accountDeletionTime: Your account will be deleted in <span class="green-bolded">{v}</span> days
         username: 'Username'
         password: 'Password'
         retypePassword: 'Retype password'
@@ -408,6 +415,7 @@ onMounted(async() => {
         forgotPassword: 'Забыли пароль?'
         specifyYourEmail: 'Укажите вашу электронную почту'
         createAccount: 'Создать аккаунт'
+        accountDeletionTime: Ваш аккаунт будет удален через <span class="font-black underline">{v}</span> дней
         username: 'Логин'
         password: 'Пароль'
         retypePassword: 'Повторите пароль'
@@ -426,6 +434,7 @@ onMounted(async() => {
         forgotPassword: 忘記密碼？
         specifyYourEmail: 請指定您的電子郵件
         createAccount: 創建帳戶
+        accountDeletionTime: 你的帐户将在 <span class="green-bolded">{v}</span> 天内被删除
         username: 用戶名
         password: 密碼
         retypePassword: 重新輸入密碼

@@ -11,6 +11,9 @@ const { SecretsManagerClient, GetSecretValueCommand  } = require('@aws-sdk/clien
 const client = new SecretsManagerClient({});
 
 
+const { EventBridgeClient, DescribeRuleCommand } = require('@aws-sdk/client-eventbridge');
+const clientEB = new EventBridgeClient({ region: 'us-east-1'});
+
 module.exports = {
     s3GetFile: async (s3_buckname, filenamepath) => {
         const input = {
@@ -178,5 +181,49 @@ module.exports = {
         }
 
         return response?.SecretString;
+    },
+    getEventBridgeRuleInfo: async (ruleName) => {
+        try {
+            const command = new DescribeRuleCommand({ Name: ruleName });
+            const response = await clientEB.send(command);
+            return response;
+        } catch (error) {
+            console.error('Error describing the rule:', error);
+            return error;
+        }
+    },
+    getRateExpressionNextRun: (scheduleExpression) => {
+        if (!scheduleExpression.startsWith('rate(')) {
+            throw new Error('Invalid scheduleExpression');
+        }
+
+        const now = new Date();
+        const match = scheduleExpression.match(/rate\((\d+) (minute|minutes|hour|hours|day|days)\)/);
+    
+        if (!match) throw new Error('Invalid rate expression');
+    
+        const value = parseInt(match[1], 10);
+        const unit = match[2];
+        let nextRunTime;
+    
+        switch (unit) {
+            case 'minute':
+            case 'minutes':
+                nextRunTime = new Date(now.getTime() + value * 60 * 1000);
+                break;
+            case 'hour':
+            case 'hours':
+                nextRunTime = new Date(now.getTime() + value * 60 * 60 * 1000);
+                break;
+            case 'day':
+            case 'days':
+                nextRunTime = new Date(now.getTime() + value * 24 * 60 * 60 * 1000);
+                break;
+            default:
+                throw new Error('Unsupported time unit');
+        }
+    
+        // time in ms
+        return nextRunTime - now;
     }
 }

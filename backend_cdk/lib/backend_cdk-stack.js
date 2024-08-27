@@ -311,7 +311,7 @@ class BackendCdkStack extends cdk.Stack {
       })],
     });
 
-    new events.Rule(this, `${PROJECT_NAME}--manage-users-schedule-rule--${STAGE}`, {
+    const manageUsersRule = new events.Rule(this, `${PROJECT_NAME}--manage-users-schedule-rule--${STAGE}`, {
       ruleName: `${PROJECT_NAME}--manage-users-schedule-rule--${STAGE}`,
       description: `Event to manage users for ${PROJECT_NAME} project ${STAGE} env`,
       schedule: events.Schedule.rate(cdk.Duration.days(1)),
@@ -392,6 +392,13 @@ class BackendCdkStack extends cdk.Stack {
                     // "s3:*"
                 ],
                 resources: [websiteBucketFiles.bucketArn, `${websiteBucketFiles.bucketArn}/*`],
+                effect: iam.Effect.ALLOW
+            }),
+            new iam.PolicyStatement({
+                actions: [
+                    "events:DescribeRule",
+                ],
+                resources: [manageUsersRule.ruleArn],
                 effect: iam.Effect.ALLOW
             }),
             new iam.PolicyStatement({

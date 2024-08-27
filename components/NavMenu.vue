@@ -96,6 +96,7 @@ const handleLogout = () => {
     store.setUserLangData([]);
     store.setCurrentUserName('');
     store.setCurrentUserId('');
+    store.setUserRole('');
     navigateTo('/');
     useCookie('user').value = '';
     useCookie('token').value = '';
