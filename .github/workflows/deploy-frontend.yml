@@ -1,20 +1,33 @@
 name: Deploy Frontend
 run-name: ${{ github.actor }} is deploying (AWS CloudFront)  🚀
+
 on:
-  repository_dispatch:
-    types: [deploy-backend]
+  workflow_call:
+    inputs:
+      env:
+        description: 'Staging(env) to deploy to.'
+        required: true
+        type: string
+    secrets:
+      AWS_ACCESS_KEY_ID:
+        required: true
+      AWS_SECRET_ACCESS_KEY:
+        required: true
+      PROJECT_NAME:
+        required: true
 
 jobs:
   deploy-frontend:
     runs-on: ubuntu-latest
     steps:
       - name: Set environment variable
-        run: echo "ENV_NAME=${{ github.event.client_payload.env }}" >> $GITHUB_ENV
+        # run: echo "ENV_NAME=${GITHUB_REF#refs/heads/deploy/}" >> $GITHUB_ENV
+        run: echo "ENV_NAME=${{inputs.env}}" >> $GITHUB_ENV
 
       - name: Checkout Code
         uses: actions/checkout@v4
-        with:
-          ref: deploy/${{ env.ENV_NAME }}
+        # with:
+        #   ref: deploy/${{ env.ENV_NAME }}
   
       - name: Set up Node.js
         uses: actions/setup-node@v4
