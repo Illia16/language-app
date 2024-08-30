@@ -64,15 +64,21 @@
             <ChangePassword @pwChangedSuccess="pwChangedSuccessCallback" />
         </Modal>
         <Modal v-if="store.modalOpen && store.modalType === 'delete-account'" @closeCallback="closeModal" class="modal-delete-account">
-            <div class="flex flex-wrap gap-4">
-                <button class="custom-button-link" @click="deleteUser(true)">{{t('confirm')}}</button>
-                <button @click="closeModal" class="custom-button-link">{{t('cancel')}}</button>
+            <div class="flex flex-col items-center gap-4">
+                <div>{{t('areYouSure')}}</div>
+                <div class="flex flex-col md:flex-row space-y-3 md:space-y-0 md:space-x-3">
+                    <button class="custom-button-link" @click="deleteUser(true)">{{t('confirm')}}</button>
+                    <button @click="closeModal" class="custom-button-link">{{t('cancel')}}</button>
+                </div>
             </div>
         </Modal>
         <Modal v-if="store.modalOpen && store.modalType === 'restore-account'" @closeCallback="closeModal" class="modal-restore-account">
-            <div class="flex flex-wrap gap-4">
-                <button class="custom-button-link" @click="deleteUser(false)">{{t('confirm')}}</button>
-                <button @click="closeModal" class="custom-button-link">{{t('cancel')}}</button>
+            <div class="flex flex-col items-center gap-4">
+                <div>{{t('areYouSure')}}</div>
+                <div class="flex flex-col md:flex-row space-y-3 md:space-y-0 md:space-x-3">
+                    <button class="custom-button-link" @click="deleteUser(false)">{{t('confirm')}}</button>
+                    <button @click="closeModal" class="custom-button-link">{{t('cancel')}}</button>
+                </div>
             </div>
         </Modal>
     </teleport>
@@ -166,6 +172,7 @@ const deleteUser = async (toBeDeleted: boolean) => {
         myProfile: 'My profile'
         changePasword: 'Change password'
         deleteAccount: 'Delete account'
+        areYouSure: 'Are you sure?'
         restoreAccount: 'Restore account'
         logout: 'Logout'
         goToHome: 'Homepage'
@@ -177,6 +184,7 @@ const deleteUser = async (toBeDeleted: boolean) => {
         myProfile: 'Мой профиль'
         changePasword: 'Изменить пароль'
         deleteAccount: 'Удалить аккаунт'
+        areYouSure: 'Вы уверены?'
         restoreAccount: 'Восстановить аккаунт'
         logout: 'Выйти'
         goToHome: 'Домашняя страница'
@@ -188,6 +196,7 @@ const deleteUser = async (toBeDeleted: boolean) => {
         myProfile: '我的履歷'
         changePasword: '更改密碼'
         deleteAccount: '删除帐户'
+        areYouSure: '你确定吗？'
         restoreAccount: '恢复帐户'
         logout: '登出'
         goToHome: '首頁'
