@@ -1,5 +1,5 @@
-name: Deploy Backend
-run-name: ${{ github.actor }} is deploying backend (AWS)  🚀
+name: Deploy Backend, then FrontEnd
+run-name: ${{ github.actor }} is deploying to AWS  🚀
 on:
   push:
     branches:
@@ -73,10 +73,8 @@ jobs:
           SQS_URL: ${{ env.SQS_URL }}
         run: cdk deploy -c env=${{ env.ENV_NAME }} --require-approval never
         working-directory: backend_cdk
-
-      - name: Repository Dispatch
-        if: ${{ success() }}
-        uses: peter-evans/repository-dispatch@v3
-        with:
-          event-type: deploy-backend
-          client-payload: '{"env": "${{ env.ENV_NAME }}"}'
+  call-deploy-frontend:
+    needs: [deploy-backend]
+    name: call-deploy-frontend
+    uses: ./.github/workflows/deploy-frontend.yml
+    secrets: inherit
