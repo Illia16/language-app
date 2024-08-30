@@ -18,8 +18,8 @@ module.exports.handler = async (event, context) => {
     console.log('context', context);
     console.log('-----------------------------');
 
-    const { eventName, dbUsers, userEmail, user, userId, password } = JSON.parse(event.Records[0].body);
-    console.log('SQS data:', eventName, dbUsers, userEmail, user, userId, password);
+    const { eventName, dbUsers, username, userEmail, user, userId, password, toBeDeleted } = JSON.parse(event.Records[0].body);
+    console.log('SQS data:', eventName, dbUsers, userEmail, user, userId, password, toBeDeleted);
     if (eventName === 'forgot-password') {
         const secretJwt = await getSecret(`${process.env.PROJECT_NAME}--secret-auth--${process.env.STAGE}`);
         const resUserByEmail = await findUserByEmail(dbUsers, userEmail);
@@ -50,6 +50,32 @@ module.exports.handler = async (event, context) => {
             const command = new SendEmailCommand(input);
             await clientEmail.send(command);
         }
+    }
+
+    if (eventName === 'delete-account') {
+        try {
+            const inputSetToDeleteAccount = {
+                TableName: dbUsers,
+                Key: {
+                    user: username,
+                    userId: userId,
+                },
+                UpdateExpression: "SET #attributeName = :newValue",
+                ExpressionAttributeNames: {
+                    "#attributeName": 'role',
+                },
+                ExpressionAttributeValues: {
+                    ":newValue": toBeDeleted
+                },
+                ReturnValues: "ALL_NEW"
+            };
+    
+            const commandToDeleteAccount = new UpdateCommand(inputSetToDeleteAccount);
+            await clientDynamoDB.send(commandToDeleteAccount);
+        } catch (err) {
+            console.log("Failed to delete account record.", err);
+            return err;
+        }   
     }
 
     if (eventName === 'change-password') {

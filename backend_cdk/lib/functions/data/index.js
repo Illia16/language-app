@@ -3,7 +3,7 @@ const { DynamoDBDocumentClient, QueryCommand, ScanCommand, BatchWriteCommand, Pu
 
 const client = new DynamoDBClient({});
 const docClient = DynamoDBDocumentClient.from(client);
-const { s3ListObjects, s3UploadFile, s3DeleteFile, s3GetSignedUrl, cleanUpFileName, getFilePathIfFileIsPresentInBody, responseWithError, getSecret } = require('../helpers');
+const { s3ListObjects, s3UploadFile, s3DeleteFile, s3GetSignedUrl, cleanUpFileName, getFilePathIfFileIsPresentInBody, responseWithError, getSecret, findUser } = require('../helpers');
 const { getIncorrectItems, getAudio } = require('../helpers/openai')
 const multipartParser = require('parse-multipart-data');
 const jwt = require('jsonwebtoken');
@@ -36,7 +36,7 @@ module.exports.handler = async (event, context) => {
     let data;
     let user = '';
     let userRole = '';
-    let isPremium = false;
+    let userTierPremium = false;
 
     // Regex
     const englishRegex = /[a-zA-Z]/;
@@ -119,23 +119,9 @@ module.exports.handler = async (event, context) => {
     }
 
     if (action === 'GET') {
-        const params = {
-            TableName: dbData,
-            KeyConditionExpression:
-              "#userName = :usr",
-            ExpressionAttributeValues: {
-              ":usr": user,
-            },
-            ExpressionAttributeNames: { "#userName": "user" },
-            ConsistentRead: true,
-        };
-
-        const command = new QueryCommand(params);
-        const res = await docClient.send(command);
-        console.log('res GET QUERY:', res);
-
+        const userData = await findUser(dbData, user);
         const data = await Promise.all(
-            res.Items
+            userData
             .map((async (el) => {
                 if (el.filePath) {
                     const url = await s3GetSignedUrl(s3Files, el.filePath);
@@ -155,23 +141,10 @@ module.exports.handler = async (event, context) => {
 
     if (action === 'POST') {
         // fetch user premiumStatus
-        const params = {
-            TableName: dbUsers,
-            KeyConditionExpression:
-              "#userName = :usr",
-            ExpressionAttributeValues: {
-              ":usr": user,
-            },
-            ExpressionAttributeNames: { "#userName": "user" },
-            ConsistentRead: true,
-        };
-    
-        const command = new QueryCommand(params);
-        const res = await docClient.send(command);
-        console.log('res isPremium:', res.Items[0].isPremium);
-        isPremium = res.Items[0].isPremium;
+        const userInfo = await findUser(dbUsers, user);
+        console.log('res userTierPremium:', userInfo[0].userTier);
+        userTierPremium = userInfo[0].userTier === 'premium';
         //
-
 
         try {
             const checkIfnoAttachmentButFileExistsInS3 = await s3ListObjects(s3Files, `audio/${cleanUpFileName(data.item)}`);
@@ -188,8 +161,8 @@ module.exports.handler = async (event, context) => {
             // get audio of text from AI if user is premium
             let audioFilePathAi;
             let incorrectItems = null;
-            if (isPremium) {
-                console.log('isPremium', isPremium);
+            if (userTierPremium) {
+                console.log('userTierPremium', userTierPremium);
                 if (!filePath && !existingFileNameS3 && data.getAudioAI) {
                     console.log('AI audio');
                     const audioFile = await getAudio(data.item)
@@ -285,7 +258,7 @@ module.exports.handler = async (event, context) => {
                 };
 
                 const command = new PutCommand(input);
-                const res = await client.send(command);
+                const res = await docClient.send(command);
                 console.log('_____res POST not admin:', res);
                 allEls.push(res.Attributes);
             }
@@ -330,7 +303,7 @@ module.exports.handler = async (event, context) => {
                     };
 
                     const command = new UpdateCommand(input);
-                    const res = await client.send(command);
+                    const res = await docClient.send(command);
                     allEls.push(res.Attributes);
                 }
             }
@@ -356,7 +329,7 @@ module.exports.handler = async (event, context) => {
         };
 
         const command = new BatchWriteCommand(input);
-        const res = await client.send(command);
+        const res = await docClient.send(command);
 
         // (TODO: do not delete for now since other users may wanna use the audio file OR if deleting the file, then delete the item from every's user DB (above^))
         // Delete from S3 

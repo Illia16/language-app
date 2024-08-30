@@ -478,7 +478,8 @@ onMounted(() => {
     }
 })
 
-watch(() => v_filterLearningLang.value, () => {
+// Reset Category to "all" when swithing items of different languages 
+watch(() => v_filterLearningLang.value, () => {    
     v_filterItemType.value = 'all';
 });
 
@@ -728,14 +729,6 @@ const updateUserData = async () => {
         }
     }
 }
-
-watch(v_languageStudying, function() {
-    console.log('v_languageStudying', v_languageStudying.value);
-});
-
-watch(v_file, function() {
-    console.log('v_file1', v_file.value);
-});
 </script>
 
 

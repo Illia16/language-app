@@ -8,6 +8,7 @@ export const useMainStore = defineStore('main-store', {
         lessonStarted: false,
         currentUserName: '',
         currentUserId: '',
+        userRole: '',
         token: '',
         userLangData: [] as UserDataArrayOfObj,
         userMotherTongue: '',
@@ -28,6 +29,9 @@ export const useMainStore = defineStore('main-store', {
         },
         setCurrentUserId(v: string) {
             this.currentUserId = v;
+        },
+        setUserRole(v: string) {
+            this.userRole = v;
         },
         setToken(v: string) {
             this.token = v;

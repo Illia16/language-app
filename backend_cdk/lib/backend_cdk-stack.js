@@ -263,6 +263,23 @@ class BackendCdkStack extends cdk.Stack {
     });
 
     // Define a Lambda function for the rotation
+    const manageUsersFn = new lambda.Function(this, `${PROJECT_NAME}--lambda-fn-manage-users--${STAGE}`, {
+      runtime: lambda.Runtime.NODEJS_18_X,
+      handler: 'manage-users/index.handler',
+      code: lambda.Code.fromAsset(path.join(__dirname, 'functions')),
+      functionName: `${PROJECT_NAME}--lambda-fn-manage-users--${STAGE}`,
+      role: myIam,
+      environment: {
+        STAGE: STAGE,
+        PROJECT_NAME: PROJECT_NAME,
+      },
+      timeout: cdk.Duration.seconds(30),
+    });
+    manageUsersFn.role.addManagedPolicy(
+        iam.ManagedPolicy.fromAwsManagedPolicyName('service-role/AWSLambdaBasicExecutionRole')
+    );
+
+    // Define a Lambda function for the rotation
     const rotateSecretFn = new lambda.Function(this, `${PROJECT_NAME}--lambda-fn-secret-rotation--${STAGE}`, {
         runtime: lambda.Runtime.NODEJS_18_X,
         handler: 'secret-rotation/index.handler',
@@ -290,6 +307,15 @@ class BackendCdkStack extends cdk.Stack {
       description: `Event to update auth secret for ${PROJECT_NAME} project ${STAGE} env`,
       schedule: events.Schedule.rate(cdk.Duration.days(25)),
       targets: [new eventsTargets.LambdaFunction(rotateSecretFn, {
+        retryAttempts: 0,
+      })],
+    });
+
+    const manageUsersRule = new events.Rule(this, `${PROJECT_NAME}--manage-users-schedule-rule--${STAGE}`, {
+      ruleName: `${PROJECT_NAME}--manage-users-schedule-rule--${STAGE}`,
+      description: `Event to manage users for ${PROJECT_NAME} project ${STAGE} env`,
+      schedule: events.Schedule.rate(cdk.Duration.days(30)),
+      targets: [new eventsTargets.LambdaFunction(manageUsersFn, {
         retryAttempts: 0,
       })],
     });
@@ -366,6 +392,13 @@ class BackendCdkStack extends cdk.Stack {
                     // "s3:*"
                 ],
                 resources: [websiteBucketFiles.bucketArn, `${websiteBucketFiles.bucketArn}/*`],
+                effect: iam.Effect.ALLOW
+            }),
+            new iam.PolicyStatement({
+                actions: [
+                    "events:DescribeRule",
+                ],
+                resources: [manageUsersRule.ruleArn],
                 effect: iam.Effect.ALLOW
             }),
             new iam.PolicyStatement({
