@@ -1,5 +1,5 @@
 const { DynamoDBClient } = require("@aws-sdk/client-dynamodb");
-const { DynamoDBDocumentClient, QueryCommand, ScanCommand } = require("@aws-sdk/lib-dynamodb");
+const { DynamoDBDocumentClient, QueryCommand, ScanCommand, GetCommand } = require("@aws-sdk/lib-dynamodb");
 const clientDynamoDB = new DynamoDBClient({});
 const docClient = DynamoDBDocumentClient.from(clientDynamoDB);
 
@@ -10,6 +10,9 @@ const { getSignedUrl } = require("@aws-sdk/s3-request-presigner");
 const { SecretsManagerClient, GetSecretValueCommand  } = require('@aws-sdk/client-secrets-manager');
 const client = new SecretsManagerClient({});
 
+
+const { EventBridgeClient, DescribeRuleCommand } = require('@aws-sdk/client-eventbridge');
+const clientEB = new EventBridgeClient({ region: 'us-east-1'});
 
 module.exports = {
     s3GetFile: async (s3_buckname, filenamepath) => {
@@ -89,25 +92,24 @@ module.exports = {
         
         return filePath;
     },
-    checkIfUserExists: async (tableName, v, email = null) => {
-        // Used to check during registration: check invitation code, check if user exists (email and login)
-        const input = {
+    findUser: async (tableName, user, email = null) => {
+        // email is only for users table
+        const params = {
             TableName: tableName,
             ...(email && {FilterExpression: "userEmail = :userEmailExp",}),
-            KeyConditionExpression: "#userName = :usr",
+            KeyConditionExpression:
+              "#userName = :usr",
             ExpressionAttributeValues: {
-                ":usr": v,
-                ...(email && {":userEmailExp": email}),
+              ":usr": user,
+              ...(email && {":userEmailExp": email}),
             },
-            ExpressionAttributeNames: {
-                "#userName": "user"
-            },
+            ExpressionAttributeNames: { "#userName": "user" },
             ConsistentRead: true,
-        }
+        };
 
-        const commandCheckUserName = new QueryCommand(input);
-        const res = await docClient.send(commandCheckUserName);
-        return res;
+        const command = new QueryCommand(params);
+        const res = await docClient.send(command);
+        return res.Items;
     },
     findUserByEmail: async (tableName, v) => {
         const params = {
@@ -125,6 +127,32 @@ module.exports = {
         const command = new QueryCommand(params);
         const res = await docClient.send(command);
         return res.Items[0];
+    },
+    findAll: async (tableName) => {
+        const params = {
+            TableName: tableName,
+        };
+        const command = new ScanCommand(params);
+        const data = await docClient.send(command);
+        return data.Items;
+    },
+    findAllByPrimaryKey: async (tableName, v) => {
+        const params = {
+            TableName: tableName,
+            ProjectionExpression: '#aliasForUser, #aliasforItemId',
+            ExpressionAttributeNames: {
+              '#aliasForUser': 'user',
+              '#aliasforItemId': 'itemID',
+            },
+            FilterExpression: '#aliasForUser = :valueUsr',
+            ExpressionAttributeValues: {
+                ':valueUsr': v,
+            },
+        };
+
+        const command = new ScanCommand(params);
+        const data = await docClient.send(command);
+        return data.Items;
     },
     responseWithError: (errorCode = '500', errorMsg = 'Something went wrong...', headers) => {
         return {
@@ -153,5 +181,49 @@ module.exports = {
         }
 
         return response?.SecretString;
+    },
+    getEventBridgeRuleInfo: async (ruleName) => {
+        try {
+            const command = new DescribeRuleCommand({ Name: ruleName });
+            const response = await clientEB.send(command);
+            return response;
+        } catch (error) {
+            console.error('Error describing the rule:', error);
+            return error;
+        }
+    },
+    getRateExpressionNextRun: (scheduleExpression) => {
+        if (!scheduleExpression.startsWith('rate(')) {
+            throw new Error('Invalid scheduleExpression');
+        }
+
+        const now = new Date();
+        const match = scheduleExpression.match(/rate\((\d+) (minute|minutes|hour|hours|day|days)\)/);
+    
+        if (!match) throw new Error('Invalid rate expression');
+    
+        const value = parseInt(match[1], 10);
+        const unit = match[2];
+        let nextRunTime;
+    
+        switch (unit) {
+            case 'minute':
+            case 'minutes':
+                nextRunTime = new Date(now.getTime() + value * 60 * 1000);
+                break;
+            case 'hour':
+            case 'hours':
+                nextRunTime = new Date(now.getTime() + value * 60 * 60 * 1000);
+                break;
+            case 'day':
+            case 'days':
+                nextRunTime = new Date(now.getTime() + value * 24 * 60 * 60 * 1000);
+                break;
+            default:
+                throw new Error('Unsupported time unit');
+        }
+    
+        // time in ms
+        return nextRunTime - now;
     }
 }
