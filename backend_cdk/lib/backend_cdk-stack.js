@@ -22,6 +22,8 @@ class BackendCdkStack extends cdk.Stack {
     const CLOUDFRONT_URL = props.env.CLOUDFRONT_URL;
     const SQS_URL = props.env.SQS_URL;
     const SENDER_EMAIL = props.env.SENDER_EMAIL;
+    const BASIC_AUTH_USERNAME = props.env.BASIC_AUTH_USERNAME;
+    const BASIC_AUTH_PASSWORD = props.env.BASIC_AUTH_PASSWORD;
 
     const websiteBucket = new s3.Bucket(this, `${PROJECT_NAME}--s3-site--${STAGE}`, {
       removalPolicy: cdk.RemovalPolicy.DESTROY,
@@ -55,13 +57,33 @@ class BackendCdkStack extends cdk.Stack {
     //   code: lambda.Code.fromAsset(path.join(__dirname, 'basic_auth')),
     // });
 
+    const cf_keyValueStore = new cloudfront.KeyValueStore(this, `${PROJECT_NAME}--cf-key-value-store--${STAGE}`, {
+      keyValueStoreName: `${PROJECT_NAME}--cf-key-value-store--${STAGE}`, // throws error that can't use the same name if updating
+      comment: `Key value store for ${PROJECT_NAME}-${STAGE}`,
+      source: cloudfront.ImportSource.fromInline(JSON.stringify({
+          data: [
+            {
+              key: "BASIC_AUTH_USERNAME",
+              value: BASIC_AUTH_USERNAME,
+            },
+            {
+              key: "BASIC_AUTH_PASSWORD",
+              value: BASIC_AUTH_PASSWORD,
+            },
+          ],
+      })),
+    });
+    // cf_keyValueStore.applyRemovalPolicy(cdk.RemovalPolicy.RETAIN_ON_UPDATE_OR_DELETE);
+
     const cfFunctionFile = STAGE !== 'prod' ? __dirname + '/functions/basicAuth/index.js' : __dirname + '/functions/redirect/index.js'
     const cfFunction = new cloudfront.Function(this, `${PROJECT_NAME}--cf-redirect-fn--${STAGE}`, {
         code: cloudfront.FunctionCode.fromFile({
             filePath: cfFunctionFile,
         }),
+        runtime: cloudfront.FunctionRuntime.JS_2_0,
         functionName: `${PROJECT_NAME}--cf-redirect-fn--${STAGE}`,
-        comment: 'CF to handle redirect.'
+        comment: 'CF function to handle redirects, basic auth etc.',
+        keyValueStore: cf_keyValueStore,
     });
 
     const oai = new cloudfront.OriginAccessIdentity(this, `${PROJECT_NAME}--oai--${STAGE}`, {
@@ -114,7 +136,11 @@ class BackendCdkStack extends cdk.Stack {
           responseCode: 403,
           responsePagePath: '/404.html'
         }
-      ]
+      ],
+      // loggingConfig: {
+      //   bucket: websiteBucketFiles,
+      //   prefix: 'viewer_logs',
+      // }
     });
 
     const myTable = new dynamoDb.TableV2(this, `${PROJECT_NAME}--db-data--${STAGE}`, {
@@ -387,6 +413,8 @@ class BackendCdkStack extends cdk.Stack {
                     "s3:ListBucket",
                     "s3:PutObject",
                     "s3:DeleteObject",
+                    // "s3:GetBucketAcl",
+                    // "s3:PutBucketAcl",
                     // "s3:PutObjectAcl",
                     // "s3:GetObjectAcl",
                     // "s3:*"
