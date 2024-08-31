@@ -30,7 +30,7 @@ jobs:
       - name: Get CloudFront ID
         id: get-cloudfront-id
         run: |
-          CLOUDFRONT_DISTRIBUTION_ID=$(aws cloudformation describe-stack-resources --stack-name ${{ secrets.PROJECT_NAME }}-stack-test --region us-east-1 --query "StackResources[?ResourceType=='AWS::CloudFront::Distribution'].PhysicalResourceId" --output text)
+          CLOUDFRONT_DISTRIBUTION_ID=$(aws cloudformation describe-stack-resources --stack-name ${{ secrets.PROJECT_NAME }}-stack-${{ env.ENV_NAME }} --region us-east-1 --query "StackResources[?ResourceType=='AWS::CloudFront::Distribution'].PhysicalResourceId" --output text)
           echo "CLOUDFRONT_DISTRIBUTION_ID=$CLOUDFRONT_DISTRIBUTION_ID" >> $GITHUB_ENV
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
