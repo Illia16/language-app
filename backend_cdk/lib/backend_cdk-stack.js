@@ -55,7 +55,7 @@ class BackendCdkStack extends cdk.Stack {
     //   code: lambda.Code.fromAsset(path.join(__dirname, 'basic_auth')),
     // });
 
-    const cfFunctionFile = STAGE !== 'prod' ? __dirname + '/functions/basicAuth/index.js' : __dirname + '/functions/redirect/index.js'
+    const cfFunctionFile = STAGE !== 'prod' ? __dirname + '/cf-functions/basicAuth/index.js' : __dirname + '/cf-functions/redirect/index.js'
     const cfFunction = new cloudfront.Function(this, `${PROJECT_NAME}--cf-redirect-fn--${STAGE}`, {
         code: cloudfront.FunctionCode.fromFile({
             filePath: cfFunctionFile,
