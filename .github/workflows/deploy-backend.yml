@@ -71,6 +71,8 @@ jobs:
           ENV_NAME: ${{ env.ENV_NAME }}
           CLOUDFRONT_URL: ${{ env.CLOUDFRONT_URL }}
           SQS_URL: ${{ env.SQS_URL }}
+          BASIC_AUTH_USERNAME: ${{ secrets.BASIC_AUTH_USERNAME }}
+          BASIC_AUTH_PASSWORD: ${{ secrets.BASIC_AUTH_PASSWORD }}
         run: cdk deploy -c env=${{ env.ENV_NAME }} --require-approval never
         working-directory: backend_cdk
   call-deploy-frontend:
