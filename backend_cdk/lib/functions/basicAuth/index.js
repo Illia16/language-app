@@ -1,17 +1,6 @@
-import cf from 'cloudfront';
-
-const kvsHandle = cf.kvs();
-
 async function handler(event) {
-    let expectedUsername;
-    let expectedPassword;
-    try {
-        expectedUsername = await kvsHandle.get('BASIC_AUTH_USERNAME');
-        expectedPassword = await kvsHandle.get('BASIC_AUTH_PASSWORD');
-    } catch (err) {
-        console.log(`Kvs key lookup failed for ${key}: ${err}`);
-    }
-
+    const expectedUsername = 'user';
+    const expectedPassword = 'pw';
     console.log(JSON.stringify(event));
     console.log('___event', event);
 
