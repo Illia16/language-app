@@ -55,13 +55,14 @@ class BackendCdkStack extends cdk.Stack {
     //   code: lambda.Code.fromAsset(path.join(__dirname, 'basic_auth')),
     // });
 
-    const cfFunctionFile = STAGE !== 'prod' ? __dirname + '/functions/basicAuth/index.js' : __dirname + '/functions/redirect/index.js'
+    const cfFunctionFile = STAGE !== 'prod' ? __dirname + '/cf-functions/basicAuth/index.js' : __dirname + '/cf-functions/redirect/index.js'
     const cfFunction = new cloudfront.Function(this, `${PROJECT_NAME}--cf-redirect-fn--${STAGE}`, {
         code: cloudfront.FunctionCode.fromFile({
             filePath: cfFunctionFile,
         }),
+        runtime: cloudfront.FunctionRuntime.JS_2_0,
         functionName: `${PROJECT_NAME}--cf-redirect-fn--${STAGE}`,
-        comment: 'CF to handle redirect.'
+        comment: 'CF function to handle redirects, basic auth etc.',
     });
 
     const oai = new cloudfront.OriginAccessIdentity(this, `${PROJECT_NAME}--oai--${STAGE}`, {
@@ -114,7 +115,11 @@ class BackendCdkStack extends cdk.Stack {
           responseCode: 403,
           responsePagePath: '/404.html'
         }
-      ]
+      ],
+      // loggingConfig: {
+      //   bucket: websiteBucketFiles,
+      //   prefix: 'viewer_logs',
+      // }
     });
 
     const myTable = new dynamoDb.TableV2(this, `${PROJECT_NAME}--db-data--${STAGE}`, {
@@ -387,6 +392,8 @@ class BackendCdkStack extends cdk.Stack {
                     "s3:ListBucket",
                     "s3:PutObject",
                     "s3:DeleteObject",
+                    // "s3:GetBucketAcl",
+                    // "s3:PutBucketAcl",
                     // "s3:PutObjectAcl",
                     // "s3:GetObjectAcl",
                     // "s3:*"

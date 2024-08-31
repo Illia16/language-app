@@ -1,16 +1,13 @@
-function handler(event) {
-    var expectedUsername = 'user';
-    var expectedPassword = 'pw';
+async function handler(event) {
+    const expectedUsername = 'user';
+    const expectedPassword = 'pw';
     console.log(JSON.stringify(event));
     console.log('___event', event);
 
-    // var request = event.Records[0].cf.request;
-    var request = event.request;
-    console.log('request', JSON.stringify(request, null, 2));
-    var headers = request.headers;
-    console.log('headers', JSON.stringify(headers, null, 2));
+    let request = event.request;
+    const headers = request.headers;
 
-    var objReject = {
+    const objReject = {
         statusCode: 401,
         statusDescription: 'Unauthorized',
         headers: {
@@ -22,14 +19,13 @@ function handler(event) {
         return objReject;
     }
 
-    var authHeader = headers.authorization.value;
+    const authHeader = headers.authorization.value;
+    const authString = authHeader.split(' ')[1];
+    const authDecoded = String.bytesFrom(authString, 'base64');
     console.log('authHeader', authHeader);
-    var authString = authHeader.split(' ')[1];
     console.log('authString', authString);
-    var authDecoded = String.bytesFrom(authString, 'base64');
-    // var authDecoded = Buffer.from(authString, 'base64').toString('utf-8');
     console.log('authDecoded', authDecoded);
-    var split = authDecoded.split(':');
+    const split = authDecoded.split(':');
 
     if (split[0] !== expectedUsername || split[1] !== expectedPassword) {
         return objReject;
@@ -40,4 +36,4 @@ function handler(event) {
     });
 
     return request;
-};
+}
