@@ -55,13 +55,14 @@ class BackendCdkStack extends cdk.Stack {
     //   code: lambda.Code.fromAsset(path.join(__dirname, 'basic_auth')),
     // });
 
-    const cfFunctionFile = STAGE !== 'prod' ? __dirname + '/functions/basicAuth/index.js' : __dirname + '/functions/redirect/index.js'
+    const cfFunctionFile = STAGE !== 'prod' ? __dirname + '/cf-functions/basicAuth/index.js' : __dirname + '/cf-functions/redirect/index.js'
     const cfFunction = new cloudfront.Function(this, `${PROJECT_NAME}--cf-redirect-fn--${STAGE}`, {
         code: cloudfront.FunctionCode.fromFile({
             filePath: cfFunctionFile,
         }),
+        runtime: cloudfront.FunctionRuntime.JS_2_0,
         functionName: `${PROJECT_NAME}--cf-redirect-fn--${STAGE}`,
-        comment: 'CF to handle redirect.'
+        comment: 'CF function to handle redirects, basic auth etc.',
     });
 
     const oai = new cloudfront.OriginAccessIdentity(this, `${PROJECT_NAME}--oai--${STAGE}`, {
@@ -114,7 +115,11 @@ class BackendCdkStack extends cdk.Stack {
           responseCode: 403,
           responsePagePath: '/404.html'
         }
-      ]
+      ],
+      // loggingConfig: {
+      //   bucket: websiteBucketFiles,
+      //   prefix: 'viewer_logs',
+      // }
     });
 
     const myTable = new dynamoDb.TableV2(this, `${PROJECT_NAME}--db-data--${STAGE}`, {
@@ -151,12 +156,12 @@ class BackendCdkStack extends cdk.Stack {
       ]
     })
 
-    // const helperFns = new lambda.LayerVersion(this, `${PROJECT_NAME}--helper-fn-layer--${STAGE}`, {
-    //     code: lambda.Code.fromAsset(path.join(__dirname, '../helpers')),
-    //     compatibleRuntimes: [lambda.Runtime.NODEJS_18_X],
-    //     description: `helper functions for Lambda fn`,
-    //     layerVersionName: `${PROJECT_NAME}--helper-fn-layer--${STAGE}`,
-    // })
+    const lambdaLayer = new lambda.LayerVersion(this, `${PROJECT_NAME}--fn-layer--${STAGE}`, {
+      layerVersionName: `${PROJECT_NAME}--fn-layer--${STAGE}`,
+      code: lambda.Code.fromAsset(path.join(__dirname, 'layers/layer-lambda')),
+      compatibleArchitectures: [lambda.Architecture.X86_64, lambda.Architecture.ARM_64],
+      compatibleRuntimes: [lambda.Runtime.NODEJS_18_X, lambda.Runtime.NODEJS_20_X]
+    });
 
     const lambdaFnDynamoDb = new lambda.Function(this, `${PROJECT_NAME}--lambda-fn-data--${STAGE}`, {
         runtime: lambda.Runtime.NODEJS_18_X,
@@ -171,7 +176,7 @@ class BackendCdkStack extends cdk.Stack {
           OPEN_AI_KEY: OPEN_AI_KEY,
         },
         timeout: cdk.Duration.seconds(30),
-        // layers: [helperFns],
+        layers: [lambdaLayer]
     });
 
     // the below line attaches all dynamodb actions to the created by default iam role. we don't want that.
@@ -195,6 +200,7 @@ class BackendCdkStack extends cdk.Stack {
         OPEN_AI_KEY: OPEN_AI_KEY,
       },
       timeout: cdk.Duration.seconds(30),
+      layers: [lambdaLayer],
     });
     authFn.role.addManagedPolicy(
         iam.ManagedPolicy.fromAwsManagedPolicyName('service-role/AWSLambdaBasicExecutionRole')
@@ -349,6 +355,7 @@ class BackendCdkStack extends cdk.Stack {
           // enabled: true,
           batchSize: 1,
         })],
+        layers: [lambdaLayer],
     });
 
     lambdaFnSQS.role.addManagedPolicy(
@@ -387,6 +394,8 @@ class BackendCdkStack extends cdk.Stack {
                     "s3:ListBucket",
                     "s3:PutObject",
                     "s3:DeleteObject",
+                    // "s3:GetBucketAcl",
+                    // "s3:PutBucketAcl",
                     // "s3:PutObjectAcl",
                     // "s3:GetObjectAcl",
                     // "s3:*"
