@@ -1,12 +1,11 @@
 {
-  "name": "functions",
+  "name": "layers-lambda",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "This is the layer for lambda functions.",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "",
+  "author": "Illia N.",
   "license": "ISC",
   "dependencies": {
     "@aws-sdk/client-eventbridge": "^3.637.0",

@@ -1,4 +1,4 @@
-async function handler(event) {
+function handler(event) {
     const expectedUsername = 'user';
     const expectedPassword = 'pw';
     console.log(JSON.stringify(event));
