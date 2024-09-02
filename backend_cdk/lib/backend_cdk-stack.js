@@ -156,12 +156,12 @@ class BackendCdkStack extends cdk.Stack {
       ]
     })
 
-    // const helperFns = new lambda.LayerVersion(this, `${PROJECT_NAME}--helper-fn-layer--${STAGE}`, {
-    //     code: lambda.Code.fromAsset(path.join(__dirname, '../helpers')),
-    //     compatibleRuntimes: [lambda.Runtime.NODEJS_18_X],
-    //     description: `helper functions for Lambda fn`,
-    //     layerVersionName: `${PROJECT_NAME}--helper-fn-layer--${STAGE}`,
-    // })
+    const lambdaLayer = new lambda.LayerVersion(this, `${PROJECT_NAME}--fn-layer--${STAGE}`, {
+      layerVersionName: `${PROJECT_NAME}--fn-layer--${STAGE}`,
+      code: lambda.Code.fromAsset(path.join(__dirname, 'layers/layer-lambda')),
+      compatibleArchitectures: [lambda.Architecture.X86_64, lambda.Architecture.ARM_64],
+      compatibleRuntimes: [lambda.Runtime.NODEJS_18_X, lambda.Runtime.NODEJS_20_X]
+    });
 
     const lambdaFnDynamoDb = new lambda.Function(this, `${PROJECT_NAME}--lambda-fn-data--${STAGE}`, {
         runtime: lambda.Runtime.NODEJS_18_X,
@@ -176,7 +176,7 @@ class BackendCdkStack extends cdk.Stack {
           OPEN_AI_KEY: OPEN_AI_KEY,
         },
         timeout: cdk.Duration.seconds(30),
-        // layers: [helperFns],
+        layers: [lambdaLayer]
     });
 
     // the below line attaches all dynamodb actions to the created by default iam role. we don't want that.
@@ -200,6 +200,7 @@ class BackendCdkStack extends cdk.Stack {
         OPEN_AI_KEY: OPEN_AI_KEY,
       },
       timeout: cdk.Duration.seconds(30),
+      layers: [lambdaLayer],
     });
     authFn.role.addManagedPolicy(
         iam.ManagedPolicy.fromAwsManagedPolicyName('service-role/AWSLambdaBasicExecutionRole')
@@ -354,6 +355,7 @@ class BackendCdkStack extends cdk.Stack {
           // enabled: true,
           batchSize: 1,
         })],
+        layers: [lambdaLayer],
     });
 
     lambdaFnSQS.role.addManagedPolicy(

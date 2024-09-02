@@ -57,7 +57,7 @@ jobs:
 
       - name: Install Lambda Function Dependencies
         run: npm install
-        working-directory: backend_cdk/lib/functions
+        working-directory: backend_cdk/lib/layers/layer-lambda/nodejs # install deps for lambda layers
 
       - name: Deploy CloudFormation Template
         env:
