@@ -7,10 +7,10 @@
   "scripts": {
     "build": "echo \"The build step is not required when using JavaScript!\" && exit 0",
     "cdk": "cdk",
-    "synth:test": "dotenv -e .env.test -- cdk synth",
-    "deploy:test": "dotenv -e .env.test -- cdk deploy",
-    "synth:prod": "dotenv -e .env.prod -- cdk synth",
-    "deploy:prod": "dotenv -e .env.prod -- cdk deploy",
+    "synth:test": "dotenv -e .env.test -- cdk synth --profile personal",
+    "deploy:test": "dotenv -e .env.test -- cdk deploy --profile personal",
+    "synth:prod": "dotenv -e .env.prod -- cdk synth --profile personal",
+    "deploy:prod": "dotenv -e .env.prod -- cdk deploy --profile personal",
     "test": "jest"
   },
   "devDependencies": {
