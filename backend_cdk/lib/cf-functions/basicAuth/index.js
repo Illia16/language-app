@@ -21,7 +21,7 @@ function handler(event) {
 
     const authHeader = headers.authorization.value;
     const authString = authHeader.split(' ')[1];
-    const authDecoded = String.bytesFrom(authString, 'base64');
+    const authDecoded = Buffer.from(authString, 'base64').toString('utf-8');
     console.log('authHeader', authHeader);
     console.log('authString', authString);
     console.log('authDecoded', authDecoded);
