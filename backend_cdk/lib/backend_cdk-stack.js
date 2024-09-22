@@ -22,6 +22,7 @@ class BackendCdkStack extends cdk.Stack {
     const CLOUDFRONT_URL = props.env.CLOUDFRONT_URL;
     const SQS_URL = props.env.SQS_URL;
     const SENDER_EMAIL = props.env.SENDER_EMAIL;
+    const CERTIFICATE_ARN = props.env.CERTIFICATE_ARN;
 
     const websiteBucket = new s3.Bucket(this, `${PROJECT_NAME}--s3-site--${STAGE}`, {
       removalPolicy: cdk.RemovalPolicy.DESTROY,
@@ -104,6 +105,14 @@ class BackendCdkStack extends cdk.Stack {
           ],
         },
       ],
+      viewerCertificate: cloudfront.ViewerCertificate.fromAcmCertificate(
+        CERTIFICATE_ARN, // uploaded manually
+        {
+          aliases: [STAGE === 'prod' ? 'languageapp.illusha.net' : 'languageapp-test.illusha.net'], // only 2 envs for this app
+          securityPolicy: cloudfront.SecurityPolicyProtocol.SSL_V3,
+          sslMethod: cloudfront.SSLMethod.SNI
+        }
+      ),
       errorConfigurations: [
         {
           errorCode: 404,
