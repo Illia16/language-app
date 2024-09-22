@@ -9,6 +9,7 @@ const aws_secretsmanager = require('aws-cdk-lib/aws-secretsmanager');
 const events = require('aws-cdk-lib/aws-events');
 const eventsTargets = require('aws-cdk-lib/aws-events-targets');
 const sqs = require('aws-cdk-lib/aws-sqs');
+const acm = require('aws-cdk-lib/aws-certificatemanager');
 const lambdaEventSource = require('aws-cdk-lib/aws-lambda-event-sources');
 const path = require('path');
 
@@ -22,6 +23,7 @@ class BackendCdkStack extends cdk.Stack {
     const CLOUDFRONT_URL = props.env.CLOUDFRONT_URL;
     const SQS_URL = props.env.SQS_URL;
     const SENDER_EMAIL = props.env.SENDER_EMAIL;
+    const CERTIFICATE_ARN = props.env.CERTIFICATE_ARN;
 
     const websiteBucket = new s3.Bucket(this, `${PROJECT_NAME}--s3-site--${STAGE}`, {
       removalPolicy: cdk.RemovalPolicy.DESTROY,
@@ -55,14 +57,13 @@ class BackendCdkStack extends cdk.Stack {
     //   code: lambda.Code.fromAsset(path.join(__dirname, 'basic_auth')),
     // });
 
-    const cfFunctionFile = STAGE !== 'prod' ? __dirname + '/cf-functions/basicAuth/index.js' : __dirname + '/cf-functions/redirect/index.js'
-    const cfFunction = new cloudfront.Function(this, `${PROJECT_NAME}--cf-redirect-fn--${STAGE}`, {
+    const cfFunction = new cloudfront.Function(this, `${PROJECT_NAME}--cf-fn--${STAGE}`, {
         code: cloudfront.FunctionCode.fromFile({
-            filePath: cfFunctionFile,
+            filePath: __dirname + '/cf-functions/index.js',
         }),
         runtime: cloudfront.FunctionRuntime.JS_2_0,
-        functionName: `${PROJECT_NAME}--cf-redirect-fn--${STAGE}`,
-        comment: 'CF function to handle redirects, basic auth etc.',
+        functionName: `${PROJECT_NAME}--cf-fn--${STAGE}`,
+        comment: 'CF function to handle redirects, basic auth, redirects from cf domain to a custom one etc.',
     });
 
     const oai = new cloudfront.OriginAccessIdentity(this, `${PROJECT_NAME}--oai--${STAGE}`, {
@@ -80,6 +81,7 @@ class BackendCdkStack extends cdk.Stack {
     //   })
     // );
 
+    const ssl_cert = acm.Certificate.fromCertificateArn(this, `${PROJECT_NAME}--certificate--${STAGE}`, CERTIFICATE_ARN); // uploaded manually
     new cloudfront.CloudFrontWebDistribution(this, `${PROJECT_NAME}--cf--${STAGE}`, {
       originConfigs: [
         {
@@ -104,6 +106,14 @@ class BackendCdkStack extends cdk.Stack {
           ],
         },
       ],
+      viewerCertificate: cloudfront.ViewerCertificate.fromAcmCertificate(
+        ssl_cert,
+        {
+          aliases: [STAGE === 'prod' ? 'languageapp.illusha.net' : 'languageapp-test.illusha.net'], // only 2 envs for this app
+          securityPolicy: cloudfront.SecurityPolicyProtocol.TLS_V1_2_2021,
+          sslMethod: cloudfront.SSLMethod.SNI,          
+        },
+      ),
       errorConfigurations: [
         {
           errorCode: 404,

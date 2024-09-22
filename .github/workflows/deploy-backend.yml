@@ -32,9 +32,19 @@ jobs:
 
       - name: Get CloudFront URL
         id: get-cloudfront-url
+        # use Distribution.DomainName below if no custom domain set
         run: |
-          CLOUDFRONT_URL=$(aws cloudfront get-distribution --id ${{ env.CLOUDFRONT_DISTRIBUTION_ID }} --query "Distribution.DomainName" --region us-east-1 --output text)
+          CLOUDFRONT_URL=$(aws cloudfront get-distribution --id ${{ env.CLOUDFRONT_DISTRIBUTION_ID }} --query "Distribution.DistributionConfig.Aliases.Items[0]" --region us-east-1 --output text)
           echo "CLOUDFRONT_URL=$CLOUDFRONT_URL" >> $GITHUB_ENV
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+      - name: Get CERTIFICATE_ARN
+        id: get-certificate-arn
+        run: |
+          CERTIFICATE_ARN=$(aws acm list-certificates --query "CertificateSummaryList[?DomainName=='*.illusha.net'].CertificateArn" --output text --region us-east-1)
+          echo "CERTIFICATE_ARN=$CERTIFICATE_ARN" >> $GITHUB_ENV
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
