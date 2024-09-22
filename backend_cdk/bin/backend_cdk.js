@@ -14,6 +14,7 @@ new BackendCdkStack(app, `${process.env.PROJECT_NAME}-stack-${process.env.ENV_NA
         OPEN_AI_KEY: process.env.OPEN_AI_KEY,
         SENDER_EMAIL: process.env.SENDER_EMAIL,
         SQS_URL: process.env.SQS_URL,
+        CERTIFICATE_ARN: process.env.CERTIFICATE_ARN,
     },
     description: `Backend stack for ${process.env.PROJECT_NAME} for ${process.env.ENV_NAME} environment.`
 });
