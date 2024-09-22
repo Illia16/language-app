@@ -32,8 +32,9 @@ jobs:
 
       - name: Get CloudFront URL
         id: get-cloudfront-url
+        # use Distribution.DomainName below if no custom domain set
         run: |
-          CLOUDFRONT_URL=$(aws cloudfront get-distribution --id ${{ env.CLOUDFRONT_DISTRIBUTION_ID }} --query "Distribution.DomainName" --region us-east-1 --output text)
+          CLOUDFRONT_URL=$(aws cloudfront get-distribution --id ${{ env.CLOUDFRONT_DISTRIBUTION_ID }} --query "Distribution.DistributionConfig.Aliases.Items[0]" --region us-east-1 --output text)
           echo "CLOUDFRONT_URL=$CLOUDFRONT_URL" >> $GITHUB_ENV
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
