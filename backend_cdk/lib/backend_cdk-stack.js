@@ -109,7 +109,7 @@ class BackendCdkStack extends cdk.Stack {
         CERTIFICATE_ARN, // uploaded manually
         {
           aliases: [STAGE === 'prod' ? 'languageapp.illusha.net' : 'languageapp-test.illusha.net'], // only 2 envs for this app
-          securityPolicy: cloudfront.SecurityPolicyProtocol.SSL_V3,
+          securityPolicy: cloudfront.SecurityPolicyProtocol.TLS_V1_2_2021,
           sslMethod: cloudfront.SSLMethod.SNI
         }
       ),
