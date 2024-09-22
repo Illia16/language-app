@@ -7,25 +7,18 @@
   "scripts": {
     "build": "echo \"The build step is not required when using JavaScript!\" && exit 0",
     "cdk": "cdk",
-    "synth:test": "dotenv -e .env.test -- cdk synth",
-    "deploy:test": "dotenv -e .env.test -- cdk deploy",
-    "synth:prod": "dotenv -e .env.prod -- cdk synth",
-    "deploy:prod": "dotenv -e .env.prod -- cdk deploy",
+    "synth:test": "dotenv -e .env.test -- cdk synth --profile personal",
+    "deploy:test": "dotenv -e .env.test -- cdk deploy --profile personal",
+    "synth:prod": "dotenv -e .env.prod -- cdk synth --profile personal",
+    "deploy:prod": "dotenv -e .env.prod -- cdk deploy --profile personal",
     "test": "jest"
   },
   "devDependencies": {
-    "@aws-sdk/s3-request-presigner": "^3.451.0",
     "aws-cdk": "^2.155.0",
     "dotenv-cli": "^7.4.2",
     "jest": "^29.7.0"
   },
   "dependencies": {
-    "@aws-sdk/client-dynamodb": "^3.427.0",
-    "@aws-sdk/client-s3": "^3.450.0",
-    "@aws-sdk/client-secrets-manager": "^3.473.0",
-    "@aws-sdk/client-ses": "^3.478.0",
-    "@aws-sdk/client-sqs": "^3.478.0",
-    "@aws-sdk/lib-dynamodb": "^3.427.0",
     "aws-cdk-lib": "^2.155.0",
     "constructs": "^10.0.0"
   }
