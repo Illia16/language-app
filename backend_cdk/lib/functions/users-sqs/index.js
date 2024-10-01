@@ -28,7 +28,7 @@ module.exports.handler = async (event, context) => {
             const token = jwt.sign({user: resUserByEmail.user, ...(resUserByEmail.role === 'admin' && {role: resUserByEmail.role})}, secretJwt, { expiresIn: '5m' });
 
             const input = {
-                Source: process.env.SENDER_EMAIL,
+                Source: `${process.env.PROJECT_NAME}@devemail.illusha.net`,
                 Destination: {
                     ToAddresses: [resUserByEmail.userEmail],
                 },

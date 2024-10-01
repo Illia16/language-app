@@ -22,7 +22,6 @@ class BackendCdkStack extends cdk.Stack {
     const OPEN_AI_KEY = props.env.OPEN_AI_KEY;
     const CLOUDFRONT_URL = props.env.CLOUDFRONT_URL;
     const SQS_URL = props.env.SQS_URL;
-    const SENDER_EMAIL = props.env.SENDER_EMAIL;
     const CERTIFICATE_ARN = props.env.CERTIFICATE_ARN;
 
     const websiteBucket = new s3.Bucket(this, `${PROJECT_NAME}--s3-site--${STAGE}`, {
@@ -356,7 +355,6 @@ class BackendCdkStack extends cdk.Stack {
         functionName: `${PROJECT_NAME}--lambda-fn-users-sqs--${STAGE}`,
         role: myIam,
         environment: {
-          SENDER_EMAIL: SENDER_EMAIL,
           CLOUDFRONT_URL: CLOUDFRONT_URL,
           PROJECT_NAME: PROJECT_NAME,
           STAGE: STAGE,
@@ -442,7 +440,7 @@ class BackendCdkStack extends cdk.Stack {
               effect: iam.Effect.ALLOW,
               conditions: {
                 StringEquals: {
-                  "ses:FromAddress": SENDER_EMAIL,
+                  "ses:FromAddress": `${process.env.PROJECT_NAME}@devemail.illusha.net`,
                 }
               }
             }),
