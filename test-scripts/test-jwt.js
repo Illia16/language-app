@@ -36,7 +36,6 @@ module.exports = async () => {
 
         if (user[0].pw === userPw) {
             console.log('Login success.');
-            // res = jwt.sign(user[0], secret, {expiresIn: '5m'})
             res = jwt.sign(user[0], secret, {expiresIn: '5s'})
             console.log('Generated token:', res);
 

@@ -485,7 +485,6 @@ watch(() => v_filterLearningLang.value, () => {
 
 
 const closeConfirmModal = (): void => {
-    console.log('closeConfirmModal');
     store.setModalOpen(false);
     store.setModalType('');
 
@@ -504,9 +503,6 @@ const closeConfirmModal = (): void => {
 }
 
 const openConfirmModal = (item: UserData | null, action: string):void => {
-    console.log('action', action);
-    console.log('item', item);
-
     store.setModalOpen(true);
     store.setModalType(action);
     activeModalAction.value = action;
@@ -569,14 +565,9 @@ const deleteUserData = async () => {
     .finally(() => {
         store.setLoading(false);
     });
-    console.log('res_DELETE API', resDeleteApi);
-
 
     if (resDeleteApi.success) {
         // update FE without API call
-        // const newArr: UserDataArrayOfObj = store.userLangData.filter(el => el.itemID !== v_itemID.value);
-        // console.log('newArr', newArr);
-        // store.setUserLangData(newArr);
         getUserData()
         closeConfirmModal();
     }
@@ -615,7 +606,6 @@ const addUserData = async () => {
         payload.append('file', v_file.value);
     }
 
-    console.log('payload', payload);
     store.setLoading(true);
     const resPostApi = await fetch(`${config.public.API_URL_DATA}/${config.public.ENV_NAME}/data`, {
         method: 'POST',
@@ -631,14 +621,8 @@ const addUserData = async () => {
     .finally(() => {
         store.setLoading(false);
     });
-    console.log('res_POST API', resPostApi);
 
     if (resPostApi.success) {
-        // update FE without API call
-        // const newArr: UserDataArrayOfObj = store.userLangData.slice();
-        // newArr.push(payload[0])
-        // console.log('newArr', newArr);
-        // store.setUserLangData(newArr);
         getUserData()
         closeConfirmModal();
     }
@@ -687,7 +671,6 @@ const updateUserData = async () => {
         payload.append('file', v_file.value);
     }
 
-    console.log('anyChanges', anyChanges);
     if (anyChanges) {
         store.setLoading(true);
         const resPutApi = await fetch(`${config.public.API_URL_DATA}/${config.public.ENV_NAME}/data`, {
@@ -704,26 +687,8 @@ const updateUserData = async () => {
         .finally(() => {
             store.setLoading(false);
         })
-        console.log('res_PUT API', resPutApi);
 
         if (resPutApi.success) {
-            // update FE without API call
-            // const newArr: UserDataArrayOfObj = store.userLangData.map(el => {
-            //     if (el.itemID === v_itemID.value) {
-            //         el.level = v_level.value;
-            //         el.languageStudying = v_languageStudying.value;
-            //         el.itemType = v_itemType.value;
-            //         el.itemTypeCategory = v_itemTypeCategory.value;
-            //         el.item = v_item.value;
-            //         el.itemCorrect = v_itemCorrect.value;
-
-            //         return el;
-            //     } else {
-            //         return el;
-            //     }
-            // });
-            // console.log('newArr', newArr);
-            // store.setUserLangData(newArr);
             getUserData()
             closeConfirmModal();
         }

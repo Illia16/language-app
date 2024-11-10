@@ -28,14 +28,9 @@ const props = defineProps({
 	modelValue: Object,
 });
 
-onMounted(() => {
-    console.log('modelValue', props.modelValue);
-})
-
 const handleFile = async (e: Event) => {
     const element = e.target as HTMLInputElement;
     if (!element.files) return;
-    console.log('e.target.files', element.files);
     emit('update:modelValue', element.files[0])
 }
 

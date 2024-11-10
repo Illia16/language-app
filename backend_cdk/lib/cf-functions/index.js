@@ -1,13 +1,11 @@
 function handler(event) {
     const expectedUsername = 'user';
     const expectedPassword = 'pw';
-    console.log('___event', JSON.stringify(event));
 
     let request = event.request;
     const headers = request.headers;
     const isProd = headers.host.value === 'languageapp.illusha.net';
 
-    console.log('______headers.host.value', JSON.stringify(headers.host.value));
     // Redirect if the request is from the CloudFront domain
     if (['d3qignet23dx6u.cloudfront.net', 'd15k5khhejlcll.cloudfront.net'].includes(headers.host.value)) {
         const customDomain = headers.host.value === "d15k5khhejlcll.cloudfront.net" ? "languageapp.illusha.net" : "languageapp-test.illusha.net"
@@ -37,9 +35,6 @@ function handler(event) {
         const authHeader = headers.authorization.value;
         const authString = authHeader.split(' ')[1];
         const authDecoded = Buffer.from(authString, 'base64').toString('utf-8');
-        console.log('authHeader',  JSON.stringify(authHeader));
-        console.log('authString',  JSON.stringify(authString));
-        console.log('authDecoded',  JSON.stringify(authDecoded));
         const split = authDecoded.split(':');
     
         if (split[0] !== expectedUsername || split[1] !== expectedPassword) {

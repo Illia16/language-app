@@ -14,13 +14,6 @@ const { v4: uuidv4 } = require("uuid");
 const jwt = require('jsonwebtoken');
 
 module.exports.handler = async (event, context) => {
-    console.log('-----------------------------');
-    console.log('Auth handler');
-    console.log('event', event);
-    console.log('event.body', event.body);
-    console.log('context', context);
-    console.log('-----------------------------');
-
     // Environment variables
     const STAGE = process.env.STAGE;
     const PROJECT_NAME = process.env.PROJECT_NAME;
@@ -55,7 +48,6 @@ module.exports.handler = async (event, context) => {
         const password = body.password;
 
         const userInfo = await findUser(dbUsers, username)
-        console.log('res /users/login GET QUERY:', userInfo);
 
         if (!userInfo.length) {
             return responseWithError('500', 'Either user does not exist or wrong password.', headerOrigin)
@@ -95,13 +87,10 @@ module.exports.handler = async (event, context) => {
 
         try {
             const decoded = jwt.verify(token, secretJwt);
-            console.log('Token is ok.', decoded);
             if (decoded.role !== 'admin') {
-                console.log('User is not an admin...');
                 return responseWithError('401', `User ${decoded.user} is not authorized to do this action.`, headerOrigin)
             } else {
                 const genInvitationCode = uuidv4();
-                console.log('genInvitationCode', genInvitationCode);
                 const input = {
                     "Item": {
                         user: genInvitationCode,
@@ -111,16 +100,13 @@ module.exports.handler = async (event, context) => {
                     "ReturnConsumedCapacity": "TOTAL",
                     "TableName": dbUsers
                 };
-                console.log('genInvitationCode input:', input);
     
                 const command = new PutCommand(input);
                 const res = await docClient.send(command);
-                console.log('res POST generate-invitation-code:', res);
                 response.body = JSON.stringify({success: true});
             }
         } catch (error) {
             if (error.name === 'JsonWebTokenError' || error.name === 'TokenExpiredError') {
-                console.log('Err, token is invalid:', error.message);
                 return responseWithError('401', 'Token is invalid.', headerOrigin);
             } else {
                 console.error('Internal server error:', error.message);
@@ -138,14 +124,12 @@ module.exports.handler = async (event, context) => {
 
         // Check if username is available (also check is email is already used for another account)
         const findByUsernameAndEmailRes = await findUser(dbUsers, username, userEmail);
-        console.log('findByUsernameAndEmailRes', findByUsernameAndEmailRes);
 
         if (findByUsernameAndEmailRes && findByUsernameAndEmailRes.length) {
             return responseWithError('500', 'Either username already taken or inivation code is wrong.', headerOrigin)
         } else {
             // Check inv code
             const resInvCode = await findUser(dbUsers, invitationCode) 
-            console.log('resInvCode', resInvCode);
 
             if (resInvCode && resInvCode.length) {
                 // if inv code is correct, delete it and create a user
@@ -159,10 +143,7 @@ module.exports.handler = async (event, context) => {
 
                 const commandDeleteInvCode = new DeleteCommand(inputDeleteInvCode);
                 const resDeleteInvCode = await docClient.send(commandDeleteInvCode);
-                console.log('resDeleteInvCode', resDeleteInvCode);
-
                 const hashedPassword = await hashPassword(password)
-                console.log('hashedPassword - register', hashedPassword);
 
                 const inputCreateUser = {
                     Item: {
@@ -180,7 +161,6 @@ module.exports.handler = async (event, context) => {
 
                 const commandCreateUser = new PutCommand(inputCreateUser);
                 const resCreateUser = await docClient.send(commandCreateUser);
-                console.log('resCreateUser', resCreateUser);
                 response.body = JSON.stringify({success: true, data: resCreateUser.Attributes});
 
                 // put 1 welcome item for the new user
@@ -233,9 +213,7 @@ module.exports.handler = async (event, context) => {
 
         try {
             const decoded = jwt.verify(token, secretJwt);
-            console.log('Token is ok.', decoded);
         } catch(err) {
-            console.log('Err, token is invalid:', err);
             return responseWithError('401', 'Token is invalid.', headerOrigin)
         }
 
@@ -253,7 +231,6 @@ module.exports.handler = async (event, context) => {
             await clientSQS.send(commandSQS);
             response.body = JSON.stringify({success: true, message: 'processed'});
         } catch (error) {
-            console.log('Err, /users/delete-account:', error);
             return responseWithError('500', "Something went wrong.", headerOrigin)
         }  
     }
@@ -269,7 +246,6 @@ module.exports.handler = async (event, context) => {
             await clientSQS.send(commandSQS);
             response.body = JSON.stringify({success: true, message: 'processed'});
         } catch (error) {
-            console.log('Err, /users/forgot-password:', error);
             return responseWithError('500', "Something went wrong.", headerOrigin)
         }
     }
@@ -281,11 +257,9 @@ module.exports.handler = async (event, context) => {
         }
 
         const hashedPassword = await hashPassword(body.password)
-        console.log('hashedPassword - change-password', hashedPassword);
 
         try {
             const decoded = jwt.verify(token, secretJwt);
-            console.log('Token is ok.', decoded);
             const inputSQS = {
                 QueueUrl: SQS_URL,
                 MessageBody: JSON.stringify({
@@ -300,7 +274,6 @@ module.exports.handler = async (event, context) => {
             await clientSQS.send(commandSQS);
             response.body = JSON.stringify({success: true, message: 'processed'});
         } catch(err) {
-            console.log('Err, token is invalid:', err);
             return responseWithError('401', 'Token is invalid.', headerOrigin)
         }
     }
