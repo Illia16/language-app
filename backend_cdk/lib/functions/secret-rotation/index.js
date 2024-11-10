@@ -2,13 +2,6 @@ const { SecretsManagerClient, GetSecretValueCommand, UpdateSecretCommand, Rotate
 const client = new SecretsManagerClient({});
 
 module.exports.handler = async (event, context) => {
-    console.log('-----------------------------');
-    console.log('Rotate secrete handler');
-    console.log('event', event);
-    console.log('event.body', event.body);
-    console.log('context', context);
-    console.log('-----------------------------');
-
     // Environment variables
     const SECRET_ID = process.env.SECRET_ID;
 
@@ -32,11 +25,4 @@ module.exports.handler = async (event, context) => {
     };
     const commandUpdate = new UpdateSecretCommand(inputUpdate);
     const responseUpdate = await client.send(commandUpdate);
-
-    // const inputRotate = {
-    //     "SecretId": SECRET_ID,
-    // };
-    // const commandRotate = new RotateSecretCommand(inputRotate);
-    // const responseRotate = await client.send(commandRotate);
-    // console.log('response Rotate SECRET', responseRotate);
 };

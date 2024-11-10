@@ -11,15 +11,7 @@ const jwt = require('jsonwebtoken');
 const { findUserByEmail, getSecret } = require('../helpers');
 
 module.exports.handler = async (event, context) => {
-    console.log('-----------------------------');
-    console.log('Handle queue SQS handler');
-    console.log('event', event);
-    console.log('event.body', event.body);
-    console.log('context', context);
-    console.log('-----------------------------');
-
     const { eventName, dbUsers, username, userEmail, user, userId, password, toBeDeleted } = JSON.parse(event.Records[0].body);
-    console.log('SQS data:', eventName, dbUsers, userEmail, user, userId, password, toBeDeleted);
     if (eventName === 'forgot-password') {
         const secretJwt = await getSecret(`${process.env.PROJECT_NAME}--secret-auth--${process.env.STAGE}`);
         const resUserByEmail = await findUserByEmail(dbUsers, userEmail);
@@ -73,7 +65,6 @@ module.exports.handler = async (event, context) => {
             const commandToDeleteAccount = new UpdateCommand(inputSetToDeleteAccount);
             await clientDynamoDB.send(commandToDeleteAccount);
         } catch (err) {
-            console.log("Failed to delete account record.", err);
             return err;
         }   
     }
@@ -92,10 +83,6 @@ module.exports.handler = async (event, context) => {
             ExpressionAttributeValues: {
                 ":newValue": password
             },
-            // UpdateExpression: "set password = :pw",
-            // ExpressionAttributeValues: {
-            //   ":pw": password,
-            // },
             ReturnValues: "ALL_NEW"
         };
 
@@ -109,7 +96,6 @@ module.exports.handler = async (event, context) => {
             const res = await clientEmail.send(verifyEmailIdentityCommand);
             return res;
         } catch (err) {
-            console.log("Failed to verify email identity.", err);
             return err;
         }
     }

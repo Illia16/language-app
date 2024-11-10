@@ -46,5 +46,4 @@ export const useMainStore = defineStore('main-store', {
             this.loading = v;
         }
     },
-    // persist: true,
 });

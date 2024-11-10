@@ -20,7 +20,6 @@ export const getLesson = (m:string, lessonData: UserDataArrayOfObj): UserDataArr
 }
 
 export const camelCaseString = (v: string):string => {
-    // return v.replace(/\s(\w)/g, (match, letter) => letter.toUpperCase()).replace(/\s/g, '').toLowerCase();
     return v.replace(/(?:^\w|[A-Z]|\b\w)/g, function(word, index) {
         return index === 0 ? word.toLowerCase() : word.toUpperCase();
       }).replace(/\s+/g, '');
@@ -55,7 +54,6 @@ export const getQuestion = (m: string, lessonData: UserDataArrayOfObj, currentQu
             questionAnswer.splitted = sortArray(uniqueElements(questionAnswer.qAnswer.split(splitter))) as string[];
         }
 
-        console.log('questionAnswer', questionAnswer);
         return questionAnswer;
     }
 
@@ -132,11 +130,6 @@ export const fillMpChoiceArray = (data: UserDataArrayOfObj, correctAnswer:string
 export const isCorrect = (currentQuestion: Question, answer: string): boolean => {
     return answer.toLowerCase().replace(replaceAllSpecialCharsEngZh, '').trim() === currentQuestion.qAnswer.toLowerCase().replace(replaceAllSpecialCharsEngZh, '').trim();
 }
-
-// function outputs a lesson array for sentence-builder mode ONLY
-// export const sentenceBuilderArr = (data) => {
-//     return data.filter(el=>el.isSentense && el);
-// }
 
 // this function returns an array of letters that only repeat once
 const uniqueElements = (array: string[]): string[] => {

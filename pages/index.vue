@@ -46,7 +46,6 @@
 
         <teleport to="body">
             <Modal v-if="store.modalOpen && store.modalType === 'signup'" class="modal-signup">
-                <!-- @closeCallback="closeConfirmModal" -->
                 <div class="form_el">
                     <label>{{t('username')}}</label>
                     <input type="text" v-model="signup_user" />
@@ -168,7 +167,6 @@ const getUserData = async () => {
         store.setLoading(false);
     })
 
-    console.log('!!!!res!!!!', userData);
     if (userData.success) {
         cookieUser.value = store.currentUserName;
         cookieUserId.value = store.currentUserId;
@@ -195,8 +193,6 @@ const getUserData = async () => {
         store.setCurrentUserId('');
         useCookie('user').value = '';
         useCookie('token').value = '';
-        // userErrMsg.value = t('noUserFoundErr')
-        // document.querySelector('.form_el input[name="username"')?.parentElement?.classList.add('error')
     }
 }
 
@@ -229,10 +225,8 @@ const login = async () => {
     .finally(() => {
         store.setLoading(false);
     })
-    console.log('!!!!authUser!!!!', authUser);
 
     if (!authUser.success) {
-        console.log('Error logging in....');
         errMsg.value = authUser?.message;
         return
     } else {
@@ -319,19 +313,7 @@ const handleForgotPassword =async () => {
     }
 }
 
-// NUXT SERVER
-// const getUserDataNuxt = async () => {
-//     const res = await fetch(`/api/data/get?user=viktoria`)
-//     .then(res => res.json());
-
-//     console.log('res fe', res);
-// }
-
 onMounted(async() => {
-    console.log('Runtime config API_URL_DATA:', config.public.API_URL_DATA)
-    console.log('Runtime config ENV_NAME:', config.public.ENV_NAME)
-    // getUserDataNuxt();
-
     if (cookieUser.value && cookieUserId.value && cookieToken.value && !store.currentUserName && !store.userLangData.length) {
         store.setCurrentUserName(cookieUser.value);
         store.setCurrentUserId(cookieUserId.value);
