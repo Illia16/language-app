@@ -218,25 +218,23 @@ class BackendCdkStack extends cdk.Stack {
     item.addMethod('PUT');
     //
 
-    [myApi, myApiAuth].forEach(el => {
-      const apiUsagePlan = el.addUsagePlan(`${PROJECT_NAME}--api-usage-plan--${STAGE}`, {
-        name: `${PROJECT_NAME}--api-usage-plan--${STAGE}`,
-        description: `API usage plan to handle number of requests.`,
-        quota: {
-          limit: 1000,
-          period: apiGateway.Period.DAY,
-        },
-        throttle: {
-          rateLimit: 100,
-          burstLimit: 200,
-        },
-      });
-
+    const apiUsagePlan = new apiGateway.UsagePlan(this, `${PROJECT_NAME}--api-usage-plan--${STAGE}`, {
+      name: `${PROJECT_NAME}--api-usage-plan--${STAGE}`,
+      description: 'API usage plan to handle number of requests.',
+      quota: {
+        limit: 1000,
+        period: apiGateway.Period.DAY,
+      },
+      throttle: {
+        rateLimit: 100,
+        burstLimit: 200,
+      },
+    });
+    [myApi, myApiAuth].forEach((el) => {
       apiUsagePlan.addApiStage({
         stage: el.deploymentStage,
       });
-    })
-
+    });
 
     // generate new JWT secret for auth, rotate every 30 days
     const jwtSecret = new aws_secretsmanager.Secret(this, `${PROJECT_NAME}--secret-auth--${STAGE}`, {
