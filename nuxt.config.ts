@@ -6,11 +6,6 @@ console.log('API_URL_USERS:', process.env.API_URL_USERS,);
 console.log('ENV_NAME:', process.env.ENV_NAME,);
 
 const config: NuxtConfig = {
-    // typescript: {
-    //     // shim: false,
-    //     // typeCheck: true,
-    //     // strict: true
-    // },
     runtimeConfig: {
         API_URL_DATA: process.env.API_URL_DATA,
         ENV_NAME: process.env.ENV_NAME,

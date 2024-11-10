@@ -13,8 +13,6 @@
     })
 
     const handleError = () => clearError({ redirect: '/' })
-    console.log('props', props.error);
-
 </script>
 
 <style lang="scss" scoped>

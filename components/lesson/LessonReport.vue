@@ -42,7 +42,6 @@ const props = defineProps({
 })
 
 onMounted(() => {
-    console.log('props', props.report);
     updateUserData();
 })
 

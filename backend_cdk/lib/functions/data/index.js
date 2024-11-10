@@ -9,13 +9,6 @@ const multipartParser = require('parse-multipart-data');
 const jwt = require('jsonwebtoken');
 
 module.exports.handler = async (event, context) => {
-    console.log('-----------------------------');
-    console.log('Language app dynamoDB handler');
-    console.log('event', event);
-    console.log('event.body', event.body);
-    console.log('context', context);
-    console.log('-----------------------------');
-
     // Environment variables
     const STAGE = process.env.STAGE;
     const PROJECT_NAME = process.env.PROJECT_NAME;
@@ -58,12 +51,8 @@ module.exports.handler = async (event, context) => {
         return responseWithError('401', 'No token provided.', headerOrigin)
     }
     const token = authToken.split(' ')[1];
-    console.log('secretJwt', secretJwt);
-    console.log('token', token);
     jwt.verify(token, secretJwt, (err, decoded) => {
-        console.log('decoded', decoded)
         if (err) {
-            console.log('Err, token is invalid:', err);
             response = responseWithError('401', 'Token is invalid.', headerOrigin)
             return
         } else {
@@ -72,7 +61,6 @@ module.exports.handler = async (event, context) => {
             isTokenValid = true;
         }
     })
-    console.log('isTokenValid', isTokenValid);
     if (!isTokenValid) {
         return responseWithError('401', 'Invalid token.', headerOrigin);
     }
@@ -84,7 +72,6 @@ module.exports.handler = async (event, context) => {
             const boundary = contentType.split('boundary=')[1];
 
             const getRawData = Buffer.from(event.body, 'base64');
-            console.log('getRawData', getRawData);
             const parsedData = multipartParser.parse(getRawData, boundary);
             data = parsedData.reduce(function (result, currentObject) {
                 if (currentObject.name !== 'file') {
@@ -111,8 +98,6 @@ module.exports.handler = async (event, context) => {
 
                 return result;
             }, {});
-            console.log('parsedData', parsedData);
-            console.log('data', data);
         }
     } else {
         data = JSON.parse(event.body);
@@ -142,7 +127,6 @@ module.exports.handler = async (event, context) => {
     if (action === 'POST') {
         // fetch user premiumStatus
         const userInfo = await findUser(dbUsers, user);
-        console.log('res userTierPremium:', userInfo[0].userTier);
         userTierPremium = userInfo[0].userTier === 'premium';
         //
 
@@ -162,9 +146,7 @@ module.exports.handler = async (event, context) => {
             let audioFilePathAi;
             let incorrectItems = null;
             if (userTierPremium) {
-                console.log('userTierPremium', userTierPremium);
                 if (!filePath && !existingFileNameS3 && data.getAudioAI) {
-                    console.log('AI audio');
                     const audioFile = await getAudio(data.item)
                     const fileNameCleaned = cleanUpFileName(data?.item);
                     audioFilePathAi = `audio/${fileNameCleaned}/${fileNameCleaned}.mp3`;
@@ -173,7 +155,6 @@ module.exports.handler = async (event, context) => {
     
                 // get incorrect answers of the correct item from AI
                 incorrectItems = await getIncorrectItems(data.item);
-                console.log('incorrectItems', incorrectItems);
             }
 
             const allEls = [];
@@ -191,7 +172,6 @@ module.exports.handler = async (event, context) => {
 
                 const command = new ScanCommand(params);
                 const res = await docClient.send(command);
-                console.log('res ALL USERS', res);
                 const uniqueUsers = [
                     ...new Set(res.Items.map(item => {
                         return item.userMotherTongue === data.userMotherTongue && item.languageStudying === data.languageStudying ? item.user : null
@@ -203,7 +183,6 @@ module.exports.handler = async (event, context) => {
                 if (!uniqueUsers.length) {
                     uniqueUsers.push(user)
                 }
-                console.log('uniqueUsers', uniqueUsers);
                 const input = {
                     RequestItems: {
                       [dbData]: uniqueUsers.map(username => {
@@ -233,7 +212,6 @@ module.exports.handler = async (event, context) => {
                 };
                 const commandWrite = new BatchWriteCommand(input);
                 const resWrite = await docClient.send(commandWrite);
-                console.log('_____res POST admin:', resWrite);
                 allEls.push(resWrite.ItemCollectionMetrics);
             } else {
                 const input = {
@@ -259,11 +237,9 @@ module.exports.handler = async (event, context) => {
 
                 const command = new PutCommand(input);
                 const res = await docClient.send(command);
-                console.log('_____res POST not admin:', res);
                 allEls.push(res.Attributes);
             }
 
-            console.log('allEls', allEls);
             response.body = JSON.stringify({success: true, data: allEls});
         } catch (error) {
             return responseWithError('500', "Failed to post data", headerOrigin);
@@ -337,7 +313,6 @@ module.exports.handler = async (event, context) => {
         //     await s3DeleteFile(s3Files, data.filePath)
         // }
         //
-        console.log('res DELETE:', res);
         response.body = JSON.stringify({success: true});
     }
 

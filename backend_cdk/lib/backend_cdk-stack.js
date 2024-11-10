@@ -22,7 +22,6 @@ class BackendCdkStack extends cdk.Stack {
     const OPEN_AI_KEY = props.env.OPEN_AI_KEY;
     const CLOUDFRONT_URL = props.env.CLOUDFRONT_URL;
     const SQS_URL = props.env.SQS_URL;
-    const SENDER_EMAIL = props.env.SENDER_EMAIL;
     const CERTIFICATE_ARN = props.env.CERTIFICATE_ARN;
 
     const websiteBucket = new s3.Bucket(this, `${PROJECT_NAME}--s3-site--${STAGE}`, {
@@ -36,26 +35,9 @@ class BackendCdkStack extends cdk.Stack {
     });
 
     const myIam = new iam.Role(this, `${PROJECT_NAME}--iam-role--${STAGE}`, {
-        // assumedBy: new iam.ServicePrincipal('lambda.amazonaws.com'),
         assumedBy: new iam.CompositePrincipal(new iam.ServicePrincipal('lambda.amazonaws.com'), new iam.ServicePrincipal('secretsmanager.amazonaws.com'), new iam.ServicePrincipal('events.amazonaws.com')),
         roleName: `${PROJECT_NAME}--iam-role--${STAGE}`,
     })
-
-    // Basic Auth
-    // const auth = new cloudfront.experimental.EdgeFunction(this, `${PROJECT_NAME}-auth--${STAGE}`, {
-    //     runtime: lambda.Runtime.NODEJS_18_X,
-    //     functionName: `${PROJECT_NAME}--fn_auth--${STAGE}`,
-    //     handler: 'index.handler',
-    //     code: lambda.Code.fromAsset(path.join(__dirname, 'basic_auth')),
-    // })
-
-
-    // const myFunc = new cloudfront.experimental.EdgeFunction(this, `${PROJECT_NAME}--redirect--${STAGE}`, {
-    //   runtime: lambda.Runtime.NODEJS_18_X,
-    //   functionName: `{PROJECT_NAME}--redirect--${STAGE}`,
-    //   handler: 'index.handler',
-    //   code: lambda.Code.fromAsset(path.join(__dirname, 'basic_auth')),
-    // });
 
     const cfFunction = new cloudfront.Function(this, `${PROJECT_NAME}--cf-fn--${STAGE}`, {
         code: cloudfront.FunctionCode.fromFile({
@@ -70,17 +52,6 @@ class BackendCdkStack extends cdk.Stack {
       comment: `${PROJECT_NAME}--oai--${STAGE}`,
     });
 
-    // websiteBucket.addToResourcePolicy(
-    //   new iam.PolicyStatement({
-    //     resources: [
-    //       websiteBucket.bucketArn,
-    //       `${websiteBucket.bucketArn}/*`
-    //     ],
-    //     actions: ["s3:GetObject", "s3:ListBucket"],
-    //     principals: [new iam.ArnPrincipal('arn:aws:iam::cloudfront:user/CloudFront Origin Access Identity E2MVKOXEMZ8ANE')],
-    //   })
-    // );
-
     const ssl_cert = acm.Certificate.fromCertificateArn(this, `${PROJECT_NAME}--certificate--${STAGE}`, CERTIFICATE_ARN); // uploaded manually
     new cloudfront.CloudFrontWebDistribution(this, `${PROJECT_NAME}--cf--${STAGE}`, {
       originConfigs: [
@@ -92,12 +63,6 @@ class BackendCdkStack extends cdk.Stack {
           behaviors: [
             {
                 isDefaultBehavior: true,
-                // lambdaFunctionAssociations: [
-                //     {
-                //         eventType: cloudfront.LambdaEdgeEventType.VIEWER_REQUEST,
-                //         lambdaFunction: myFunc.currentVersion,
-                //     },
-                // ],
                 functionAssociations: [{
                     eventType: cloudfront.FunctionEventType.VIEWER_REQUEST,
                     function: cfFunction,
@@ -126,10 +91,6 @@ class BackendCdkStack extends cdk.Stack {
           responsePagePath: '/404.html'
         }
       ],
-      // loggingConfig: {
-      //   bucket: websiteBucketFiles,
-      //   prefix: 'viewer_logs',
-      // }
     });
 
     const myTable = new dynamoDb.TableV2(this, `${PROJECT_NAME}--db-data--${STAGE}`, {
@@ -189,8 +150,6 @@ class BackendCdkStack extends cdk.Stack {
         layers: [lambdaLayer]
     });
 
-    // the below line attaches all dynamodb actions to the created by default iam role. we don't want that.
-    // myTable.grantReadWriteData(lambdaFnDynamoDb);
     // the below grants the Lambda fn basic things (like logs)
     lambdaFnDynamoDb.role.addManagedPolicy(
         iam.ManagedPolicy.fromAwsManagedPolicyName('service-role/AWSLambdaBasicExecutionRole')
@@ -236,14 +195,6 @@ class BackendCdkStack extends cdk.Stack {
     routeStudyItems.addMethod('POST')
     routeStudyItems.addMethod('PUT')
     routeStudyItems.addMethod('DELETE')
-    // const stage = new apiGateway.Stage(this, `${PROJECT_NAME}--api-stage-data--${STAGE}`,
-    //   {
-    //     deployment: new apiGateway.Deployment(this, `${PROJECT_NAME}--api-deployment-data--${STAGE}`, {api: myApi}),
-    //     stageName: STAGE,
-    //   }
-    // );
-    // myApi.deploymentStage = STAGE;
-    //
 
     // API #2
     const myApiAuth = new apiGateway.LambdaRestApi(this, `${PROJECT_NAME}--api-users--${STAGE}`, {
@@ -267,6 +218,23 @@ class BackendCdkStack extends cdk.Stack {
     item.addMethod('PUT');
     //
 
+    const apiUsagePlan = new apiGateway.UsagePlan(this, `${PROJECT_NAME}--api-usage-plan--${STAGE}`, {
+      name: `${PROJECT_NAME}--api-usage-plan--${STAGE}`,
+      description: 'API usage plan to handle number of requests.',
+      quota: {
+        limit: 1000,
+        period: apiGateway.Period.DAY,
+      },
+      throttle: {
+        rateLimit: 100,
+        burstLimit: 200,
+      },
+    });
+    [myApi, myApiAuth].forEach((el) => {
+      apiUsagePlan.addApiStage({
+        stage: el.deploymentStage,
+      });
+    });
 
     // generate new JWT secret for auth, rotate every 30 days
     const jwtSecret = new aws_secretsmanager.Secret(this, `${PROJECT_NAME}--secret-auth--${STAGE}`, {
@@ -312,12 +280,6 @@ class BackendCdkStack extends cdk.Stack {
         iam.ManagedPolicy.fromAwsManagedPolicyName('service-role/AWSLambdaBasicExecutionRole')
     );
 
-    // jwtSecret.addRotationSchedule(`${PROJECT_NAME}--secret_rotation-auth--${STAGE}`, {
-    //   automaticallyAfter: cdk.Duration.days(1),
-    //   rotationLambda: rotateSecretFn,
-    //   rotateImmediatelyOnUpdate: false,
-    // });
-
     const rule = new events.Rule(this, `${PROJECT_NAME}--secret-update-schedule-rule--${STAGE}`, {
       ruleName: `${PROJECT_NAME}--secret-update-schedule-rule--${STAGE}`,
       description: `Event to update auth secret for ${PROJECT_NAME} project ${STAGE} env`,
@@ -336,18 +298,9 @@ class BackendCdkStack extends cdk.Stack {
       })],
     });
 
-    // SQS
-    // const myDeadLetterQueue = new sqs.Queue(this, `${PROJECT_NAME}--sqs-dlq--${STAGE}`, {
-    //   queueName: `${PROJECT_NAME}--sqs-dlq--${STAGE}`,
-    // });
-    // TODO: this does not work properly. Fix it later.
     const myQueue = new sqs.Queue(this, `${PROJECT_NAME}--sqs--${STAGE}`, {
       queueName: `${PROJECT_NAME}--sqs--${STAGE}`,
       retentionPeriod: cdk.Duration.hours(1),
-      // deadLetterQueue: {
-      //   maxReceiveCount: 2,
-      //   queue: myDeadLetterQueue,
-      // }
     });
     const lambdaFnSQS = new lambda.Function(this, `${PROJECT_NAME}--lambda-fn-users-sqs--${STAGE}`, {
         runtime: lambda.Runtime.NODEJS_18_X,
@@ -356,13 +309,11 @@ class BackendCdkStack extends cdk.Stack {
         functionName: `${PROJECT_NAME}--lambda-fn-users-sqs--${STAGE}`,
         role: myIam,
         environment: {
-          SENDER_EMAIL: SENDER_EMAIL,
           CLOUDFRONT_URL: CLOUDFRONT_URL,
           PROJECT_NAME: PROJECT_NAME,
           STAGE: STAGE,
         },
         events: [new lambdaEventSource.SqsEventSource(myQueue, {
-          // enabled: true,
           batchSize: 1,
         })],
         layers: [lambdaLayer],
@@ -378,19 +329,6 @@ class BackendCdkStack extends cdk.Stack {
         statements: [
             new iam.PolicyStatement({
                 actions: ['dynamodb:Query', 'dynamodb:BatchWriteItem', 'dynamodb:PutItem', 'dynamodb:UpdateItem', 'dynamodb:Scan', 'dynamodb:DeleteItem'],
-                // dynamodb:*
-                // dynamodb:BatchGetItem
-                // dynamodb:BatchWriteItem
-                // dynamodb:ConditionCheckItem
-                // dynamodb:DeleteItem
-                // dynamodb:DescribeTable
-                // dynamodb:GetItem
-                // dynamodb:GetRecords
-                // dynamodb:GetShardIterator
-                // dynamodb:PutItem
-                // dynamodb:Query
-                // dynamodb:Scan
-                // dynamodb:UpdateItem
                 resources: [
                   myTable.tableArn, 
                   myTableUsers.tableArn, 
@@ -404,11 +342,6 @@ class BackendCdkStack extends cdk.Stack {
                     "s3:ListBucket",
                     "s3:PutObject",
                     "s3:DeleteObject",
-                    // "s3:GetBucketAcl",
-                    // "s3:PutBucketAcl",
-                    // "s3:PutObjectAcl",
-                    // "s3:GetObjectAcl",
-                    // "s3:*"
                 ],
                 resources: [websiteBucketFiles.bucketArn, `${websiteBucketFiles.bucketArn}/*`],
                 effect: iam.Effect.ALLOW
@@ -442,7 +375,7 @@ class BackendCdkStack extends cdk.Stack {
               effect: iam.Effect.ALLOW,
               conditions: {
                 StringEquals: {
-                  "ses:FromAddress": SENDER_EMAIL,
+                  "ses:FromAddress": `${process.env.PROJECT_NAME}@devemail.illusha.net`,
                 }
               }
             }),
@@ -460,24 +393,6 @@ class BackendCdkStack extends cdk.Stack {
               resources: [myQueue.queueArn],
               effect: iam.Effect.ALLOW
             }),
-            // the below is custom policy to give lambda fn access to write cloudwatch logs
-            //   new iam.PolicyStatement({
-            //     actions: [
-            //       "logs:CreateLogGroup",
-            //     ],
-            //     resources: [`arn:aws:logs:${props.env.region}:${props.env.account}:*`],
-            //     effect: iam.Effect.ALLOW,
-            //   }),
-            //   new iam.PolicyStatement({
-            //     actions: [
-            //       "logs:CreateLogStream",
-            //       "logs:PutLogEvents"
-            //     ],
-            //     // resources: [lambdaFnDynamoDb.functionArn],
-            //     resources: [`arn:aws:logs:${props.env.region}:${props.env.account}:log-group:/aws/lambda/${lambdaFnDynamoDb.functionName}:*`],
-            //     effect: iam.Effect.ALLOW,
-            //   })
-            //
         ],
       })
     )

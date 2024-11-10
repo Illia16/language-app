@@ -57,7 +57,6 @@ module.exports = {
         }
     },
     s3UploadFile: async (s3_buckname, filenamepath, streamdata) => {
-        console.log('s3helper_s3UploadFile', s3_buckname, filenamepath, streamdata);
         const params = {
             Bucket: s3_buckname,
             Key: filenamepath,
