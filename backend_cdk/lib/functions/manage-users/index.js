@@ -8,13 +8,6 @@ const docClient = DynamoDBDocumentClient.from(client);
 const { findAll, findAllByPrimaryKey } = require('../helpers');
 
 module.exports.handler = async (event, context) => {
-    console.log('-----------------------------');
-    console.log('Manage users handler');
-    console.log('event', event);
-    console.log('event.body', event.body);
-    console.log('context', context);
-    console.log('-----------------------------');
-
     // Environment variables
     const STAGE = process.env.STAGE;
     const PROJECT_NAME = process.env.PROJECT_NAME;
@@ -58,7 +51,6 @@ module.exports.handler = async (event, context) => {
     }
 
     const usersToDelete = allUsers.filter(user => user && user.role === 'delete');
-    console.log('usersToDelete', usersToDelete);
 
     if (!usersToDelete.length) return;
     await Promise.all(usersToDelete.map(deleteUser));

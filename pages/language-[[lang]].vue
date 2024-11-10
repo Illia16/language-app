@@ -330,11 +330,6 @@ const userAnswer = ref<string>('');
 const numOfCorrectAnswers = ref<number>(0);
 const report = ref<ReportArrayOfObj>([]);
 
-onMounted(() => {
-    console.log('store', store.userLangData);
-    console.log('current name', route.params.lang)
-})
-
 watch(currentQuestionNum, function() {
     if (lessonData.value && lessonData.value.length) {
         currentQuestion.value = getQuestion(modeSelected.value, lessonData.value, currentQuestionNum.value);
@@ -349,40 +344,12 @@ watch(currentQuestionAnswered, function() {
     }
 });
 
-
-watch(() => currentQuestionNum.value, (v) => {
-    console.log('currentQuestionNum', v);
-});
-watch(() => currentQuestion.value, (v) => {
-    console.log('currentQuestion', v);
-});
-
-// watch(() => initData.value, (v) => {
-//     console.log('initData', v);
-// });
-// watch(() => v_selecteditemType.value, (v) => {
-//     console.log('v_selecteditemType', v);
-// }, {deep: true});
-// watch(() => v_selecteditemTypeCategory.value, (v) => {
-//     console.log('v_selecteditemTypeCategory', v);
-// }, {deep: true});
-watch(() => initData.value, (v) => {
-    console.log('initData', v);
-}, {deep: true});
-watch(() => modeSelected.value, (v) => {
-    console.log('modeSelected', v);
-});
-
 // handling incorrect, correct answers and if no more questions, stopping the lesson
 const check = ():void => {
     if (!isCorrect(currentQuestion.value, userAnswer.value)) {
-        console.log('not correct...');
         currentQuestionAnswered.value = true;
         recordUserAnswer(false, userAnswer.value, currentQuestion.value);
     } else {
-        console.log('correct...');
-        console.log('currentQuestion', currentQuestion.value);
-
         currentQuestionAnswered.value = true;
         recordUserAnswer(true, userAnswer.value, currentQuestion.value);
         numOfCorrectAnswers.value = numOfCorrectAnswers.value + 1;
@@ -406,7 +373,6 @@ const recordUserAnswer = (correct: boolean, userAnswer: string, { qAnswer, quest
     }
 
     report.value = [...report.value, r];
-    console.log('report', report);
 };
 
 const nextQuestion = ():void => {
@@ -417,10 +383,7 @@ const nextQuestion = ():void => {
 
 watch(() => store.lessonStarted, (v) => {
     if (v) {
-        console.log('numQuestionsSelected.value', numQuestionsSelected.value);
-
         lessonData.value = getLesson(modeSelected.value, initData.value).slice(0, numQuestionsSelected.value) as UserDataArrayOfObj;
-        console.log('__lessonData.value', lessonData.value);
 
         if (lessonData.value && lessonData.value.length) {
             currentQuestion.value = getQuestion(modeSelected.value, lessonData.value, currentQuestionNum.value);
