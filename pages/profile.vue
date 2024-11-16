@@ -61,7 +61,11 @@
             <li class="lastLi" aria-hidden="true"></li>
         </ul>
 
-        <ul v-for="(el, i) of userLangDataFiltered" :key="i">
+        <ul 
+            v-for="(el, i) of store.userLangData" 
+            :key="i" 
+            v-show="el.languageStudying === v_filterLearningLang && v_filterItemType === 'all' || el.itemType === v_filterItemType && el.languageStudying === v_filterLearningLang"
+        >
             <li class="listOfWords-item">
                 <span>{{ el.item }}</span>
                 <span v-if="el.fileUrl" class="listOfWords-item--audio">
@@ -391,7 +395,7 @@
 
 <script lang="ts" setup>
 import { useMainStore } from 'store/main';
-import { UserDataArrayOfObj, UserData } from 'types/helperTypes'
+import { UserData } from 'types/helperTypes'
 import { v4 as uuidv4  } from "uuid";
 import { mapLanguage } from 'helper/helpers';
 
@@ -462,11 +466,6 @@ const userItemTypes = computed<{ name: string, value: string }[]>(() => store.us
     })
 )
 //
-
-const userLangDataFiltered = computed<UserDataArrayOfObj>(() => store.userLangData
-    .filter(el => el.languageStudying === v_filterLearningLang.value)
-    .filter(el => v_filterItemType.value === 'all' || el.itemType === v_filterItemType.value)
-);
 
 onMounted(() => {
     if (store.userLangData[0]) {
