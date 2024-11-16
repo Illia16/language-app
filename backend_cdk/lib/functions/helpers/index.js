@@ -73,7 +73,7 @@ module.exports = {
     },
     s3GetSignedUrl: async (s3_buckname, filenamepath) => {
         const command = new GetObjectCommand({ Bucket: s3_buckname, Key: filenamepath });
-        const file = await getSignedUrl(clientS3, command, { expiresIn: 3600 });
+        const file = await getSignedUrl(clientS3, command, { expiresIn: 7200 }); // PreSigned URL (for audio files) expires 2 hours after the lesson started. 
         return file;
     },
     cleanUpFileName: (v) => {
