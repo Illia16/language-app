@@ -134,6 +134,7 @@ class BackendCdkStack extends cdk.Stack {
       compatibleRuntimes: [lambda.Runtime.NODEJS_18_X, lambda.Runtime.NODEJS_20_X]
     });
 
+    // Lambda fn #1 (handle items by user: add, delete, update)
     const lambdaFnDynamoDb = new lambda.Function(this, `${PROJECT_NAME}--lambda-fn-data--${STAGE}`, {
         runtime: lambda.Runtime.NODEJS_18_X,
         handler: 'data/index.handler',
@@ -155,6 +156,7 @@ class BackendCdkStack extends cdk.Stack {
         iam.ManagedPolicy.fromAwsManagedPolicyName('service-role/AWSLambdaBasicExecutionRole')
     )
 
+    // Lambda fn #2 (handle users: login, generate-invitation-code, register, delete-account, forgot-password, change-password)
     const authFn = new lambda.Function(this, `${PROJECT_NAME}--lambda-fn-users--${STAGE}`, {
       runtime: lambda.Runtime.NODEJS_18_X,
       handler: 'users/index.handler',
@@ -172,6 +174,28 @@ class BackendCdkStack extends cdk.Stack {
       layers: [lambdaLayer],
     });
     authFn.role.addManagedPolicy(
+        iam.ManagedPolicy.fromAwsManagedPolicyName('service-role/AWSLambdaBasicExecutionRole')
+    )
+
+    // Lambda fn #3 (generate items by AI from user input)
+    const lambdaFnDataAIGenerated = new lambda.Function(this, `${PROJECT_NAME}--lambda-fn-data-ai-generated--${STAGE}`, {
+        runtime: lambda.Runtime.NODEJS_20_X,
+        handler: 'data-ai-generated/index.handler',
+        code: lambda.Code.fromAsset(path.join(__dirname, 'functions')),
+        functionName: `${PROJECT_NAME}--lambda-fn-data-ai-generated--${STAGE}`,
+        role: myIam,
+        environment: {
+          STAGE: STAGE,
+          PROJECT_NAME: PROJECT_NAME,
+          CLOUDFRONT_URL: CLOUDFRONT_URL,
+          OPEN_AI_KEY: OPEN_AI_KEY,
+        },
+        timeout: cdk.Duration.seconds(45),
+        layers: [lambdaLayer]
+    });
+
+    // the below grants the Lambda fn basic things (like logs)
+    lambdaFnDataAIGenerated.role.addManagedPolicy(
         iam.ManagedPolicy.fromAwsManagedPolicyName('service-role/AWSLambdaBasicExecutionRole')
     )
 
@@ -195,6 +219,9 @@ class BackendCdkStack extends cdk.Stack {
     routeStudyItems.addMethod('POST')
     routeStudyItems.addMethod('PUT')
     routeStudyItems.addMethod('DELETE')
+
+    const routeDataAIGenerated = myApi.root.addResource('data-ai-generated');
+    routeDataAIGenerated.addMethod('POST', new apiGateway.LambdaIntegration(lambdaFnDataAIGenerated));
 
     // API #2
     const myApiAuth = new apiGateway.LambdaRestApi(this, `${PROJECT_NAME}--api-users--${STAGE}`, {

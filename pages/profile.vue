@@ -1,6 +1,7 @@
 <template>
     <div v-if="store.currentUserName" class="listOfWords">
         <h1>{{ t('listOfWords') }}</h1>
+        <button type="button" class="custom-button-link px-4" @click="() => openConfirmModal(null, 'addSetOfItems')">{{ t('addSetOfItems') }}</button>
         <h2>{{ t('filterItems') }} &#8594;</h2>
 
         <ul v-if="userItemTypes.length > 1 || userLanguagesInProgress.length > 1">
@@ -61,7 +62,11 @@
             <li class="lastLi" aria-hidden="true"></li>
         </ul>
 
-        <ul v-for="(el, i) of userLangDataFiltered" :key="i">
+        <ul 
+            v-for="(el, i) of store.userLangData" 
+            :key="i" 
+            v-show="el.languageStudying === v_filterLearningLang && v_filterItemType === 'all' || el.itemType === v_filterItemType && el.languageStudying === v_filterLearningLang"
+        >
             <li class="listOfWords-item">
                 <span>{{ el.item }}</span>
                 <span v-if="el.fileUrl" class="listOfWords-item--audio">
@@ -386,12 +391,63 @@
                 <button @click="closeConfirmModal" class="custom-button-link">{{t('cancel')}}</button>
             </div>
         </Modal>
+
+        <Modal v-if="store.modalOpen && store.modalType === 'addSetOfItems'" @closeCallback="closeConfirmModal" class="modal-addSetOfItems">
+            <h2 id="addSetOfItemsTitle">{{ t('addSetOfItemsTitle') }}</h2>
+            <CustomSelect
+                class="my-3"
+                v-model="v_languageStudying"
+                :options="[
+                    {
+                        name: 'English',
+                        value: 'en',
+                    },
+                    {
+                        name: 'Russian',
+                        value: 'ru',
+                    },
+                    {
+                        name: 'Chinese',
+                        value: 'zh',
+                    },
+                    {
+                        name: 'Spanish',
+                        value: 'es',
+                    },
+                ]"
+                state="lang"
+            >
+                <template v-slot:label>{{t('languageStudying')}}</template>
+                <template v-slot:field-error>
+                    <div class="field-error">Please select a languageStudying.</div>
+                </template>
+            </CustomSelect>
+
+            <div class="my-3 flex flex-col">
+                <label for="numberOfItems">{{ t('numberOfItems') }}</label>
+                <input type="number" name="numberOfItems" id="numberOfItems" v-model="v_numberOfItems" min="2" max="20" class="w-32 text-center border-2 border-mainGreen shadow-lg p-1">
+            </div>
+
+            <label for="addSetOfItems" class="sr-only">{{ t('addSetOfItemsTitle') }}</label>
+            <textarea 
+                name="addSetOfItems" 
+                id="addSetOfItems" 
+                v-model="v_addSetOfItemsByDescription"
+                aria-labelledby="addSetOfItemsTitle"
+                class="w-full border-2 border-mainGreen shadow-lg my-3 p-2 lg:p-3 resize-none"
+                maxlength="100"
+            ></textarea>
+            <div class="space-y-4">
+                <button class="custom-button-link" @click="addSetOfItems">{{t('confirm')}}</button>
+                <button @click="closeConfirmModal" class="custom-button-link">{{t('cancel')}}</button>
+            </div>
+        </Modal>
     </teleport>
 </template>
 
 <script lang="ts" setup>
 import { useMainStore } from 'store/main';
-import { UserDataArrayOfObj, UserData } from 'types/helperTypes'
+import { UserData } from 'types/helperTypes'
 import { v4 as uuidv4  } from "uuid";
 import { mapLanguage } from 'helper/helpers';
 
@@ -414,6 +470,9 @@ const v_itemID = ref<string>('');
 const v_itemCorrect = ref<string>('');
 const v_file = ref<Object>({});
 const v_itemTranscription = ref<string>('');
+
+const v_addSetOfItemsByDescription = ref<string>('');
+const v_numberOfItems = ref<string>('10');
 
 // v-models for filtering items
 const v_filterLearningLang = ref<string>('');
@@ -462,11 +521,6 @@ const userItemTypes = computed<{ name: string, value: string }[]>(() => store.us
     })
 )
 //
-
-const userLangDataFiltered = computed<UserDataArrayOfObj>(() => store.userLangData
-    .filter(el => el.languageStudying === v_filterLearningLang.value)
-    .filter(el => v_filterItemType.value === 'all' || el.itemType === v_filterItemType.value)
-);
 
 onMounted(() => {
     if (store.userLangData[0]) {
@@ -522,6 +576,44 @@ const openConfirmModal = (item: UserData | null, action: string):void => {
         } else {
             filePath.value = '';
         }
+    }
+}
+
+const addSetOfItems = async () => {
+    console.log('v_addSetOfItemsByDescription', v_addSetOfItemsByDescription.value);
+    console.log('userMotherTongue',  store.userMotherTongue);
+    console.log('v_languageStudying', v_languageStudying.value);
+    console.log('v_numberOfItems', v_numberOfItems.value);
+
+    if (!v_addSetOfItemsByDescription.value || v_addSetOfItemsByDescription.value.length > 100 || !store.userMotherTongue || !v_languageStudying.value || !v_numberOfItems.value || Number(v_numberOfItems.value) > 20) {
+        return
+    }
+
+    store.setLoading(true);
+    const resaddSetOfItems = await fetch(`${config.public.API_URL_DATA}/${config.public.ENV_NAME}/data-ai-generated`, {
+        method: 'POST',
+        body: JSON.stringify({
+            prompt: v_addSetOfItemsByDescription.value,
+            userMotherTongue: store.userMotherTongue,
+            languageStudying: v_languageStudying.value,
+            numberOfItems: v_numberOfItems.value
+        }),
+        headers: {
+            "Authorization": `Bearer ${store.token}`
+        }
+    })
+    .then(res => res.json())
+    .catch(err => {
+        console.log('err addSetOfItems API:', err);
+    })
+    .finally(() => {
+        store.setLoading(false);
+    });
+
+    console.log('resaddSetOfItems', resaddSetOfItems);
+    if (resaddSetOfItems.success) {
+        getUserData();
+        closeConfirmModal();
     }
 }
 
@@ -833,6 +925,9 @@ const updateUserData = async () => {
 <i18n lang="yaml">
     en:
         listOfWords: 'A list my words'
+        addSetOfItems: 'Add a set of items.'
+        addSetOfItemsTitle: 'Describe what you would like to add, and the AI will add (up to 10 at a time) a set of words/sentences from your request. For example: "I want to learn modal verbs"'
+        numberOfItems: "Enter Number of items you'd like to add"
         modalTitle: '{activeModalAction} word/sentence:'
         item: 'Word/sentence'
         itemTranscription: 'Transcription'
@@ -856,6 +951,9 @@ const updateUserData = async () => {
         all: 'All'
     ru:
         listOfWords: 'Список моих слов/предложений'
+        addSetOfItems: 'Добавить целый раздел/тему.'
+        addSetOfItemsTitle: 'Опишите, что бы вы хотели добавить, и ИИ добавит (до 10 штук за один раз) набор слов/предложений из Вашего запроса. Например: «Я хочу выучить модальные глаголы»'
+        numberOfItems: "Введите количество, которые вы хотели бы добавить"
         modalTitle: '{activeModalAction} слово/предложение:'
         item: 'Слово/предложение'
         itemTranscription: 'Транскрипт'
@@ -879,6 +977,9 @@ const updateUserData = async () => {
         all: 'Все'
     zh:
         listOfWords: '我的詞彙表'
+        addSetOfItems: '添加一组项目'
+        addSetOfItemsTitle: '描述您想要添加的内容，AI 会根据您的请求添加（一次最多 10 个）一组单词/句子。例如：“我想学习情态动词”'
+        numberOfItems: "输入您要添加的商品数量"
         modalTitle: '{activeModalAction} 詞語/句子:'
         item: '詞語/句子'
         itemTranscription: '音標'

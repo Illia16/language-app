@@ -229,7 +229,7 @@ const login = async () => {
     if (!authUser.success) {
         errMsg.value = authUser?.message;
         return
-    } else {
+    } else {        
         errMsg.value = '';
         cookieUser.value = authUser.data.user;
         cookieUserId.value = authUser.data.userId;

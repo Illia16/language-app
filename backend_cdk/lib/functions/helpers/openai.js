@@ -29,4 +29,56 @@ module.exports = {
         const buffer = Buffer.from(await mp3.arrayBuffer());
         return buffer;
     },
+    langMapping: {
+        en: 'English',
+        ru: 'Russian',
+        zh: 'Chineese',
+        es: 'Spanish',
+    },
+    getAIDataBasedOnUserInput: async (data) => {
+        // Resolve it to a specific language learning category.
+        const completion = await openai.chat.completions.create({
+            messages: [{ 
+            role: "user", 
+            content: `Given the user input: "${data.prompt}". Generate an array containing up to ${data.numberOfItems} items. Each item must strictly adhere to this structure:
+            [
+                {
+                    item: {{The topic or example related to ${data.prompt} in ${module.exports.langMapping[data.languageStudying]}. Ensure it aligns as closely as possible with the user's input}},
+                    itemCorrect: {{The ${module.exports.langMapping[data.userMotherTongue]} translation of the "item" field. the same item as above translated to}},
+                    itemTranscription: {{The pronunciation transcription of the "item" in ${module.exports.langMapping[data.languageStudying]}}},
+                    itemType: {{Must be one of the following: "sentence", "word", "tenses", "collocation". Choose the type that best represents the "item"}},
+                    itemTypeCategory: {{determine the item category based on what "item is}},
+                    incorrectItems: {{Generate three grammatically incorrect examples based on the "item" field. Ensure these examples are as close as possible to the "item" in grammar, type, and structure, but still incorrect}},
+                }
+            ]
+
+            Do not include periods at the end.
+            Output a valid JSON only. 
+            `
+            }],
+            model: "gpt-4o-mini",
+            temperature: 1.0,
+        });
+
+        console.log('completion', completion.choices[0].message.content);
+        const cleanedResponse = JSON.parse(completion.choices[0].message.content
+            .replace(/^```(json|javascript)?\s*/g, '')
+            .replace(/\s*```$/g, '')
+            .trim());
+
+        // Define the expected keys
+        const expectedKeys = ["item", "itemCorrect", "itemTranscription", "itemType", "itemTypeCategory", "incorrectItems"];
+        // TODO: force AI to give cleanedResponse.length === data.numberOfItems
+        const isValid = Array.isArray(cleanedResponse) && cleanedResponse.every(item =>
+            Object.keys(item).length === expectedKeys.length &&
+            expectedKeys.every(key => key in item && typeof item[key] !== "undefined") &&
+            Array.isArray(item.incorrectItems) && item.incorrectItems.length === 3
+        );
+
+        if (!isValid) {
+            throw new Error("Invalid response structure from AI");
+        }
+
+        return cleanedResponse;
+    }
 }
