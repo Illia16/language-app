@@ -11,6 +11,8 @@ new BackendCdkStack(app, `${process.env.PROJECT_NAME}-stack-${process.env.ENV_NA
         STAGE: process.env.ENV_NAME,
         PROJECT_NAME: process.env.PROJECT_NAME,
         CLOUDFRONT_URL: `https://${process.env.CLOUDFRONT_URL}`,
+        CLOUDFRONT_LOGIN: process.env.CLOUDFRONT_LOGIN,
+        CLOUDFRONT_PW: process.env.CLOUDFRONT_PW,
         OPEN_AI_KEY: process.env.OPEN_AI_KEY,
         SQS_URL: process.env.SQS_URL,
         CERTIFICATE_ARN: process.env.CERTIFICATE_ARN,
