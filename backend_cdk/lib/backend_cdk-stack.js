@@ -195,6 +195,9 @@ class BackendCdkStack extends cdk.Stack {
           PROJECT_NAME: PROJECT_NAME,
           CLOUDFRONT_URL: CLOUDFRONT_URL,
           OPEN_AI_KEY: OPEN_AI_KEY,
+          S3_FILES: websiteBucketFiles.bucketName,
+          DB_DATA: myTable.tableName,
+          DB_USERS: myTableUsers.tableName,
         },
         timeout: cdk.Duration.seconds(30),
         layers: [lambdaLayer]
@@ -218,6 +221,9 @@ class BackendCdkStack extends cdk.Stack {
         CLOUDFRONT_URL: CLOUDFRONT_URL,
         SQS_URL: SQS_URL,
         OPEN_AI_KEY: OPEN_AI_KEY,
+        S3_FILES: websiteBucketFiles.bucketName,
+        DB_DATA: myTable.tableName,
+        DB_USERS: myTableUsers.tableName,
       },
       timeout: cdk.Duration.seconds(30),
       layers: [lambdaLayer],
@@ -238,8 +244,12 @@ class BackendCdkStack extends cdk.Stack {
           PROJECT_NAME: PROJECT_NAME,
           CLOUDFRONT_URL: CLOUDFRONT_URL,
           OPEN_AI_KEY: OPEN_AI_KEY,
+          SQS_URL: SQS_URL,
+          S3_FILES: websiteBucketFiles.bucketName,
+          DB_DATA: myTable.tableName,
+          DB_USERS: myTableUsers.tableName,
         },
-        timeout: cdk.Duration.seconds(45),
+        timeout: cdk.Duration.seconds(30),
         layers: [lambdaLayer]
     });
 
@@ -332,6 +342,9 @@ class BackendCdkStack extends cdk.Stack {
       environment: {
         STAGE: STAGE,
         PROJECT_NAME: PROJECT_NAME,
+        S3_FILES: websiteBucketFiles.bucketName,
+        DB_DATA: myTable.tableName,
+        DB_USERS: myTableUsers.tableName,
       },
       timeout: cdk.Duration.seconds(30),
     });
@@ -346,7 +359,7 @@ class BackendCdkStack extends cdk.Stack {
         code: lambda.Code.fromAsset(path.join(__dirname, 'functions')),
         functionName: `${PROJECT_NAME}--lambda-fn-secret-rotation--${STAGE}`,
         environment: {
-            SECRET_ID: `${PROJECT_NAME}--secret-auth--${STAGE}`,
+            SECRET_ID: jwtSecret.secretName,
         },
         role: myIam,
 
@@ -373,10 +386,19 @@ class BackendCdkStack extends cdk.Stack {
         retryAttempts: 0,
       })],
     });
+    authFn.addEnvironment('EB_MANAGE_USERS_NAME', manageUsersRule.ruleName);
+
+    const myDLQ = new sqs.Queue(this, `${PROJECT_NAME}--dlq--${STAGE}`, {
+      queueName: `${PROJECT_NAME}--dlq--${STAGE}`,
+      retentionPeriod: cdk.Duration.days(14),
+    });
 
     const myQueue = new sqs.Queue(this, `${PROJECT_NAME}--sqs--${STAGE}`, {
       queueName: `${PROJECT_NAME}--sqs--${STAGE}`,
-      retentionPeriod: cdk.Duration.hours(1),
+      deadLetterQueue: {
+        queue: myDLQ,
+        maxReceiveCount: 1,
+      },
     });
     const lambdaFnSQS = new lambda.Function(this, `${PROJECT_NAME}--lambda-fn-users-sqs--${STAGE}`, {
         runtime: lambda.Runtime.NODEJS_18_X,
@@ -388,7 +410,12 @@ class BackendCdkStack extends cdk.Stack {
           CLOUDFRONT_URL: CLOUDFRONT_URL,
           PROJECT_NAME: PROJECT_NAME,
           STAGE: STAGE,
+          OPEN_AI_KEY: OPEN_AI_KEY,
+          S3_FILES: websiteBucketFiles.bucketName,
+          DB_DATA: myTable.tableName,
+          DB_USERS: myTableUsers.tableName,
         },
+        timeout: cdk.Duration.seconds(30),
         events: [new lambdaEventSource.SqsEventSource(myQueue, {
           batchSize: 1,
         })],

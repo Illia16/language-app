@@ -1,5 +1,6 @@
 const OpenAI = require("openai");
 const openai = new OpenAI({ apiKey: process.env.OPEN_AI_KEY });
+const { sendToQueue } = require('./aws');
 
 module.exports = {
     getIncorrectItems: async (prompt) => {
@@ -57,7 +58,7 @@ module.exports = {
             `
             }],
             model: "gpt-4o-mini",
-            temperature: 1.0,
+            temperature: 0.2,
         });
 
         console.log('completion', completion.choices[0].message.content);
@@ -65,7 +66,53 @@ module.exports = {
             .replace(/^```(json|javascript)?\s*/g, '')
             .replace(/\s*```$/g, '')
             .trim());
+        // for debugging
+        // const cleanedResponse = [
+        //     {
+        //       "item": "can",
+        //       "itemCorrect": "мочь",
+        //       "itemTranscription": "/kæn/",
+        //       "itemType": "word",
+        //       "itemTypeCategory": "modal verb",
+        //       "incorrectItems": [
+        //         "cans",
+        //         "caned",
+        //         "caning"
+        //       ],
+        //       fakeKey1: 1,
+        //     },
+        //     {
+        //       "item": "She can swim",
+        //       "itemCorrect": "Она может плавать",
+        //       "itemTranscription": "/ʃi kæn swɪm/",
+        //       "itemType": "sentence",
+        //       "itemTypeCategory": "modal verb usage",
+        //       "incorrectItems": [
+        //         "She can swims",
+        //         "She cans swim",
+        //         "She can swimmed"
+        //       ],
+        //       fakeKey2: 1,
+        //     }
+        // ];
 
+        if (!module.exports.isAiDataValid(cleanedResponse)) {
+            // if data failed to be of a required shape, move to SQS, then redrive if needed.
+            await sendToQueue({
+                failedData: cleanedResponse,
+                userData: {
+                    user: data.user,
+                    userTierPremium: data.userTierPremium,
+                    userMotherTongue: data.userMotherTongue,
+                    languageStudying: data.languageStudying,
+                }
+            }, 'parse-ai-data');
+            throw new Error("Invalid response structure from AI");
+        }
+
+        return cleanedResponse;
+    },
+    isAiDataValid: (cleanedResponse) => {
         // Define the expected keys
         const expectedKeys = ["item", "itemCorrect", "itemTranscription", "itemType", "itemTypeCategory", "incorrectItems"];
         // TODO: force AI to give cleanedResponse.length === data.numberOfItems
@@ -75,10 +122,6 @@ module.exports = {
             Array.isArray(item.incorrectItems) && item.incorrectItems.length === 3
         );
 
-        if (!isValid) {
-            throw new Error("Invalid response structure from AI");
-        }
-
-        return cleanedResponse;
-    }
+        return isValid;
+    },
 }
