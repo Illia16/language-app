@@ -101,13 +101,15 @@ module.exports = {
             await sendToQueue({
                 failedData: cleanedResponse,
                 userData: {
-                    user: data.user,
-                    userTierPremium: data.userTierPremium,
+                    prompt: data.prompt,
                     userMotherTongue: data.userMotherTongue,
                     languageStudying: data.languageStudying,
+                    numberOfItems: data.numberOfItems,    
+                    user: data.user,
+                    userTierPremium: data.userTierPremium,
                 }
             }, 'parse-ai-data');
-            throw new Error("Invalid response structure from AI");
+            throw new Error("Invalid response structure from AI. Your data will be processed manually.");
         }
 
         return cleanedResponse;
