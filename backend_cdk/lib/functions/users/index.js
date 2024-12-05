@@ -19,18 +19,16 @@ module.exports.handler = async (event, context) => {
     const PROJECT_NAME = process.env.PROJECT_NAME;
     const secretJwt = await getSecret(`${PROJECT_NAME}--secret-auth--${STAGE}`);
     const SQS_URL = process.env.SQS_URL;
+    const dbData = process.env.DB_DATA;
+    const dbUsers = process.env.DB_USERS;
+    const s3Files = process.env.S3_FILES;
+    const eventBridgeManageUsers = process.env.EB_MANAGE_USERS_NAME;
 
     // Event obj and CORS
     const headers = event.headers;
     const allowedOrigins = ["http://localhost:3000", process.env.CLOUDFRONT_URL];
     const headerOrigin = allowedOrigins.includes(headers?.origin) ? headers?.origin : null
     const body = JSON.parse(event.body);
-
-    // AWS Resource names
-    const dbUsers = `${PROJECT_NAME}--db-users--${STAGE}`;
-    const dbData = `${PROJECT_NAME}--db-data--${STAGE}`;
-    const s3Files = `${PROJECT_NAME}--s3-files--${STAGE}`;
-    const eventBridgeManageUsers = `${PROJECT_NAME}--manage-users-schedule-rule--${STAGE}`;
 
     // Response obj
     let response = {
