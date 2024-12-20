@@ -77,7 +77,7 @@ module.exports.handler = async (event) => {
 
         try {
             const allEls = await saveBatchItems(
-                resultsAIdata,
+                resultsAIdata.items,
                 userTierPremium,
                 user,
                 payload.userMotherTongue,
