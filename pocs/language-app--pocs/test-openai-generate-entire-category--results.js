@@ -386,3 +386,153 @@ const resp_2024_11_16_143148 = [
 ];
  
  
+const resp_2024_12_14_222515 = {
+  "items": [
+    {
+      "item": "I can go to the store.",
+      "itemCorrect": "Я могу пойти в магазин.",
+      "itemTranscription": "aɪ kæn ɡoʊ tu ðə stɔr.",
+      "itemType": "sentence",
+      "itemTypeCategory": "modal verb usage",
+      "incorrectItems": [
+        "I can goes to the store.",
+        "I can going to the store.",
+        "I can gone to the store."
+      ]
+    },
+    {
+      "item": "You should study for the exam.",
+      "itemCorrect": "Тебе следует учиться к экзамену.",
+      "itemTranscription": "ju ʃʊd ˈstʌdi fɔr ði ɪɡˈzæm.",
+      "itemType": "sentence",
+      "itemTypeCategory": "modal verb usage",
+      "incorrectItems": [
+        "You should studies for the exam.",
+        "You should study for exam.",
+        "You should studying for the exam."
+      ]
+    }
+  ]
+};
+ 
+ 
+export const resp_2024_12_14_222712 = {
+  "items": [
+    {
+      "item": "I can go to the store.",
+      "itemCorrect": "Я могу пойти в магазин.",
+      "itemTranscription": "aɪ kæn ɡoʊ tu ðə stɔr.",
+      "itemType": "sentence",
+      "itemTypeCategory": "modal verb usage",
+      "incorrectItems": [
+        "I can goes to the store.",
+        "I can going to the store.",
+        "I can gone to the store."
+      ]
+    }
+  ]
+};
+ 
+ 
+export const resp_2024_12_14_222836 = {
+  "items": [
+    {
+      "item": "I can swim.",
+      "itemCorrect": "Я могу плавать.",
+      "itemTranscription": "aɪ kæn swɪm",
+      "itemType": "sentence",
+      "itemTypeCategory": "modal verb usage",
+      "incorrectItems": [
+        "I can swims.",
+        "I can swimmed.",
+        "I can swimming."
+      ]
+    },
+    {
+      "item": "You should study harder.",
+      "itemCorrect": "Тебе следует учиться усерднее.",
+      "itemTranscription": "ju ʃʊd ˈstʌdi ˈhɑrdər",
+      "itemType": "sentence",
+      "itemTypeCategory": "modal verb usage",
+      "incorrectItems": [
+        "You should studies harder.",
+        "You should study hard.",
+        "You should studying harder."
+      ]
+    },
+    {
+      "item": "They might come to the party.",
+      "itemCorrect": "Они могут прийти на вечеринку.",
+      "itemTranscription": "ðeɪ maɪt kʌm tu ðə ˈpɑrti",
+      "itemType": "sentence",
+      "itemTypeCategory": "modal verb usage",
+      "incorrectItems": [
+        "They might comes to the party.",
+        "They might come to party.",
+        "They might coming to the party."
+      ]
+    }
+  ]
+};
+ 
+ 
+export const resp_2024_12_14_230058 = {
+  "items": [
+    {
+      "item": "I can go to the store.",
+      "itemCorrect": "Я могу пойти в магазин.",
+      "itemTranscription": "aɪ kæn ɡoʊ tu ðə stɔr.",
+      "itemType": "sentence",
+      "itemTypeCategory": "modal verb usage",
+      "incorrectItems": [
+        "I can goes to the store.",
+        "I can going to the store.",
+        "I can gone to the store."
+      ]
+    },
+    {
+      "item": "You should study harder.",
+      "itemCorrect": "Тебе следует учиться усерднее.",
+      "itemTranscription": "ju ʃʊd ˈstʌdi ˈhɑrdər.",
+      "itemType": "sentence",
+      "itemTypeCategory": "modal verb usage",
+      "incorrectItems": [
+        "You should studies harder.",
+        "You should study more harder.",
+        "You should studying harder."
+      ]
+    }
+  ]
+};
+ 
+ 
+export const resp_2024_12_14_230607 = {
+  "items": [
+    {
+      "item": "I can go to the store.",
+      "itemCorrect": "Я могу пойти в магазин.",
+      "itemTranscription": "aɪ kæn ɡoʊ tu ðə stɔr.",
+      "itemType": "sentence",
+      "itemTypeCategory": "modal verb usage",
+      "incorrectItems": [
+        "I can goes to the store.",
+        "I can going to the store.",
+        "I can gone to the store."
+      ]
+    },
+    {
+      "item": "You should study for the exam.",
+      "itemCorrect": "Тебе следует учиться к экзамену.",
+      "itemTranscription": "ju ʃʊd ˈstʌdi fɔr ði ɪɡˈzæm.",
+      "itemType": "sentence",
+      "itemTypeCategory": "modal verb usage",
+      "incorrectItems": [
+        "You should studies for the exam.",
+        "You should study for exam.",
+        "You should studying for the exam."
+      ]
+    }
+  ]
+};
+ 
+ 

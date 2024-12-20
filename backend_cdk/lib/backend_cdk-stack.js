@@ -21,6 +21,8 @@ class BackendCdkStack extends cdk.Stack {
     const PROJECT_NAME = props.env.PROJECT_NAME;
     const OPEN_AI_KEY = props.env.OPEN_AI_KEY;
     const CLOUDFRONT_URL = props.env.CLOUDFRONT_URL;
+    const CLOUDFRONT_LOGIN = props.env.CLOUDFRONT_LOGIN;
+    const CLOUDFRONT_PW = props.env.CLOUDFRONT_PW;
     const SQS_URL = props.env.SQS_URL;
     const CERTIFICATE_ARN = props.env.CERTIFICATE_ARN;
 
@@ -40,9 +42,56 @@ class BackendCdkStack extends cdk.Stack {
     })
 
     const cfFunction = new cloudfront.Function(this, `${PROJECT_NAME}--cf-fn--${STAGE}`, {
-        code: cloudfront.FunctionCode.fromFile({
-            filePath: __dirname + '/cf-functions/index.js',
-        }),
+        code: cloudfront.FunctionCode.fromInline(`function handler(event) {
+            const expectedUsername = "${CLOUDFRONT_LOGIN}";
+            const expectedPassword = "${CLOUDFRONT_PW}";
+
+            let request = event.request;
+            const headers = request.headers;
+            const isProd = headers.host.value === 'languageapp.illusha.net';
+
+            // Redirect if the request is from the CloudFront domain
+            if (['d3qignet23dx6u.cloudfront.net', 'd15k5khhejlcll.cloudfront.net'].includes(headers.host.value)) {
+                const customDomain = headers.host.value === "d15k5khhejlcll.cloudfront.net" ? "languageapp.illusha.net" : "languageapp-test.illusha.net"
+
+                return {
+                    statusCode: 301,
+                    statusDescription: 'Moved Permanently',
+                    headers: {
+                        'location': { value: 'https://' + customDomain + request.uri }
+                    }
+                };
+            }
+
+            const objReject = {
+                statusCode: 401,
+                statusDescription: 'Unauthorized',
+                headers: {
+                    'www-authenticate': { value: 'Basic' },
+                },
+            };
+
+            if (!isProd) {
+                if (!headers.authorization) {
+                    return objReject;
+                }
+            
+                const authHeader = headers.authorization.value;
+                const authString = authHeader.split(' ')[1];
+                const authDecoded = Buffer.from(authString, 'base64').toString('utf-8');
+                const split = authDecoded.split(':');
+            
+                if (split[0] !== expectedUsername || split[1] !== expectedPassword) {
+                    return objReject;
+                }
+            }
+
+            request.uri = request.uri.replace(/^(.*?)(\\/?[^.\//]*\\.[^.\\/]*)?\\/?$/, function($0, $1, $2) {
+                return $1 + ($2 ? $2 : "/index.html");
+            });
+
+            return request;
+        }`),
         runtime: cloudfront.FunctionRuntime.JS_2_0,
         functionName: `${PROJECT_NAME}--cf-fn--${STAGE}`,
         comment: 'CF function to handle redirects, basic auth, redirects from cf domain to a custom one etc.',
@@ -146,6 +195,9 @@ class BackendCdkStack extends cdk.Stack {
           PROJECT_NAME: PROJECT_NAME,
           CLOUDFRONT_URL: CLOUDFRONT_URL,
           OPEN_AI_KEY: OPEN_AI_KEY,
+          S3_FILES: websiteBucketFiles.bucketName,
+          DB_DATA: myTable.tableName,
+          DB_USERS: myTableUsers.tableName,
         },
         timeout: cdk.Duration.seconds(30),
         layers: [lambdaLayer]
@@ -169,6 +221,9 @@ class BackendCdkStack extends cdk.Stack {
         CLOUDFRONT_URL: CLOUDFRONT_URL,
         SQS_URL: SQS_URL,
         OPEN_AI_KEY: OPEN_AI_KEY,
+        S3_FILES: websiteBucketFiles.bucketName,
+        DB_DATA: myTable.tableName,
+        DB_USERS: myTableUsers.tableName,
       },
       timeout: cdk.Duration.seconds(30),
       layers: [lambdaLayer],
@@ -189,8 +244,12 @@ class BackendCdkStack extends cdk.Stack {
           PROJECT_NAME: PROJECT_NAME,
           CLOUDFRONT_URL: CLOUDFRONT_URL,
           OPEN_AI_KEY: OPEN_AI_KEY,
+          SQS_URL: SQS_URL,
+          S3_FILES: websiteBucketFiles.bucketName,
+          DB_DATA: myTable.tableName,
+          DB_USERS: myTableUsers.tableName,
         },
-        timeout: cdk.Duration.seconds(45),
+        timeout: cdk.Duration.seconds(30),
         layers: [lambdaLayer]
     });
 
@@ -283,6 +342,9 @@ class BackendCdkStack extends cdk.Stack {
       environment: {
         STAGE: STAGE,
         PROJECT_NAME: PROJECT_NAME,
+        S3_FILES: websiteBucketFiles.bucketName,
+        DB_DATA: myTable.tableName,
+        DB_USERS: myTableUsers.tableName,
       },
       timeout: cdk.Duration.seconds(30),
     });
@@ -297,7 +359,7 @@ class BackendCdkStack extends cdk.Stack {
         code: lambda.Code.fromAsset(path.join(__dirname, 'functions')),
         functionName: `${PROJECT_NAME}--lambda-fn-secret-rotation--${STAGE}`,
         environment: {
-            SECRET_ID: `${PROJECT_NAME}--secret-auth--${STAGE}`,
+            SECRET_ID: jwtSecret.secretName,
         },
         role: myIam,
 
@@ -324,10 +386,19 @@ class BackendCdkStack extends cdk.Stack {
         retryAttempts: 0,
       })],
     });
+    authFn.addEnvironment('EB_MANAGE_USERS_NAME', manageUsersRule.ruleName);
+
+    const myDLQ = new sqs.Queue(this, `${PROJECT_NAME}--dlq--${STAGE}`, {
+      queueName: `${PROJECT_NAME}--dlq--${STAGE}`,
+      retentionPeriod: cdk.Duration.days(14),
+    });
 
     const myQueue = new sqs.Queue(this, `${PROJECT_NAME}--sqs--${STAGE}`, {
       queueName: `${PROJECT_NAME}--sqs--${STAGE}`,
-      retentionPeriod: cdk.Duration.hours(1),
+      deadLetterQueue: {
+        queue: myDLQ,
+        maxReceiveCount: 1,
+      },
     });
     const lambdaFnSQS = new lambda.Function(this, `${PROJECT_NAME}--lambda-fn-users-sqs--${STAGE}`, {
         runtime: lambda.Runtime.NODEJS_18_X,
@@ -339,7 +410,12 @@ class BackendCdkStack extends cdk.Stack {
           CLOUDFRONT_URL: CLOUDFRONT_URL,
           PROJECT_NAME: PROJECT_NAME,
           STAGE: STAGE,
+          OPEN_AI_KEY: OPEN_AI_KEY,
+          S3_FILES: websiteBucketFiles.bucketName,
+          DB_DATA: myTable.tableName,
+          DB_USERS: myTableUsers.tableName,
         },
+        timeout: cdk.Duration.seconds(30),
         events: [new lambdaEventSource.SqsEventSource(myQueue, {
           batchSize: 1,
         })],
