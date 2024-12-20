@@ -217,7 +217,7 @@ module.exports = {
             );
         }
 
-        return cleanedResponse;
+        return results;
     },
     isAiDataValid: (results, userData) => {
         const expectedKeys = [
