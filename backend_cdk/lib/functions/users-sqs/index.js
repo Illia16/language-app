@@ -8,10 +8,11 @@ const { SESClient, SendEmailCommand, VerifyEmailIdentityCommand } = require("@aw
 const clientEmail = new SESClient({});
 const jwt = require('jsonwebtoken');
 // Helpers
-const { findUserByEmail, getSecret } = require('../helpers');
+const { findUserByEmail, getSecret, saveBatchItems } = require('../helpers');
+const { isAiDataValid } = require('../helpers/openai');
 
 module.exports.handler = async (event, context) => {
-    const { eventName, dbUsers, username, userEmail, user, userId, password, toBeDeleted } = JSON.parse(event.Records[0].body);
+    const { eventName, dbUsers, username, userEmail, user, userId, password, toBeDeleted, data } = JSON.parse(event.Records[0].body);
     if (eventName === 'forgot-password') {
         const secretJwt = await getSecret(`${process.env.PROJECT_NAME}--secret-auth--${process.env.STAGE}`);
         const resUserByEmail = await findUserByEmail(dbUsers, userEmail);
@@ -97,6 +98,27 @@ module.exports.handler = async (event, context) => {
             return res;
         } catch (err) {
             return err;
+        }
+    }
+
+    if (eventName === 'parse-ai-data') {
+        // Runs when:
+        // 1) AI retuns invalid data (vs what is expected)
+        // 2) When redriving manually from DLQ. When redriving, ensure data passes "isAiDataValid" (correct num of items, object shape etc.)
+        if (!isAiDataValid(data.aiData, data.userData).isValid) {
+            throw new Error("Failed to validate AI data. Please, redrive manually.");
+        }
+
+        try {
+            await saveBatchItems(
+                data.aiData.items,
+                data.userData.userTierPremium,
+                data.userData.user,
+                data.userData.userMotherTongue,
+                data.userData.languageStudying,
+            );
+        } catch (error) {
+            throw new Error("Failed to saveBatchItems from SQS");
         }
     }
 };

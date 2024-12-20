@@ -537,3 +537,15 @@ Will you was there?,You be there will?,Are you there be?
  
 Base sentence: Will you be there?
 Will you was there?,Be you there will?,Will you being there?
+ 
+ 
+Base sentence: Will you be there?
+Will you is be there?,You be there will?,Will you there being?
+ 
+ 
+Base sentence: Will you be there?
+Will you was there?,Be you there will?,You will are there?
+ 
+ 
+Base sentence: Will you be there?
+Will you was there?,You be there will?,Will there you be?

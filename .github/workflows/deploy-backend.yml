@@ -77,6 +77,8 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           ENV_NAME: ${{ env.ENV_NAME }}
           CLOUDFRONT_URL: ${{ env.CLOUDFRONT_URL }}
+          CLOUDFRONT_LOGIN: ${{ secrets.CLOUDFRONT_LOGIN }}
+          CLOUDFRONT_PW: ${{ secrets.CLOUDFRONT_PW }}
           SQS_URL: ${{ env.SQS_URL }}
         run: cdk deploy --require-approval never
         working-directory: backend_cdk
