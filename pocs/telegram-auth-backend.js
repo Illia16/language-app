@@ -1,5 +1,5 @@
 const crypto = require('crypto');
-const config = require('../deploy.config.js');
+const config = require('../../deploy.config');
 
 const main = (userData => {
     const verifyTelegramAuth = (data) => {

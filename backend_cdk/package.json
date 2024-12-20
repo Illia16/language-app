@@ -14,12 +14,12 @@
     "test": "jest"
   },
   "devDependencies": {
-    "aws-cdk": "^2.155.0",
+    "aws-cdk": "^2.171.1",
     "dotenv-cli": "^7.4.2",
     "jest": "^29.7.0"
   },
   "dependencies": {
-    "aws-cdk-lib": "^2.155.0",
+    "aws-cdk-lib": "^2.171.1",
     "constructs": "^10.0.0"
   }
 }

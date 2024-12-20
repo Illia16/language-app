@@ -102,14 +102,16 @@ module.exports.handler = async (event, context) => {
     }
 
     if (eventName === 'parse-ai-data') {
-        // Runs when AI retuns invalid data (vs what is expected) OR when redriving manually from DLQ.
-        if (!isAiDataValid(data.failedData)) {
+        // Runs when:
+        // 1) AI retuns invalid data (vs what is expected)
+        // 2) When redriving manually from DLQ. When redriving, ensure data passes "isAiDataValid" (correct num of items, object shape etc.)
+        if (!isAiDataValid(data.aiData, data.userData).isValid) {
             throw new Error("Failed to validate AI data. Please, redrive manually.");
         }
 
         try {
             await saveBatchItems(
-                data.failedData,
+                data.aiData.items,
                 data.userData.userTierPremium,
                 data.userData.user,
                 data.userData.userMotherTongue,
