@@ -1,6 +1,6 @@
 const fs = require('fs');
 const OpenAI = require("openai");
-const config = require('../deploy.config');
+const config = require('../../deploy.config');
 
 // const baseSentence = "I have never been to France.";
 // const baseSentence = "I like apples.";
@@ -18,15 +18,41 @@ async function main(prompt) {
     model: "gpt-4o-mini",
     max_tokens: 50,
     temperature: 1.0,
+    response_format: {
+      "type": "json_schema",
+      "json_schema": {
+        "name": "ai_incorrect_items_response",
+        "strict": true,
+        "schema": {
+          "type": "object",
+          "properties": {
+            "incorrectItems": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "description": "A grammatically incorrect example related to prompt"
+              },
+              "description": "An array of three grammatically incorrect examples"
+            }
+          },
+          "required": [
+            "incorrectItems",
+          ],
+          "additionalProperties": false
+        }
+        // arrays not yet supported?
+        // "schema": {
+        //   "type": "array",
+        //   "items": { "type": "string" }
+        // }      
+      }
+    }
   });
 
   console.log('completion', completion.choices[0].message.content);
-  const arrRes = completion.choices[0].message.content
-    .split('\n')
-    .map(sentence => sentence.replace(/^(\d+\.|\d+\))\s/, '').trim())
-    .map(sentence => sentence.replace(/^["']|["']$/g, ''));
-  console.log('arrRes', arrRes);
-  fs.appendFileSync(outputFileName, '\n \n \n' + `Base sentence: ${prompt}\n` + arrRes);
+  const results = JSON.parse(completion.choices[0].message.content)
+  console.log('results', results);
+  fs.appendFileSync(outputFileName, '\n \n \n' + `Base sentence: ${prompt}\n` + results.incorrectItems);
 }
 
 main(baseSentence);

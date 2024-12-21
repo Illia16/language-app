@@ -11,10 +11,9 @@ module.exports.handler = async (event, context) => {
     // Environment variables
     const STAGE = process.env.STAGE;
     const PROJECT_NAME = process.env.PROJECT_NAME;
-
-    // AWS Resource names
-    const dbData = `${PROJECT_NAME}--db-data--${STAGE}`;
-    const dbUsers = `${PROJECT_NAME}--db-users--${STAGE}`;
+    const dbData = process.env.DB_DATA;
+    const dbUsers = process.env.DB_USERS;
+    const s3Files = process.env.S3_FILES;
 
     const allUsers = await findAll(dbUsers);
 

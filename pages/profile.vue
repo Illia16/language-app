@@ -437,6 +437,7 @@
                 class="w-full border-2 border-mainGreen shadow-lg my-3 p-2 lg:p-3 resize-none"
                 maxlength="100"
             ></textarea>
+            <div v-if="errorMsg" class="field-error">{{ errorMsg }}</div>
             <div class="space-y-4">
                 <button class="custom-button-link" @click="addSetOfItems">{{t('confirm')}}</button>
                 <button @click="closeConfirmModal" class="custom-button-link">{{t('cancel')}}</button>
@@ -478,6 +479,8 @@ const v_numberOfItems = ref<string>('10');
 const v_filterLearningLang = ref<string>('');
 const v_filterItemType = ref<string>('all');
 //
+
+const errorMsg = ref<string>('');
 
 // select lists
 const itemType = computed<{ name: string, value: string }[]>(() => store.userLangData
@@ -614,6 +617,8 @@ const addSetOfItems = async () => {
     if (resaddSetOfItems.success) {
         getUserData();
         closeConfirmModal();
+    } else {
+        errorMsg.value = resaddSetOfItems.message;
     }
 }
 
