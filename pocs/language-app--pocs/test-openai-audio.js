@@ -2,7 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const OpenAI = require("openai");
 
-const config = require('../deploy.config');
+const config = require('../../deploy.config');
 
 const openai = new OpenAI({ apiKey: config.OPEN_AI_KEY });
 

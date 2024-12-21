@@ -3,7 +3,7 @@ const { DynamoDBDocumentClient, QueryCommand, ScanCommand, BatchWriteCommand, Pu
 
 const client = new DynamoDBClient({});
 const docClient = DynamoDBDocumentClient.from(client);
-const { s3ListObjects, s3UploadFile, s3DeleteFile, s3GetSignedUrl, cleanUpFileName, getFilePathIfFileIsPresentInBody, responseWithError, getSecret, findUser } = require('../helpers');
+const { s3ListObjects, s3UploadFile, s3DeleteFile, s3GetSignedUrl, cleanUpFileName, getFilePathIfFileIsPresentInBody, responseWithError, getSecret, findUser } = require('../helpers/index');
 const { getIncorrectItems, getAudio } = require('../helpers/openai')
 const multipartParser = require('parse-multipart-data');
 const jwt = require('jsonwebtoken');
@@ -13,17 +13,16 @@ module.exports.handler = async (event, context) => {
     const STAGE = process.env.STAGE;
     const PROJECT_NAME = process.env.PROJECT_NAME;
     const secretJwt = await getSecret(`${PROJECT_NAME}--secret-auth--${STAGE}`);
+    const dbData = process.env.DB_DATA;
+    const dbUsers = process.env.DB_USERS;
+    const s3Files = process.env.S3_FILES;
+
     // Event obj and CORS
     const headers = event.headers;
     const allowedOrigins = ["http://localhost:3000", process.env.CLOUDFRONT_URL];
     const headerOrigin = allowedOrigins.includes(headers?.origin) ? headers?.origin : null
     const action = event.httpMethod;
     const isBase64Encoded = event.isBase64Encoded;
-
-    // AWS Resource names
-    const dbData = `${PROJECT_NAME}--db-data--${STAGE}`;
-    const dbUsers = `${PROJECT_NAME}--db-users--${STAGE}`;
-    const s3Files = `${PROJECT_NAME}--s3-files--${STAGE}`;
 
     // Handle data
     let data;

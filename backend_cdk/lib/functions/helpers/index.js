@@ -1,5 +1,5 @@
 const { DynamoDBClient } = require("@aws-sdk/client-dynamodb");
-const { DynamoDBDocumentClient, QueryCommand, ScanCommand, GetCommand } = require("@aws-sdk/lib-dynamodb");
+const { DynamoDBDocumentClient, QueryCommand, ScanCommand, GetCommand, BatchWriteCommand } = require("@aws-sdk/lib-dynamodb");
 const clientDynamoDB = new DynamoDBClient({});
 const docClient = DynamoDBDocumentClient.from(clientDynamoDB);
 
@@ -13,6 +13,8 @@ const client = new SecretsManagerClient({});
 
 const { EventBridgeClient, DescribeRuleCommand } = require('@aws-sdk/client-eventbridge');
 const clientEB = new EventBridgeClient({ region: 'us-east-1'});
+
+const { getAudio } = require('./openai');
 
 module.exports = {
     s3GetFile: async (s3_buckname, filenamepath) => {
@@ -224,5 +226,51 @@ module.exports = {
     
         // time in ms
         return nextRunTime - now;
+    },
+    saveBatchItems: async (resultsAIdata, userTierPremium, user, userMotherTongue, languageStudying) => {
+        try {
+            const allEls = [];
+            const input = {
+                RequestItems: {
+                  [process.env.DB_DATA]: await Promise.all(resultsAIdata.map(async (el) => {
+                    let audioFilePathAi = '';
+
+                    // get audio of text from AI if user is premium
+                    if (userTierPremium) {
+                        const audioFile = await getAudio(el.item)
+                        const fileNameCleaned = module.exports.cleanUpFileName(el.item);
+                        audioFilePathAi = `audio/${fileNameCleaned}/${fileNameCleaned}.mp3`;
+                        await module.exports.s3UploadFile(process.env.S3_FILES, audioFilePathAi, audioFile);
+                    }
+                    return {
+                        PutRequest: {
+                            Item: {
+                                user: user,
+                                item: el.item,
+                                itemID: new Date().toISOString() + "___" + el.item.slice(0,10).replaceAll(" ", "_"),
+                                itemCorrect: el.itemCorrect,
+                                incorrectItems: JSON.stringify(el.incorrectItems),
+                                itemType: el.itemType,
+                                itemTypeCategory: el.itemTypeCategory,
+                                userMotherTongue: userMotherTongue,
+                                languageStudying: languageStudying,
+                                level: 0,
+                                itemTranscription: el.itemTranscription,
+                                filePath: audioFilePathAi,
+                                getAudioAI: true, // existing in DB
+                            }
+                        }
+                    }
+                  }))
+                }
+            };
+            const commandWrite = new BatchWriteCommand(input);
+            const resWrite = await docClient.send(commandWrite);
+            allEls.push(resWrite.ItemCollectionMetrics);
+
+            return allEls;
+        } catch (error) {
+            throw new Error("Failed to saveBatchItems");
+        }
     }
 }
