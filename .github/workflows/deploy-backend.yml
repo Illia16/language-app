@@ -8,14 +8,18 @@ on:
 jobs:
   deploy-backend:
     runs-on: ubuntu-latest
+    environment: ${{ github.ref == 'refs/heads/deploy/test' && 'test' || github.ref == 'refs/heads/deploy/prod' && 'prod' }}
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
-  
+
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
+
+      - name: Log GitHub Environment Name
+        run: echo "GitHub Environment: ${{ github.environment }}"
 
       - name: Set Environment Name
         id: set-env
@@ -58,32 +62,32 @@ jobs:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
-      - name: Install CDK Dependencies
-        run: npm install
-        working-directory: backend_cdk
+      # - name: Install CDK Dependencies
+      #   run: npm install
+      #   working-directory: backend_cdk
 
-      - name: Install CDK Globally
-        run: npm install -g aws-cdk
+  #     - name: Install CDK Globally
+  #       run: npm install -g aws-cdk
 
-      - name: Install Lambda Function Dependencies
-        run: npm install
-        working-directory: backend_cdk/lib/layers/layer-lambda/nodejs # install deps for lambda layers
+  #     - name: Install Lambda Function Dependencies
+  #       run: npm install
+  #       working-directory: backend_cdk/lib/layers/layer-lambda/nodejs # install deps for lambda layers
 
-      - name: Deploy CloudFormation Template
-        env:
-          OPEN_AI_KEY: ${{ secrets.OPEN_AI_KEY }}
-          PROJECT_NAME: ${{ secrets.PROJECT_NAME }}
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          ENV_NAME: ${{ env.ENV_NAME }}
-          CLOUDFRONT_URL: ${{ env.CLOUDFRONT_URL }}
-          CLOUDFRONT_LOGIN: ${{ secrets.CLOUDFRONT_LOGIN }}
-          CLOUDFRONT_PW: ${{ secrets.CLOUDFRONT_PW }}
-          SQS_URL: ${{ env.SQS_URL }}
-        run: cdk deploy --require-approval never
-        working-directory: backend_cdk
-  call-deploy-frontend:
-    needs: [deploy-backend]
-    name: call-deploy-frontend
-    uses: ./.github/workflows/deploy-frontend.yml
-    secrets: inherit
+  #     - name: Deploy CloudFormation Template
+  #       env:
+  #         OPEN_AI_KEY: ${{ secrets.OPEN_AI_KEY }}
+  #         PROJECT_NAME: ${{ secrets.PROJECT_NAME }}
+  #         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  #         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  #         ENV_NAME: ${{ env.ENV_NAME }}
+  #         CLOUDFRONT_URL: ${{ env.CLOUDFRONT_URL }}
+  #         CLOUDFRONT_LOGIN: ${{ secrets.CLOUDFRONT_LOGIN }}
+  #         CLOUDFRONT_PW: ${{ secrets.CLOUDFRONT_PW }}
+  #         SQS_URL: ${{ env.SQS_URL }}
+  #       run: cdk deploy --require-approval never
+  #       working-directory: backend_cdk
+  # call-deploy-frontend:
+  #   needs: [deploy-backend]
+  #   name: call-deploy-frontend
+  #   uses: ./.github/workflows/deploy-frontend.yml
+  #   secrets: inherit
