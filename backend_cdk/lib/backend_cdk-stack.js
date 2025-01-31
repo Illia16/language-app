@@ -6,12 +6,14 @@ const dynamoDb = require('aws-cdk-lib/aws-dynamodb');
 const apiGateway = require('aws-cdk-lib/aws-apigateway');
 const iam = require('aws-cdk-lib/aws-iam');
 const aws_secretsmanager = require('aws-cdk-lib/aws-secretsmanager');
+const aws_ssm = require('aws-cdk-lib/aws-ssm');
 const events = require('aws-cdk-lib/aws-events');
 const eventsTargets = require('aws-cdk-lib/aws-events-targets');
 const sqs = require('aws-cdk-lib/aws-sqs');
 const acm = require('aws-cdk-lib/aws-certificatemanager');
 const lambdaEventSource = require('aws-cdk-lib/aws-lambda-event-sources');
 const path = require('path');
+const crypto = require('crypto');
 
 class BackendCdkStack extends cdk.Stack {
   constructor(scope, id, props) {
@@ -37,12 +39,12 @@ class BackendCdkStack extends cdk.Stack {
     });
 
     const myIam = new iam.Role(this, `${PROJECT_NAME}--iam-role--${STAGE}`, {
-        assumedBy: new iam.CompositePrincipal(new iam.ServicePrincipal('lambda.amazonaws.com'), new iam.ServicePrincipal('secretsmanager.amazonaws.com'), new iam.ServicePrincipal('events.amazonaws.com')),
-        roleName: `${PROJECT_NAME}--iam-role--${STAGE}`,
+      assumedBy: new iam.CompositePrincipal(new iam.ServicePrincipal('lambda.amazonaws.com'), new iam.ServicePrincipal('secretsmanager.amazonaws.com'), new iam.ServicePrincipal('events.amazonaws.com')),
+      roleName: `${PROJECT_NAME}--iam-role--${STAGE}`,
     })
 
     const cfFunction = new cloudfront.Function(this, `${PROJECT_NAME}--cf-fn--${STAGE}`, {
-        code: cloudfront.FunctionCode.fromInline(`function handler(event) {
+      code: cloudfront.FunctionCode.fromInline(`function handler(event) {
             const expectedUsername = "${CLOUDFRONT_LOGIN}";
             const expectedPassword = "${CLOUDFRONT_PW}";
 
@@ -75,12 +77,12 @@ class BackendCdkStack extends cdk.Stack {
                 if (!headers.authorization) {
                     return objReject;
                 }
-            
+
                 const authHeader = headers.authorization.value;
                 const authString = authHeader.split(' ')[1];
                 const authDecoded = Buffer.from(authString, 'base64').toString('utf-8');
                 const split = authDecoded.split(':');
-            
+
                 if (split[0] !== expectedUsername || split[1] !== expectedPassword) {
                     return objReject;
                 }
@@ -92,9 +94,9 @@ class BackendCdkStack extends cdk.Stack {
 
             return request;
         }`),
-        runtime: cloudfront.FunctionRuntime.JS_2_0,
-        functionName: `${PROJECT_NAME}--cf-fn--${STAGE}`,
-        comment: 'CF function to handle redirects, basic auth, redirects from cf domain to a custom one etc.',
+      runtime: cloudfront.FunctionRuntime.JS_2_0,
+      functionName: `${PROJECT_NAME}--cf-fn--${STAGE}`,
+      comment: 'CF function to handle redirects, basic auth, redirects from cf domain to a custom one etc.',
     });
 
     const oai = new cloudfront.OriginAccessIdentity(this, `${PROJECT_NAME}--oai--${STAGE}`, {
@@ -111,11 +113,11 @@ class BackendCdkStack extends cdk.Stack {
           },
           behaviors: [
             {
-                isDefaultBehavior: true,
-                functionAssociations: [{
-                    eventType: cloudfront.FunctionEventType.VIEWER_REQUEST,
-                    function: cfFunction,
-                }],
+              isDefaultBehavior: true,
+              functionAssociations: [{
+                eventType: cloudfront.FunctionEventType.VIEWER_REQUEST,
+                function: cfFunction,
+              }],
             },
           ],
         },
@@ -125,7 +127,7 @@ class BackendCdkStack extends cdk.Stack {
         {
           aliases: [STAGE === 'prod' ? 'languageapp.illusha.net' : 'languageapp-test.illusha.net'], // only 2 envs for this app
           securityPolicy: cloudfront.SecurityPolicyProtocol.TLS_V1_2_2021,
-          sslMethod: cloudfront.SSLMethod.SNI,          
+          sslMethod: cloudfront.SSLMethod.SNI,
         },
       ),
       errorConfigurations: [
@@ -185,27 +187,27 @@ class BackendCdkStack extends cdk.Stack {
 
     // Lambda fn #1 (handle items by user: add, delete, update)
     const lambdaFnDynamoDb = new lambda.Function(this, `${PROJECT_NAME}--lambda-fn-data--${STAGE}`, {
-        runtime: lambda.Runtime.NODEJS_18_X,
-        handler: 'data/index.handler',
-        code: lambda.Code.fromAsset(path.join(__dirname, 'functions')),
-        functionName: `${PROJECT_NAME}--lambda-fn-data--${STAGE}`,
-        role: myIam,
-        environment: {
-          STAGE: STAGE,
-          PROJECT_NAME: PROJECT_NAME,
-          CLOUDFRONT_URL: CLOUDFRONT_URL,
-          OPEN_AI_KEY: OPEN_AI_KEY,
-          S3_FILES: websiteBucketFiles.bucketName,
-          DB_DATA: myTable.tableName,
-          DB_USERS: myTableUsers.tableName,
-        },
-        timeout: cdk.Duration.seconds(30),
-        layers: [lambdaLayer]
+      runtime: lambda.Runtime.NODEJS_18_X,
+      handler: 'data/index.handler',
+      code: lambda.Code.fromAsset(path.join(__dirname, 'functions')),
+      functionName: `${PROJECT_NAME}--lambda-fn-data--${STAGE}`,
+      role: myIam,
+      environment: {
+        STAGE: STAGE,
+        PROJECT_NAME: PROJECT_NAME,
+        CLOUDFRONT_URL: CLOUDFRONT_URL,
+        OPEN_AI_KEY: OPEN_AI_KEY,
+        S3_FILES: websiteBucketFiles.bucketName,
+        DB_DATA: myTable.tableName,
+        DB_USERS: myTableUsers.tableName,
+      },
+      timeout: cdk.Duration.seconds(30),
+      layers: [lambdaLayer]
     });
 
     // the below grants the Lambda fn basic things (like logs)
     lambdaFnDynamoDb.role.addManagedPolicy(
-        iam.ManagedPolicy.fromAwsManagedPolicyName('service-role/AWSLambdaBasicExecutionRole')
+      iam.ManagedPolicy.fromAwsManagedPolicyName('service-role/AWSLambdaBasicExecutionRole')
     )
 
     // Lambda fn #2 (handle users: login, generate-invitation-code, register, delete-account, forgot-password, change-password)
@@ -229,33 +231,33 @@ class BackendCdkStack extends cdk.Stack {
       layers: [lambdaLayer],
     });
     authFn.role.addManagedPolicy(
-        iam.ManagedPolicy.fromAwsManagedPolicyName('service-role/AWSLambdaBasicExecutionRole')
+      iam.ManagedPolicy.fromAwsManagedPolicyName('service-role/AWSLambdaBasicExecutionRole')
     )
 
     // Lambda fn #3 (generate items by AI from user input)
     const lambdaFnDataAIGenerated = new lambda.Function(this, `${PROJECT_NAME}--lambda-fn-data-ai-generated--${STAGE}`, {
-        runtime: lambda.Runtime.NODEJS_20_X,
-        handler: 'data-ai-generated/index.handler',
-        code: lambda.Code.fromAsset(path.join(__dirname, 'functions')),
-        functionName: `${PROJECT_NAME}--lambda-fn-data-ai-generated--${STAGE}`,
-        role: myIam,
-        environment: {
-          STAGE: STAGE,
-          PROJECT_NAME: PROJECT_NAME,
-          CLOUDFRONT_URL: CLOUDFRONT_URL,
-          OPEN_AI_KEY: OPEN_AI_KEY,
-          SQS_URL: SQS_URL,
-          S3_FILES: websiteBucketFiles.bucketName,
-          DB_DATA: myTable.tableName,
-          DB_USERS: myTableUsers.tableName,
-        },
-        timeout: cdk.Duration.seconds(30),
-        layers: [lambdaLayer]
+      runtime: lambda.Runtime.NODEJS_20_X,
+      handler: 'data-ai-generated/index.handler',
+      code: lambda.Code.fromAsset(path.join(__dirname, 'functions')),
+      functionName: `${PROJECT_NAME}--lambda-fn-data-ai-generated--${STAGE}`,
+      role: myIam,
+      environment: {
+        STAGE: STAGE,
+        PROJECT_NAME: PROJECT_NAME,
+        CLOUDFRONT_URL: CLOUDFRONT_URL,
+        OPEN_AI_KEY: OPEN_AI_KEY,
+        SQS_URL: SQS_URL,
+        S3_FILES: websiteBucketFiles.bucketName,
+        DB_DATA: myTable.tableName,
+        DB_USERS: myTableUsers.tableName,
+      },
+      timeout: cdk.Duration.seconds(30),
+      layers: [lambdaLayer]
     });
 
     // the below grants the Lambda fn basic things (like logs)
     lambdaFnDataAIGenerated.role.addManagedPolicy(
-        iam.ManagedPolicy.fromAwsManagedPolicyName('service-role/AWSLambdaBasicExecutionRole')
+      iam.ManagedPolicy.fromAwsManagedPolicyName('service-role/AWSLambdaBasicExecutionRole')
     )
 
     // API #1
@@ -324,12 +326,18 @@ class BackendCdkStack extends cdk.Stack {
 
     // generate new JWT secret for auth, rotate every 30 days
     const jwtSecret = new aws_secretsmanager.Secret(this, `${PROJECT_NAME}--secret-auth--${STAGE}`, {
-        secretName: `${PROJECT_NAME}--secret-auth--${STAGE}`,
-        description: `JWT secret for ${PROJECT_NAME} for auth ${STAGE} environment.`,
-        generateSecretString: {
-          secretStringTemplate: JSON.stringify({ name: `${PROJECT_NAME}--secret-auth--${STAGE}` }),
-          generateStringKey: 'value',
-        },
+      secretName: `${PROJECT_NAME}--secret-auth--${STAGE}`,
+      description: `JWT secret for ${PROJECT_NAME} for auth ${STAGE} environment.`,
+      generateSecretString: {
+        secretStringTemplate: JSON.stringify({ name: `${PROJECT_NAME}--secret-auth--${STAGE}` }),
+        generateStringKey: 'value',
+      },
+    });
+
+    const ssmSecret = new aws_ssm.StringParameter(this, `${PROJECT_NAME}--ssm-secret--${STAGE}`, {
+      parameterName: `${PROJECT_NAME}--ssm-secret--${STAGE}`,
+      description: `SSM secret for ${PROJECT_NAME} for auth ${STAGE} environment.`,
+      stringValue: crypto.randomBytes(32).toString('hex'),
     });
 
     // Define a Lambda function for the rotation
@@ -347,32 +355,35 @@ class BackendCdkStack extends cdk.Stack {
         DB_USERS: myTableUsers.tableName,
       },
       timeout: cdk.Duration.seconds(30),
+      layers: [lambdaLayer],
     });
     manageUsersFn.role.addManagedPolicy(
-        iam.ManagedPolicy.fromAwsManagedPolicyName('service-role/AWSLambdaBasicExecutionRole')
+      iam.ManagedPolicy.fromAwsManagedPolicyName('service-role/AWSLambdaBasicExecutionRole')
     );
 
     // Define a Lambda function for the rotation
     const rotateSecretFn = new lambda.Function(this, `${PROJECT_NAME}--lambda-fn-secret-rotation--${STAGE}`, {
-        runtime: lambda.Runtime.NODEJS_18_X,
-        handler: 'secret-rotation/index.handler',
-        code: lambda.Code.fromAsset(path.join(__dirname, 'functions')),
-        functionName: `${PROJECT_NAME}--lambda-fn-secret-rotation--${STAGE}`,
-        environment: {
-            SECRET_ID: jwtSecret.secretName,
-        },
-        role: myIam,
-
+      runtime: lambda.Runtime.NODEJS_18_X,
+      handler: 'secret-rotation/index.handler',
+      code: lambda.Code.fromAsset(path.join(__dirname, 'functions')),
+      functionName: `${PROJECT_NAME}--lambda-fn-secret-rotation--${STAGE}`,
+      environment: {
+        // SECRET_ID: jwtSecret.secretName,
+        SECRET_ID: ssmSecret.parameterName,
+      },
+      role: myIam,
+      layers: [lambdaLayer],
     });
 
     rotateSecretFn.role.addManagedPolicy(
-        iam.ManagedPolicy.fromAwsManagedPolicyName('service-role/AWSLambdaBasicExecutionRole')
+      iam.ManagedPolicy.fromAwsManagedPolicyName('service-role/AWSLambdaBasicExecutionRole')
     );
 
     const rule = new events.Rule(this, `${PROJECT_NAME}--secret-update-schedule-rule--${STAGE}`, {
       ruleName: `${PROJECT_NAME}--secret-update-schedule-rule--${STAGE}`,
       description: `Event to update auth secret for ${PROJECT_NAME} project ${STAGE} env`,
-      schedule: events.Schedule.rate(cdk.Duration.days(25)),
+      // schedule: events.Schedule.rate(cdk.Duration.days(25)),
+      schedule: events.Schedule.rate(cdk.Duration.minutes(10)),
       targets: [new eventsTargets.LambdaFunction(rotateSecretFn, {
         retryAttempts: 0,
       })],
@@ -381,7 +392,8 @@ class BackendCdkStack extends cdk.Stack {
     const manageUsersRule = new events.Rule(this, `${PROJECT_NAME}--manage-users-schedule-rule--${STAGE}`, {
       ruleName: `${PROJECT_NAME}--manage-users-schedule-rule--${STAGE}`,
       description: `Event to manage users for ${PROJECT_NAME} project ${STAGE} env`,
-      schedule: events.Schedule.rate(cdk.Duration.days(30)),
+      // schedule: events.Schedule.rate(cdk.Duration.days(30)),
+      schedule: events.Schedule.rate(cdk.Duration.minutes(10)),
       targets: [new eventsTargets.LambdaFunction(manageUsersFn, {
         retryAttempts: 0,
       })],
@@ -401,103 +413,112 @@ class BackendCdkStack extends cdk.Stack {
       },
     });
     const lambdaFnSQS = new lambda.Function(this, `${PROJECT_NAME}--lambda-fn-users-sqs--${STAGE}`, {
-        runtime: lambda.Runtime.NODEJS_18_X,
-        handler: 'users-sqs/index.handler',
-        code: lambda.Code.fromAsset(path.join(__dirname, 'functions')),
-        functionName: `${PROJECT_NAME}--lambda-fn-users-sqs--${STAGE}`,
-        role: myIam,
-        environment: {
-          CLOUDFRONT_URL: CLOUDFRONT_URL,
-          PROJECT_NAME: PROJECT_NAME,
-          STAGE: STAGE,
-          OPEN_AI_KEY: OPEN_AI_KEY,
-          S3_FILES: websiteBucketFiles.bucketName,
-          DB_DATA: myTable.tableName,
-          DB_USERS: myTableUsers.tableName,
-        },
-        timeout: cdk.Duration.seconds(30),
-        events: [new lambdaEventSource.SqsEventSource(myQueue, {
-          batchSize: 1,
-        })],
-        layers: [lambdaLayer],
+      runtime: lambda.Runtime.NODEJS_18_X,
+      handler: 'users-sqs/index.handler',
+      code: lambda.Code.fromAsset(path.join(__dirname, 'functions')),
+      functionName: `${PROJECT_NAME}--lambda-fn-users-sqs--${STAGE}`,
+      role: myIam,
+      environment: {
+        CLOUDFRONT_URL: CLOUDFRONT_URL,
+        PROJECT_NAME: PROJECT_NAME,
+        STAGE: STAGE,
+        OPEN_AI_KEY: OPEN_AI_KEY,
+        S3_FILES: websiteBucketFiles.bucketName,
+        DB_DATA: myTable.tableName,
+        DB_USERS: myTableUsers.tableName,
+      },
+      timeout: cdk.Duration.seconds(30),
+      events: [new lambdaEventSource.SqsEventSource(myQueue, {
+        batchSize: 1,
+      })],
+      layers: [lambdaLayer],
     });
 
     lambdaFnSQS.role.addManagedPolicy(
       iam.ManagedPolicy.fromAwsManagedPolicyName('service-role/AWSLambdaBasicExecutionRole')
     );
-    // 
+    //
 
     myIam.attachInlinePolicy(new iam.Policy(this, `${PROJECT_NAME}--iam-policy--${STAGE}`, {
-        policyName: `${PROJECT_NAME}--iam-policy--${STAGE}`,
-        statements: [
-            new iam.PolicyStatement({
-                actions: ['dynamodb:Query', 'dynamodb:BatchWriteItem', 'dynamodb:PutItem', 'dynamodb:UpdateItem', 'dynamodb:Scan', 'dynamodb:DeleteItem'],
-                resources: [
-                  myTable.tableArn, 
-                  myTableUsers.tableArn, 
-                  `${myTableUsers.tableArn}/index/*`
-                ],
-                effect: iam.Effect.ALLOW,
-            }),
-            new iam.PolicyStatement({
-                actions: [
-                    "s3:GetObject",
-                    "s3:ListBucket",
-                    "s3:PutObject",
-                    "s3:DeleteObject",
-                ],
-                resources: [websiteBucketFiles.bucketArn, `${websiteBucketFiles.bucketArn}/*`],
-                effect: iam.Effect.ALLOW
-            }),
-            new iam.PolicyStatement({
-                actions: [
-                    "events:DescribeRule",
-                ],
-                resources: [manageUsersRule.ruleArn],
-                effect: iam.Effect.ALLOW
-            }),
-            new iam.PolicyStatement({
-                actions: [
-                    "secretsmanager:GetSecretValue",
-                    "secretsmanager:RotateSecret",
-                    "secretsmanager:UpdateSecret",
-                ],
-                resources: [jwtSecret.secretArn],
-                effect: iam.Effect.ALLOW
-            }),
-            new iam.PolicyStatement({
-                actions: ["secretsmanager:GetRandomPassword"],
-                resources: "*",
-                effect: iam.Effect.ALLOW
-            }),
-            new iam.PolicyStatement({
-              actions: [
-                  "ses:SendEmail",
-              ],
-              resources: "*",
-              effect: iam.Effect.ALLOW,
-              conditions: {
-                StringEquals: {
-                  "ses:FromAddress": `${process.env.PROJECT_NAME}@devemail.illusha.net`,
-                }
-              }
-            }),
-            new iam.PolicyStatement({
-              actions: [
-                  "ses:VerifyEmailIdentity",
-              ],
-              resources: "*",
-              effect: iam.Effect.ALLOW,
-            }),
-            new iam.PolicyStatement({
-              actions: [
-                  "sqs:SendMessage",
-              ],
-              resources: [myQueue.queueArn],
-              effect: iam.Effect.ALLOW
-            }),
-        ],
-      })
+      policyName: `${PROJECT_NAME}--iam-policy--${STAGE}`,
+      statements: [
+        new iam.PolicyStatement({
+          actions: ['dynamodb:Query', 'dynamodb:BatchWriteItem', 'dynamodb:PutItem', 'dynamodb:UpdateItem', 'dynamodb:Scan', 'dynamodb:DeleteItem'],
+          resources: [
+            myTable.tableArn,
+            myTableUsers.tableArn,
+            `${myTableUsers.tableArn}/index/*`
+          ],
+          effect: iam.Effect.ALLOW,
+        }),
+        new iam.PolicyStatement({
+          actions: [
+            "s3:GetObject",
+            "s3:ListBucket",
+            "s3:PutObject",
+            "s3:DeleteObject",
+          ],
+          resources: [websiteBucketFiles.bucketArn, `${websiteBucketFiles.bucketArn}/*`],
+          effect: iam.Effect.ALLOW
+        }),
+        new iam.PolicyStatement({
+          actions: [
+            "events:DescribeRule",
+          ],
+          resources: [manageUsersRule.ruleArn],
+          effect: iam.Effect.ALLOW
+        }),
+        new iam.PolicyStatement({
+          actions: [
+            "secretsmanager:GetSecretValue",
+            "secretsmanager:RotateSecret",
+            "secretsmanager:UpdateSecret",
+          ],
+          resources: [jwtSecret.secretArn],
+          effect: iam.Effect.ALLOW
+        }),
+        new iam.PolicyStatement({
+          actions: [
+            "ssm:GetParameter",
+            "ssm:PutParameter",
+            "ssm:DeleteParameter",
+          ],
+          resources: [ssmSecret.parameterArn],
+          effect: iam.Effect.ALLOW
+        }),
+        new iam.PolicyStatement({
+          actions: ["secretsmanager:GetRandomPassword"],
+          resources: "*",
+          effect: iam.Effect.ALLOW
+        }),
+        new iam.PolicyStatement({
+          actions: [
+            "ses:SendEmail",
+          ],
+          resources: "*",
+          effect: iam.Effect.ALLOW,
+          conditions: {
+            StringEquals: {
+              "ses:FromAddress": `${process.env.PROJECT_NAME}@devemail.illusha.net`,
+            }
+          }
+        }),
+        new iam.PolicyStatement({
+          actions: [
+            "ses:VerifyEmailIdentity",
+          ],
+          resources: "*",
+          effect: iam.Effect.ALLOW,
+        }),
+        new iam.PolicyStatement({
+          actions: [
+            "sqs:SendMessage",
+          ],
+          resources: [myQueue.queueArn],
+          effect: iam.Effect.ALLOW
+        }),
+      ],
+    })
     )
   }
 }
