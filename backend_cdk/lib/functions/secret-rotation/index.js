@@ -2,6 +2,7 @@ const { SecretsManagerClient, GetSecretValueCommand, UpdateSecretCommand, Rotate
 const { SSMClient, GetParametersCommand, PutParameterCommand } = require('@aws-sdk/client-ssm');
 const client = new SecretsManagerClient({});
 const clientSSM = new SSMClient({});
+const crypto = require('crypto');
 
 module.exports.handler = async (event, context) => {
   // Environment variables
@@ -39,7 +40,7 @@ module.exports.handler = async (event, context) => {
 
   const updateParam = new PutParameterCommand({
     Name: SECRET_ID,
-    Value: response.Parameters[0].Value,
+    Value: crypto.randomBytes(32).toString('hex'),
     Type: "SecureString",
     Overwrite: true,
   });
