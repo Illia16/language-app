@@ -1,5 +1,5 @@
 const { SecretsManagerClient, GetSecretValueCommand, UpdateSecretCommand, RotateSecretCommand, GetRandomPasswordCommand } = require('@aws-sdk/client-secrets-manager');
-const { SSMClient, GetParametersCommand } = require('@aws-sdk/client-ssm');
+const { SSMClient, GetParametersCommand, PutParameterCommand } = require('@aws-sdk/client-ssm');
 const client = new SecretsManagerClient({});
 const clientSSM = new SSMClient({});
 
@@ -28,13 +28,26 @@ module.exports.handler = async (event, context) => {
   // const commandUpdate = new UpdateSecretCommand(inputUpdate);
   // const responseUpdate = await client.send(commandUpdate);
 
-  const input = {
+  const command = new GetParametersCommand({
     Names: [
       SECRET_ID,
     ],
     WithDecryption: true,
-  };
-  const command = new GetParametersCommand(input);
+  });
   const response = await clientSSM.send(command);
-  console.log('ssm response', response);
+  console.log('ssm response', response.Parameters[0].Value);
+
+  const updateParam = new PutParameterCommand({
+    Name: SECRET_ID,
+    Value: response.Parameters[0].Value,
+    Type: "SecureString",
+    Overwrite: true,
+  });
+
+  try {
+    const updateParamResponse = await clientSSM.send(updateParam);
+    console.log("SSM Parameter Updated:", updateParamResponse);
+  } catch (error) {
+    console.error("Error updating SSM parameter:", error);
+  }
 };

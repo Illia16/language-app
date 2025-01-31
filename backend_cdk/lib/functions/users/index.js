@@ -17,7 +17,7 @@ module.exports.handler = async (event, context) => {
     // Environment variables
     const STAGE = process.env.STAGE;
     const PROJECT_NAME = process.env.PROJECT_NAME;
-    const secretJwt = await getSecret(`${PROJECT_NAME}--secret-auth--${STAGE}`);
+    const secretJwt = await getSecret(`${PROJECT_NAME}--ssm-auth--${STAGE}`);
     const SQS_URL = process.env.SQS_URL;
     const dbData = process.env.DB_DATA;
     const dbUsers = process.env.DB_USERS;
@@ -64,17 +64,18 @@ module.exports.handler = async (event, context) => {
             accountDeleteAt = getRateExpressionNextRun(eventBridgeManageUsersData.ScheduleExpression)
         }
 
-        const token = jwt.sign({user: userObj.user, ...(userObj.role === 'admin' && {role: userObj.role})}, secretJwt, { expiresIn: '25 days' });
+        const token = jwt.sign({ user: userObj.user, ...(userObj.role === 'admin' && { role: userObj.role }) }, secretJwt, { expiresIn: '25 days' });
         response.body = JSON.stringify({
-            success: true, 
+            success: true,
             data: {
-                user: userObj.user, 
-                userId: userObj.userId, 
-                userMotherTongue: userObj.userMotherTongue, 
-                token: token, role: 
-                userObj.role,
-                ...(userObj.role === 'delete' && {accountDeletionTime: accountDeleteAt})
-            }});
+                user: userObj.user,
+                userId: userObj.userId,
+                userMotherTongue: userObj.userMotherTongue,
+                token: token, role:
+                    userObj.role,
+                ...(userObj.role === 'delete' && { accountDeletionTime: accountDeleteAt })
+            }
+        });
     }
 
     if (event.path === '/users/generate-invitation-code') {
@@ -98,10 +99,10 @@ module.exports.handler = async (event, context) => {
                     "ReturnConsumedCapacity": "TOTAL",
                     "TableName": dbUsers
                 };
-    
+
                 const command = new PutCommand(input);
                 const res = await docClient.send(command);
-                response.body = JSON.stringify({success: true});
+                response.body = JSON.stringify({ success: true });
             }
         } catch (error) {
             if (error.name === 'JsonWebTokenError' || error.name === 'TokenExpiredError') {
@@ -127,7 +128,7 @@ module.exports.handler = async (event, context) => {
             return responseWithError('500', 'Either username already taken or inivation code is wrong.', headerOrigin)
         } else {
             // Check inv code
-            const resInvCode = await findUser(dbUsers, invitationCode) 
+            const resInvCode = await findUser(dbUsers, invitationCode)
 
             if (resInvCode && resInvCode.length) {
                 // if inv code is correct, delete it and create a user
@@ -146,7 +147,7 @@ module.exports.handler = async (event, context) => {
                 const inputCreateUser = {
                     Item: {
                         user: username,
-                        userId: username+"___"+invitationCode,
+                        userId: username + "___" + invitationCode,
                         password: hashedPassword,
                         userMotherTongue: userMotherTongue,
                         role: 'user',
@@ -159,7 +160,7 @@ module.exports.handler = async (event, context) => {
 
                 const commandCreateUser = new PutCommand(inputCreateUser);
                 const resCreateUser = await docClient.send(commandCreateUser);
-                response.body = JSON.stringify({success: true, data: resCreateUser.Attributes});
+                response.body = JSON.stringify({ success: true, data: resCreateUser.Attributes });
 
                 // put 1 welcome item for the new user
                 const welcomeItem = "I like learning English every day"
@@ -189,12 +190,12 @@ module.exports.handler = async (event, context) => {
 
                 const command = new PutCommand(input);
                 await docClient.send(command);
-                // 
+                //
 
                 // send verification email to the user
                 const inputSQS = {
                     QueueUrl: SQS_URL,
-                    MessageBody: JSON.stringify({eventName: 'verify-email', userEmail: userEmail}),
+                    MessageBody: JSON.stringify({ eventName: 'verify-email', userEmail: userEmail }),
                 };
                 const commandSQS = new SendMessageCommand(inputSQS);
                 await clientSQS.send(commandSQS);
@@ -211,7 +212,7 @@ module.exports.handler = async (event, context) => {
 
         try {
             const decoded = jwt.verify(token, secretJwt);
-        } catch(err) {
+        } catch (err) {
             return responseWithError('401', 'Token is invalid.', headerOrigin)
         }
 
@@ -221,28 +222,28 @@ module.exports.handler = async (event, context) => {
 
         const inputSQS = {
             QueueUrl: SQS_URL,
-            MessageBody: JSON.stringify({eventName: 'delete-account', dbUsers: dbUsers, username: username, userId: userId, toBeDeleted: toBeDeleted}),
+            MessageBody: JSON.stringify({ eventName: 'delete-account', dbUsers: dbUsers, username: username, userId: userId, toBeDeleted: toBeDeleted }),
         };
         const commandSQS = new SendMessageCommand(inputSQS);
 
         try {
             await clientSQS.send(commandSQS);
-            response.body = JSON.stringify({success: true, message: 'processed'});
+            response.body = JSON.stringify({ success: true, message: 'processed' });
         } catch (error) {
             return responseWithError('500', "Something went wrong.", headerOrigin)
-        }  
+        }
     }
 
     if (event.path === '/users/forgot-password') {
         const inputSQS = {
             QueueUrl: SQS_URL,
-            MessageBody: JSON.stringify({eventName: 'forgot-password', dbUsers: dbUsers, userEmail: body.userEmail}),
+            MessageBody: JSON.stringify({ eventName: 'forgot-password', dbUsers: dbUsers, userEmail: body.userEmail }),
         };
         const commandSQS = new SendMessageCommand(inputSQS);
 
         try {
             await clientSQS.send(commandSQS);
-            response.body = JSON.stringify({success: true, message: 'processed'});
+            response.body = JSON.stringify({ success: true, message: 'processed' });
         } catch (error) {
             return responseWithError('500', "Something went wrong.", headerOrigin)
         }
@@ -261,17 +262,17 @@ module.exports.handler = async (event, context) => {
             const inputSQS = {
                 QueueUrl: SQS_URL,
                 MessageBody: JSON.stringify({
-                    eventName: 'change-password', 
-                    dbUsers: dbUsers, 
-                    user: decoded.user, 
-                    userId: body.userId, 
+                    eventName: 'change-password',
+                    dbUsers: dbUsers,
+                    user: decoded.user,
+                    userId: body.userId,
                     password: hashedPassword
                 }),
             };
             const commandSQS = new SendMessageCommand(inputSQS);
             await clientSQS.send(commandSQS);
-            response.body = JSON.stringify({success: true, message: 'processed'});
-        } catch(err) {
+            response.body = JSON.stringify({ success: true, message: 'processed' });
+        } catch (err) {
             return responseWithError('401', 'Token is invalid.', headerOrigin)
         }
     }

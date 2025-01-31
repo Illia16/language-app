@@ -334,8 +334,8 @@ class BackendCdkStack extends cdk.Stack {
       },
     });
 
-    const ssmSecret = new aws_ssm.StringParameter(this, `${PROJECT_NAME}--ssm-secret--${STAGE}`, {
-      parameterName: `${PROJECT_NAME}--ssm-secret--${STAGE}`,
+    const ssmSecret = new aws_ssm.StringParameter(this, `${PROJECT_NAME}--ssm-auth--${STAGE}`, {
+      parameterName: `${PROJECT_NAME}--ssm-auth--${STAGE}`,
       description: `SSM secret for ${PROJECT_NAME} for auth ${STAGE} environment.`,
       stringValue: crypto.randomBytes(32).toString('hex'),
     });
