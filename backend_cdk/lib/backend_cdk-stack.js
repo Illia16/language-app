@@ -483,7 +483,7 @@ class BackendCdkStack extends cdk.Stack {
         }),
         new iam.PolicyStatement({
           actions: [
-            "ssm:GetParameter",
+            "ssm:GetParameters",
             "ssm:PutParameter",
             "ssm:DeleteParameter",
           ],
