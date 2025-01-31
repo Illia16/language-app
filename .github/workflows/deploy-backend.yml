@@ -19,11 +19,12 @@ jobs:
           node-version: '20'
 
       - name: Log GitHub Environment Name and other things
-        run: echo "GitHub Environment: ${{ github.environment }}"
-        run: echo "CLOUDFRONT_LOGIN: ${{ secrets.CLOUDFRONT_LOGIN }}"
-        run: echo "CLOUDFRONT_PW: ${{ secrets.CLOUDFRONT_PW }}"
-        run: echo "SECRET_TEST: ${{ secrets.SECRET_TEST }}"
-        run: echo "OPEN_AI_KEY: ${{ secrets.OPEN_AI_KEY }}"
+        run: |
+          echo "GitHub Environment: ${{ github.environment }}"
+          echo "CLOUDFRONT_LOGIN: ${{ secrets.CLOUDFRONT_LOGIN }}"
+          echo "CLOUDFRONT_PW: ${{ secrets.CLOUDFRONT_PW }}"
+          echo "SECRET_TEST: ${{ secrets.SECRET_TEST }}"
+          echo "OPEN_AI_KEY: ${{ secrets.OPEN_AI_KEY }}"
 
       - name: Set Environment Name
         id: set-env
