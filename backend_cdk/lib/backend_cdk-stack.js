@@ -384,8 +384,8 @@ class BackendCdkStack extends cdk.Stack {
     const rule = new events.Rule(this, `${PROJECT_NAME}--secret-update-schedule-rule--${STAGE}`, {
       ruleName: `${PROJECT_NAME}--secret-update-schedule-rule--${STAGE}`,
       description: `Event to update auth secret for ${PROJECT_NAME} project ${STAGE} env`,
-      // schedule: events.Schedule.rate(cdk.Duration.days(25)),
-      schedule: events.Schedule.rate(cdk.Duration.minutes(10)),
+      schedule: events.Schedule.rate(cdk.Duration.days(25)),
+      // schedule: events.Schedule.rate(cdk.Duration.minutes(10)),
       targets: [new eventsTargets.LambdaFunction(rotateSecretFn, {
         retryAttempts: 0,
       })],
@@ -394,8 +394,8 @@ class BackendCdkStack extends cdk.Stack {
     const manageUsersRule = new events.Rule(this, `${PROJECT_NAME}--manage-users-schedule-rule--${STAGE}`, {
       ruleName: `${PROJECT_NAME}--manage-users-schedule-rule--${STAGE}`,
       description: `Event to manage users for ${PROJECT_NAME} project ${STAGE} env`,
-      // schedule: events.Schedule.rate(cdk.Duration.days(30)),
-      schedule: events.Schedule.rate(cdk.Duration.minutes(10)),
+      schedule: events.Schedule.rate(cdk.Duration.days(30)),
+      // schedule: events.Schedule.rate(cdk.Duration.minutes(10)),
       targets: [new eventsTargets.LambdaFunction(manageUsersFn, {
         retryAttempts: 0,
       })],
