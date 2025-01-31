@@ -340,7 +340,7 @@ class BackendCdkStack extends cdk.Stack {
       stringValue: crypto.randomBytes(32).toString('hex'),
     });
 
-    // Define a Lambda function for the rotation
+    // Lambda fn #4 (manage users: delete)
     const manageUsersFn = new lambda.Function(this, `${PROJECT_NAME}--lambda-fn-manage-users--${STAGE}`, {
       runtime: lambda.Runtime.NODEJS_18_X,
       handler: 'manage-users/index.handler',
@@ -353,6 +353,7 @@ class BackendCdkStack extends cdk.Stack {
         S3_FILES: websiteBucketFiles.bucketName,
         DB_DATA: myTable.tableName,
         DB_USERS: myTableUsers.tableName,
+        OPEN_AI_KEY: OPEN_AI_KEY,
       },
       timeout: cdk.Duration.seconds(30),
       layers: [lambdaLayer],
@@ -361,7 +362,7 @@ class BackendCdkStack extends cdk.Stack {
       iam.ManagedPolicy.fromAwsManagedPolicyName('service-role/AWSLambdaBasicExecutionRole')
     );
 
-    // Define a Lambda function for the rotation
+    // Lambda fn #5 (rotate secret)
     const rotateSecretFn = new lambda.Function(this, `${PROJECT_NAME}--lambda-fn-secret-rotation--${STAGE}`, {
       runtime: lambda.Runtime.NODEJS_18_X,
       handler: 'secret-rotation/index.handler',
@@ -370,6 +371,7 @@ class BackendCdkStack extends cdk.Stack {
       environment: {
         // SECRET_ID: jwtSecret.secretName,
         SECRET_ID: ssmSecret.parameterName,
+        OPEN_AI_KEY: OPEN_AI_KEY,
       },
       role: myIam,
       layers: [lambdaLayer],
@@ -412,6 +414,8 @@ class BackendCdkStack extends cdk.Stack {
         maxReceiveCount: 1,
       },
     });
+
+    // Lambda fn #6 (handle users: sqs)
     const lambdaFnSQS = new lambda.Function(this, `${PROJECT_NAME}--lambda-fn-users-sqs--${STAGE}`, {
       runtime: lambda.Runtime.NODEJS_18_X,
       handler: 'users-sqs/index.handler',
