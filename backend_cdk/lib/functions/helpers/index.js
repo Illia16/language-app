@@ -7,9 +7,9 @@ const { ListObjectsV2Command, PutObjectCommand, DeleteObjectCommand, GetObjectCo
 const clientS3 = new S3Client({});
 const { getSignedUrl } = require("@aws-sdk/s3-request-presigner");
 
-const { SecretsManagerClient, GetSecretValueCommand } = require('@aws-sdk/client-secrets-manager');
+// const { SecretsManagerClient, GetSecretValueCommand } = require('@aws-sdk/client-secrets-manager');
 const { SSMClient, GetParametersCommand, PutParameterCommand } = require('@aws-sdk/client-ssm');
-const client = new SecretsManagerClient({});
+// const client = new SecretsManagerClient({});
 const clientSSM = new SSMClient({});
 
 const { EventBridgeClient, DescribeRuleCommand } = require('@aws-sdk/client-eventbridge');

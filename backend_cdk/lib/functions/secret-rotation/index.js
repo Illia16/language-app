@@ -1,6 +1,6 @@
-const { SecretsManagerClient, GetSecretValueCommand, UpdateSecretCommand, RotateSecretCommand, GetRandomPasswordCommand } = require('@aws-sdk/client-secrets-manager');
+// const { SecretsManagerClient, GetSecretValueCommand, UpdateSecretCommand, RotateSecretCommand, GetRandomPasswordCommand } = require('@aws-sdk/client-secrets-manager');
 const { SSMClient, GetParametersCommand, PutParameterCommand } = require('@aws-sdk/client-ssm');
-const client = new SecretsManagerClient({});
+// const client = new SecretsManagerClient({});
 const clientSSM = new SSMClient({});
 const crypto = require('crypto');
 

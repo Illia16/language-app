@@ -5,7 +5,7 @@ const lambda = require('aws-cdk-lib/aws-lambda');
 const dynamoDb = require('aws-cdk-lib/aws-dynamodb');
 const apiGateway = require('aws-cdk-lib/aws-apigateway');
 const iam = require('aws-cdk-lib/aws-iam');
-const aws_secretsmanager = require('aws-cdk-lib/aws-secretsmanager');
+// const aws_secretsmanager = require('aws-cdk-lib/aws-secretsmanager');
 const aws_ssm = require('aws-cdk-lib/aws-ssm');
 const events = require('aws-cdk-lib/aws-events');
 const eventsTargets = require('aws-cdk-lib/aws-events-targets');
@@ -325,14 +325,14 @@ class BackendCdkStack extends cdk.Stack {
     });
 
     // generate new JWT secret for auth, rotate every 30 days
-    const jwtSecret = new aws_secretsmanager.Secret(this, `${PROJECT_NAME}--secret-auth--${STAGE}`, {
-      secretName: `${PROJECT_NAME}--secret-auth--${STAGE}`,
-      description: `JWT secret for ${PROJECT_NAME} for auth ${STAGE} environment.`,
-      generateSecretString: {
-        secretStringTemplate: JSON.stringify({ name: `${PROJECT_NAME}--secret-auth--${STAGE}` }),
-        generateStringKey: 'value',
-      },
-    });
+    // const jwtSecret = new aws_secretsmanager.Secret(this, `${PROJECT_NAME}--secret-auth--${STAGE}`, {
+    //   secretName: `${PROJECT_NAME}--secret-auth--${STAGE}`,
+    //   description: `JWT secret for ${PROJECT_NAME} for auth ${STAGE} environment.`,
+    //   generateSecretString: {
+    //     secretStringTemplate: JSON.stringify({ name: `${PROJECT_NAME}--secret-auth--${STAGE}` }),
+    //     generateStringKey: 'value',
+    //   },
+    // });
 
     const ssmSecret = new aws_ssm.StringParameter(this, `${PROJECT_NAME}--ssm-auth--${STAGE}`, {
       parameterName: `${PROJECT_NAME}--ssm-auth--${STAGE}`,
@@ -384,8 +384,8 @@ class BackendCdkStack extends cdk.Stack {
     const rule = new events.Rule(this, `${PROJECT_NAME}--secret-update-schedule-rule--${STAGE}`, {
       ruleName: `${PROJECT_NAME}--secret-update-schedule-rule--${STAGE}`,
       description: `Event to update auth secret for ${PROJECT_NAME} project ${STAGE} env`,
-      schedule: events.Schedule.rate(cdk.Duration.days(25)),
-      // schedule: events.Schedule.rate(cdk.Duration.minutes(10)),
+      // schedule: events.Schedule.rate(cdk.Duration.days(25)),
+      schedule: events.Schedule.rate(cdk.Duration.minutes(10)),
       targets: [new eventsTargets.LambdaFunction(rotateSecretFn, {
         retryAttempts: 0,
       })],
@@ -394,8 +394,8 @@ class BackendCdkStack extends cdk.Stack {
     const manageUsersRule = new events.Rule(this, `${PROJECT_NAME}--manage-users-schedule-rule--${STAGE}`, {
       ruleName: `${PROJECT_NAME}--manage-users-schedule-rule--${STAGE}`,
       description: `Event to manage users for ${PROJECT_NAME} project ${STAGE} env`,
-      schedule: events.Schedule.rate(cdk.Duration.days(30)),
-      // schedule: events.Schedule.rate(cdk.Duration.minutes(10)),
+      // schedule: events.Schedule.rate(cdk.Duration.days(30)),
+      schedule: events.Schedule.rate(cdk.Duration.minutes(10)),
       targets: [new eventsTargets.LambdaFunction(manageUsersFn, {
         retryAttempts: 0,
       })],
@@ -472,15 +472,15 @@ class BackendCdkStack extends cdk.Stack {
           resources: [manageUsersRule.ruleArn],
           effect: iam.Effect.ALLOW
         }),
-        new iam.PolicyStatement({
-          actions: [
-            "secretsmanager:GetSecretValue",
-            "secretsmanager:RotateSecret",
-            "secretsmanager:UpdateSecret",
-          ],
-          resources: [jwtSecret.secretArn],
-          effect: iam.Effect.ALLOW
-        }),
+        // new iam.PolicyStatement({
+        //   actions: [
+        //     "secretsmanager:GetSecretValue",
+        //     "secretsmanager:RotateSecret",
+        //     "secretsmanager:UpdateSecret",
+        //   ],
+        //   resources: [jwtSecret.secretArn],
+        //   effect: iam.Effect.ALLOW
+        // }),
         new iam.PolicyStatement({
           actions: [
             "ssm:GetParameters",
