@@ -7,7 +7,7 @@ module.exports.handler = async (event) => {
     const STAGE = process.env.STAGE;
     const PROJECT_NAME = process.env.PROJECT_NAME;
     const SQS_URL = process.env.SQS_URL; // for ref
-    const secretJwt = await getSecret(`${PROJECT_NAME}--secret-auth--${STAGE}`);
+    const secretJwt = await getSecret(`${PROJECT_NAME}--ssm-auth--${STAGE}`);
     const dbData = process.env.DB_DATA;
     const dbUsers = process.env.DB_USERS;
     const s3Files = process.env.S3_FILES;
@@ -44,7 +44,7 @@ module.exports.handler = async (event) => {
     } catch (error) {
         return responseWithError('401', `Failed to validate token. ${error}`, headerOrigin)
     }
-    // 
+    //
 
     if (action === 'POST') {
         if (!payload.prompt || payload.prompt.length > 100 || !payload.userMotherTongue || !payload.languageStudying || !payload.numberOfItems || Number(payload.numberOfItems) > 20) {
@@ -83,7 +83,7 @@ module.exports.handler = async (event) => {
                 payload.userMotherTongue,
                 payload.languageStudying,
             );
-            response.body = JSON.stringify({success: true, data: allEls});
+            response.body = JSON.stringify({ success: true, data: allEls });
         } catch (error) {
             return responseWithError('500', `Failed to post AI data. ${error}`, headerOrigin);
         }

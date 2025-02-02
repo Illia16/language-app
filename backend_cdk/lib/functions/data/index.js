@@ -12,7 +12,7 @@ module.exports.handler = async (event, context) => {
     // Environment variables
     const STAGE = process.env.STAGE;
     const PROJECT_NAME = process.env.PROJECT_NAME;
-    const secretJwt = await getSecret(`${PROJECT_NAME}--secret-auth--${STAGE}`);
+    const secretJwt = await getSecret(`${PROJECT_NAME}--ssm-auth--${STAGE}`);
     const dbData = process.env.DB_DATA;
     const dbUsers = process.env.DB_USERS;
     const s3Files = process.env.S3_FILES;
@@ -79,7 +79,7 @@ module.exports.handler = async (event, context) => {
                     if (currentObject.name === 'item') {
                         const strItem = currentObject.data.toString('utf8');
 
-                        // Always get audio for Chineese lang, but for other(English only for now) get only is it's a sentence 
+                        // Always get audio for Chineese lang, but for other(English only for now) get only is it's a sentence
                         if (chineseRegex.test(strItem)) {
                             result.getAudioAI = true;
                         } else {
@@ -106,21 +106,21 @@ module.exports.handler = async (event, context) => {
         const userData = await findUser(dbData, user);
         const data = await Promise.all(
             userData
-            .map((async (el) => {
-                if (el.filePath) {
-                    const url = await s3GetSignedUrl(s3Files, el.filePath);
-                    el.fileUrl = url;
-                }
+                .map((async (el) => {
+                    if (el.filePath) {
+                        const url = await s3GetSignedUrl(s3Files, el.filePath);
+                        el.fileUrl = url;
+                    }
 
-                if (el.incorrectItems) {
-                    el.incorrectItems = JSON.parse(el.incorrectItems);
-                }
+                    if (el.incorrectItems) {
+                        el.incorrectItems = JSON.parse(el.incorrectItems);
+                    }
 
-                return el;
-            }))
+                    return el;
+                }))
         );
 
-        response.body = JSON.stringify({success: true, data: data});
+        response.body = JSON.stringify({ success: true, data: data });
     }
 
     if (action === 'POST') {
@@ -151,7 +151,7 @@ module.exports.handler = async (event, context) => {
                     audioFilePathAi = `audio/${fileNameCleaned}/${fileNameCleaned}.mp3`;
                     await s3UploadFile(s3Files, audioFilePathAi, audioFile);
                 }
-    
+
                 // get incorrect answers of the correct item from AI
                 incorrectItems = await getIncorrectItems(data.item);
             }
@@ -163,9 +163,9 @@ module.exports.handler = async (event, context) => {
                     TableName: dbData,
                     ProjectionExpression: '#aliasForUser, #langMother, #langStudying',
                     ExpressionAttributeNames: {
-                      '#aliasForUser': 'user',
-                      '#langMother': 'userMotherTongue',
-                      '#langStudying': 'languageStudying'
+                        '#aliasForUser': 'user',
+                        '#langMother': 'userMotherTongue',
+                        '#langStudying': 'languageStudying'
                     }
                 };
 
@@ -175,7 +175,7 @@ module.exports.handler = async (event, context) => {
                     ...new Set(res.Items.map(item => {
                         return item.userMotherTongue === data.userMotherTongue && item.languageStudying === data.languageStudying ? item.user : null
                     })
-                    .filter(el=>el))
+                        .filter(el => el))
                 ];
 
                 // cover a case where user(admin) doesn't have any data for the languageStudying.
@@ -184,29 +184,29 @@ module.exports.handler = async (event, context) => {
                 }
                 const input = {
                     RequestItems: {
-                      [dbData]: uniqueUsers.map(username => {
-                        return {
-                            PutRequest: {
-                                Item: {
-                                    user: username,
-                                    itemID: data.itemID,
-                                    item: data.item,
-                                    itemCorrect: data.itemCorrect,
-                                    incorrectItems: JSON.stringify(incorrectItems),
-                                    itemType: data.itemType,
-                                    itemTypeCategory: data.itemTypeCategory,
-                                    userMotherTongue: data.userMotherTongue,
-                                    languageStudying: data.languageStudying,
-                                    level: data.level,
-                                    getAudioAI: data.getAudioAI,
-                                    ...(data.itemTranscription && { itemTranscription: data.itemTranscription }),
-                                    ...((filePath && !existingFileNameS3) && { filePath: filePath } ),
-                                    ...(existingFileNameS3 && { filePath: existingFileNameS3 } ),
-                                    ...((!filePath && !existingFileNameS3 && audioFilePathAi) && { filePath: audioFilePathAi } ),
+                        [dbData]: uniqueUsers.map(username => {
+                            return {
+                                PutRequest: {
+                                    Item: {
+                                        user: username,
+                                        itemID: data.itemID,
+                                        item: data.item,
+                                        itemCorrect: data.itemCorrect,
+                                        incorrectItems: JSON.stringify(incorrectItems),
+                                        itemType: data.itemType,
+                                        itemTypeCategory: data.itemTypeCategory,
+                                        userMotherTongue: data.userMotherTongue,
+                                        languageStudying: data.languageStudying,
+                                        level: data.level,
+                                        getAudioAI: data.getAudioAI,
+                                        ...(data.itemTranscription && { itemTranscription: data.itemTranscription }),
+                                        ...((filePath && !existingFileNameS3) && { filePath: filePath }),
+                                        ...(existingFileNameS3 && { filePath: existingFileNameS3 }),
+                                        ...((!filePath && !existingFileNameS3 && audioFilePathAi) && { filePath: audioFilePathAi }),
+                                    }
                                 }
                             }
-                        }
-                      })
+                        })
                     }
                 };
                 const commandWrite = new BatchWriteCommand(input);
@@ -227,9 +227,9 @@ module.exports.handler = async (event, context) => {
                         level: data.level,
                         getAudioAI: data.getAudioAI,
                         ...(data.itemTranscription && { itemTranscription: data.itemTranscription }),
-                        ...((filePath && !existingFileNameS3) && { filePath: filePath } ),
-                        ...(existingFileNameS3 && { filePath: existingFileNameS3 } ),
-                        ...((!filePath && !existingFileNameS3 && audioFilePathAi) && { filePath: audioFilePathAi } ),
+                        ...((filePath && !existingFileNameS3) && { filePath: filePath }),
+                        ...(existingFileNameS3 && { filePath: existingFileNameS3 }),
+                        ...((!filePath && !existingFileNameS3 && audioFilePathAi) && { filePath: audioFilePathAi }),
                     },
                     "TableName": dbData
                 };
@@ -239,7 +239,7 @@ module.exports.handler = async (event, context) => {
                 allEls.push(res.Attributes);
             }
 
-            response.body = JSON.stringify({success: true, data: allEls});
+            response.body = JSON.stringify({ success: true, data: allEls });
         } catch (error) {
             return responseWithError('500', "Failed to post data", headerOrigin);
         }
@@ -283,7 +283,7 @@ module.exports.handler = async (event, context) => {
                 }
             }
 
-            response.body = JSON.stringify({success: true, data: allEls});
+            response.body = JSON.stringify({ success: true, data: allEls });
         } catch (error) {
             return responseWithError('500', "Failed to PUT data", headerOrigin);
         }
@@ -292,14 +292,14 @@ module.exports.handler = async (event, context) => {
     if (action === 'DELETE') {
         const input = {
             "RequestItems": {
-              [dbData]: [{
+                [dbData]: [{
                     DeleteRequest: {
                         Key: {
-                            user: user ,
+                            user: user,
                             itemID: data.itemID,
                         }
                     }
-              }]
+                }]
             }
         };
 
@@ -307,12 +307,12 @@ module.exports.handler = async (event, context) => {
         const res = await docClient.send(command);
 
         // (TODO: do not delete for now since other users may wanna use the audio file OR if deleting the file, then delete the item from every's user DB (above^))
-        // Delete from S3 
+        // Delete from S3
         // if (userRole === 'admin' && data.filePath) {
         //     await s3DeleteFile(s3Files, data.filePath)
         // }
         //
-        response.body = JSON.stringify({success: true});
+        response.body = JSON.stringify({ success: true });
     }
 
     return response;
