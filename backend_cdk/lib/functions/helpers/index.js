@@ -7,12 +7,11 @@ const { ListObjectsV2Command, PutObjectCommand, DeleteObjectCommand, GetObjectCo
 const clientS3 = new S3Client({});
 const { getSignedUrl } = require("@aws-sdk/s3-request-presigner");
 
-const { SecretsManagerClient, GetSecretValueCommand  } = require('@aws-sdk/client-secrets-manager');
-const client = new SecretsManagerClient({});
-
+const { SSMClient, GetParametersCommand } = require('@aws-sdk/client-ssm');
+const clientSSM = new SSMClient({});
 
 const { EventBridgeClient, DescribeRuleCommand } = require('@aws-sdk/client-eventbridge');
-const clientEB = new EventBridgeClient({ region: 'us-east-1'});
+const clientEB = new EventBridgeClient({ region: 'us-east-1' });
 
 const { getAudio } = require('./openai');
 
@@ -75,7 +74,7 @@ module.exports = {
     },
     s3GetSignedUrl: async (s3_buckname, filenamepath) => {
         const command = new GetObjectCommand({ Bucket: s3_buckname, Key: filenamepath });
-        const file = await getSignedUrl(clientS3, command, { expiresIn: 7200 }); // PreSigned URL (for audio files) expires 2 hours after the lesson started. 
+        const file = await getSignedUrl(clientS3, command, { expiresIn: 7200 }); // PreSigned URL (for audio files) expires 2 hours after the lesson started.
         return file;
     },
     cleanUpFileName: (v) => {
@@ -90,19 +89,19 @@ module.exports = {
             let file_name = fileNameCleaned + '.' + body.files?.[0].filename.split('.').at(-1);
             filePath = `audio/${fileNameCleaned}/${file_name}`.toLowerCase().trim();
         }
-        
+
         return filePath;
     },
     findUser: async (tableName, user, email = null) => {
         // email is only for users table
         const params = {
             TableName: tableName,
-            ...(email && {FilterExpression: "userEmail = :userEmailExp",}),
+            ...(email && { FilterExpression: "userEmail = :userEmailExp", }),
             KeyConditionExpression:
-              "#userName = :usr",
+                "#userName = :usr",
             ExpressionAttributeValues: {
-              ":usr": user,
-              ...(email && {":userEmailExp": email}),
+                ":usr": user,
+                ...(email && { ":userEmailExp": email }),
             },
             ExpressionAttributeNames: { "#userName": "user" },
             ConsistentRead: true,
@@ -124,7 +123,7 @@ module.exports = {
                 ':emailValue': v,
             },
         };
-        
+
         const command = new QueryCommand(params);
         const res = await docClient.send(command);
         return res.Items[0];
@@ -142,8 +141,8 @@ module.exports = {
             TableName: tableName,
             ProjectionExpression: '#aliasForUser, #aliasforItemId',
             ExpressionAttributeNames: {
-              '#aliasForUser': 'user',
-              '#aliasforItemId': 'itemID',
+                '#aliasForUser': 'user',
+                '#aliasforItemId': 'itemID',
             },
             FilterExpression: '#aliasForUser = :valueUsr',
             ExpressionAttributeValues: {
@@ -168,20 +167,14 @@ module.exports = {
         }
     },
     getSecret: async (secret_name) => {
-        let response;
-        
-        try {
-            response = await client.send(
-                new GetSecretValueCommand({
-                    SecretId: secret_name,
-                    VersionStage: "AWSCURRENT",
-                })
-            );
-        } catch (error) {
-            throw error;
-        }
-
-        return response?.SecretString;
+        const command = new GetParametersCommand({
+            Names: [
+                secret_name,
+            ],
+            WithDecryption: true,
+        });
+        const response = await clientSSM.send(command);
+        return response.Parameters[0].Value;
     },
     getEventBridgeRuleInfo: async (ruleName) => {
         try {
@@ -200,13 +193,13 @@ module.exports = {
 
         const now = new Date();
         const match = scheduleExpression.match(/rate\((\d+) (minute|minutes|hour|hours|day|days)\)/);
-    
+
         if (!match) throw new Error('Invalid rate expression');
-    
+
         const value = parseInt(match[1], 10);
         const unit = match[2];
         let nextRunTime;
-    
+
         switch (unit) {
             case 'minute':
             case 'minutes':
@@ -223,7 +216,7 @@ module.exports = {
             default:
                 throw new Error('Unsupported time unit');
         }
-    
+
         // time in ms
         return nextRunTime - now;
     },
@@ -232,36 +225,36 @@ module.exports = {
             const allEls = [];
             const input = {
                 RequestItems: {
-                  [process.env.DB_DATA]: await Promise.all(resultsAIdata.map(async (el) => {
-                    let audioFilePathAi = '';
+                    [process.env.DB_DATA]: await Promise.all(resultsAIdata.map(async (el) => {
+                        let audioFilePathAi = '';
 
-                    // get audio of text from AI if user is premium
-                    if (userTierPremium) {
-                        const audioFile = await getAudio(el.item)
-                        const fileNameCleaned = module.exports.cleanUpFileName(el.item);
-                        audioFilePathAi = `audio/${fileNameCleaned}/${fileNameCleaned}.mp3`;
-                        await module.exports.s3UploadFile(process.env.S3_FILES, audioFilePathAi, audioFile);
-                    }
-                    return {
-                        PutRequest: {
-                            Item: {
-                                user: user,
-                                item: el.item,
-                                itemID: new Date().toISOString() + "___" + el.item.slice(0,10).replaceAll(" ", "_"),
-                                itemCorrect: el.itemCorrect,
-                                incorrectItems: JSON.stringify(el.incorrectItems),
-                                itemType: el.itemType,
-                                itemTypeCategory: el.itemTypeCategory,
-                                userMotherTongue: userMotherTongue,
-                                languageStudying: languageStudying,
-                                level: 0,
-                                itemTranscription: el.itemTranscription,
-                                filePath: audioFilePathAi,
-                                getAudioAI: true, // existing in DB
+                        // get audio of text from AI if user is premium
+                        if (userTierPremium) {
+                            const audioFile = await getAudio(el.item)
+                            const fileNameCleaned = module.exports.cleanUpFileName(el.item);
+                            audioFilePathAi = `audio/${fileNameCleaned}/${fileNameCleaned}.mp3`;
+                            await module.exports.s3UploadFile(process.env.S3_FILES, audioFilePathAi, audioFile);
+                        }
+                        return {
+                            PutRequest: {
+                                Item: {
+                                    user: user,
+                                    item: el.item,
+                                    itemID: new Date().toISOString() + "___" + el.item.slice(0, 10).replaceAll(" ", "_"),
+                                    itemCorrect: el.itemCorrect,
+                                    incorrectItems: JSON.stringify(el.incorrectItems),
+                                    itemType: el.itemType,
+                                    itemTypeCategory: el.itemTypeCategory,
+                                    userMotherTongue: userMotherTongue,
+                                    languageStudying: languageStudying,
+                                    level: 0,
+                                    itemTranscription: el.itemTranscription,
+                                    filePath: audioFilePathAi,
+                                    getAudioAI: true, // existing in DB
+                                }
                             }
                         }
-                    }
-                  }))
+                    }))
                 }
             };
             const commandWrite = new BatchWriteCommand(input);

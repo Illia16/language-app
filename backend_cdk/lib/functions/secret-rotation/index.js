@@ -1,28 +1,22 @@
-const { SecretsManagerClient, GetSecretValueCommand, UpdateSecretCommand, RotateSecretCommand, GetRandomPasswordCommand  } = require('@aws-sdk/client-secrets-manager');
-const client = new SecretsManagerClient({});
+const { SSMClient, PutParameterCommand } = require('@aws-sdk/client-ssm');
+const clientSSM = new SSMClient({});
+const crypto = require('crypto');
 
 module.exports.handler = async (event, context) => {
-    // Environment variables
-    const SECRET_ID = process.env.SECRET_ID;
+  // Environment variables
+  const SECRET_ID = process.env.SECRET_ID;
 
-    const input = {
-        "SecretId": SECRET_ID,
-    };
-    const command = new GetSecretValueCommand(input);
-    const response = await client.send(command);
-    
-    const inputGenRandom = {
-        "IncludeSpace": false,
-        "PasswordLength": 24,
-        "RequireEachIncludedType": true
-    };
-    const commandGenRandom = new GetRandomPasswordCommand(inputGenRandom);
-    const responseGenRandom = await client.send(commandGenRandom);
-    
-    const inputUpdate = {
-        "SecretId": SECRET_ID,
-        "SecretString": JSON.stringify({ value: responseGenRandom.RandomPassword }),
-    };
-    const commandUpdate = new UpdateSecretCommand(inputUpdate);
-    const responseUpdate = await client.send(commandUpdate);
+  const updateParam = new PutParameterCommand({
+    Name: SECRET_ID,
+    Value: crypto.randomBytes(32).toString('hex'),
+    Type: "SecureString",
+    Overwrite: true,
+  });
+
+  try {
+    const updateParamResponse = await clientSSM.send(updateParam);
+    console.log("SSM Parameter Updated:", updateParamResponse);
+  } catch (error) {
+    console.error("Error updating SSM parameter:", error);
+  }
 };
