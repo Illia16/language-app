@@ -5,7 +5,6 @@ const lambda = require('aws-cdk-lib/aws-lambda');
 const dynamoDb = require('aws-cdk-lib/aws-dynamodb');
 const apiGateway = require('aws-cdk-lib/aws-apigateway');
 const iam = require('aws-cdk-lib/aws-iam');
-// const aws_secretsmanager = require('aws-cdk-lib/aws-secretsmanager');
 const aws_ssm = require('aws-cdk-lib/aws-ssm');
 const events = require('aws-cdk-lib/aws-events');
 const eventsTargets = require('aws-cdk-lib/aws-events-targets');
@@ -324,16 +323,6 @@ class BackendCdkStack extends cdk.Stack {
       });
     });
 
-    // generate new JWT secret for auth, rotate every 30 days
-    // const jwtSecret = new aws_secretsmanager.Secret(this, `${PROJECT_NAME}--secret-auth--${STAGE}`, {
-    //   secretName: `${PROJECT_NAME}--secret-auth--${STAGE}`,
-    //   description: `JWT secret for ${PROJECT_NAME} for auth ${STAGE} environment.`,
-    //   generateSecretString: {
-    //     secretStringTemplate: JSON.stringify({ name: `${PROJECT_NAME}--secret-auth--${STAGE}` }),
-    //     generateStringKey: 'value',
-    //   },
-    // });
-
     const ssmSecret = new aws_ssm.StringParameter(this, `${PROJECT_NAME}--ssm-auth--${STAGE}`, {
       parameterName: `${PROJECT_NAME}--ssm-auth--${STAGE}`,
       description: `SSM secret for ${PROJECT_NAME} for auth ${STAGE} environment.`,
@@ -369,7 +358,6 @@ class BackendCdkStack extends cdk.Stack {
       code: lambda.Code.fromAsset(path.join(__dirname, 'functions')),
       functionName: `${PROJECT_NAME}--lambda-fn-secret-rotation--${STAGE}`,
       environment: {
-        // SECRET_ID: jwtSecret.secretName,
         SECRET_ID: ssmSecret.parameterName,
         OPEN_AI_KEY: OPEN_AI_KEY,
       },
@@ -472,15 +460,6 @@ class BackendCdkStack extends cdk.Stack {
           resources: [manageUsersRule.ruleArn],
           effect: iam.Effect.ALLOW
         }),
-        // new iam.PolicyStatement({
-        //   actions: [
-        //     "secretsmanager:GetSecretValue",
-        //     "secretsmanager:RotateSecret",
-        //     "secretsmanager:UpdateSecret",
-        //   ],
-        //   resources: [jwtSecret.secretArn],
-        //   effect: iam.Effect.ALLOW
-        // }),
         new iam.PolicyStatement({
           actions: [
             "ssm:GetParameters",

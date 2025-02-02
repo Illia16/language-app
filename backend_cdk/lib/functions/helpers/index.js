@@ -7,9 +7,7 @@ const { ListObjectsV2Command, PutObjectCommand, DeleteObjectCommand, GetObjectCo
 const clientS3 = new S3Client({});
 const { getSignedUrl } = require("@aws-sdk/s3-request-presigner");
 
-// const { SecretsManagerClient, GetSecretValueCommand } = require('@aws-sdk/client-secrets-manager');
-const { SSMClient, GetParametersCommand, PutParameterCommand } = require('@aws-sdk/client-ssm');
-// const client = new SecretsManagerClient({});
+const { SSMClient, GetParametersCommand } = require('@aws-sdk/client-ssm');
 const clientSSM = new SSMClient({});
 
 const { EventBridgeClient, DescribeRuleCommand } = require('@aws-sdk/client-eventbridge');
@@ -169,21 +167,6 @@ module.exports = {
         }
     },
     getSecret: async (secret_name) => {
-        console.log('secret_name', secret_name);
-        // let response;
-
-        // try {
-        //     response = await client.send(
-        //         new GetSecretValueCommand({
-        //             SecretId: secret_name,
-        //             VersionStage: "AWSCURRENT",
-        //         })
-        //     );
-        // } catch (error) {
-        //     throw error;
-        // }
-
-        // return response?.SecretString;
         const command = new GetParametersCommand({
             Names: [
                 secret_name,
@@ -191,7 +174,6 @@ module.exports = {
             WithDecryption: true,
         });
         const response = await clientSSM.send(command);
-        console.log('getSecret value', response.Parameters[0].Value);
         return response.Parameters[0].Value;
     },
     getEventBridgeRuleInfo: async (ruleName) => {
