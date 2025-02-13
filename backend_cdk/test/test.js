@@ -2,7 +2,9 @@ const { mockClient } = require('aws-sdk-client-mock');
 require("aws-sdk-client-mock-jest");
 const { DynamoDBDocumentClient, DeleteCommand } = require('@aws-sdk/lib-dynamodb');
 const { handler } = require('../lib/functions/manage-users');
+const { handler: secretRotationHandler } = require('../lib/functions/secret-rotation');
 const { findAll, findAllByPrimaryKey } = require('../lib/functions/helpers');
+const { SSMClient, PutParameterCommand } = require('@aws-sdk/client-ssm');
 
 // Mock the DynamoDB Document Client
 const ddbMock = mockClient(DynamoDBDocumentClient);
@@ -13,11 +15,15 @@ jest.mock('../lib/functions/helpers', () => ({
   findAllByPrimaryKey: jest.fn()
 }));
 
+// Mock the SSM client
+const ssmMock = mockClient(SSMClient);
+
 describe('manage-users lambda', () => {
   beforeEach(() => {
     // Clear all mocks before each test
     ddbMock.reset();
     jest.clearAllMocks();
+    ssmMock.reset();
 
     // Set up environment variables
     process.env.STAGE = 'test';
@@ -101,5 +107,33 @@ describe('manage-users lambda', () => {
 
     // Execute and verify
     await expect(handler()).rejects.toThrow('Database error');
+  });
+});
+
+describe('Secret Rotation Lambda', () => {
+  beforeEach(() => {
+    // Clear all mocks before each test
+    ssmMock.reset();
+  });
+
+  it('should update SSM parameter with new random value', async () => {
+    // Mock environment variable
+    process.env.SECRET_ID = '/test/secret';
+
+    // Mock successful SSM response
+    ssmMock.on(PutParameterCommand).resolves();
+
+    // Execute the handler
+    await secretRotationHandler();
+
+    // Verify SSM client was called with correct parameters
+    const ssmCalls = ssmMock.calls();
+    expect(ssmCalls).toHaveLength(1);
+
+    const putParamCall = ssmCalls[0].args[0].input;
+    expect(putParamCall.Name).toBe('/test/secret');
+    expect(putParamCall.Type).toBe('SecureString');
+    expect(putParamCall.Overwrite).toBe(true);
+    expect(putParamCall.Value).toMatch(/^[a-f0-9]{64}$/);
   });
 });
