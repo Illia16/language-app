@@ -181,12 +181,12 @@ class BackendCdkStack extends cdk.Stack {
       layerVersionName: `${PROJECT_NAME}--fn-layer--${STAGE}`,
       code: lambda.Code.fromAsset(path.join(__dirname, 'layers/layer-lambda')),
       compatibleArchitectures: [lambda.Architecture.X86_64, lambda.Architecture.ARM_64],
-      compatibleRuntimes: [lambda.Runtime.NODEJS_18_X, lambda.Runtime.NODEJS_20_X]
+      compatibleRuntimes: [lambda.Runtime.NODEJS_20_X, lambda.Runtime.NODEJS_22_X]
     });
 
     // Lambda fn #1 (handle items by user: add, delete, update)
     const lambdaFnDynamoDb = new lambda.Function(this, `${PROJECT_NAME}--lambda-fn-data--${STAGE}`, {
-      runtime: lambda.Runtime.NODEJS_18_X,
+      runtime: lambda.Runtime.NODEJS_22_X,
       handler: 'data/index.handler',
       code: lambda.Code.fromAsset(path.join(__dirname, 'functions')),
       functionName: `${PROJECT_NAME}--lambda-fn-data--${STAGE}`,
@@ -211,7 +211,7 @@ class BackendCdkStack extends cdk.Stack {
 
     // Lambda fn #2 (handle users: login, generate-invitation-code, register, delete-account, forgot-password, change-password)
     const authFn = new lambda.Function(this, `${PROJECT_NAME}--lambda-fn-users--${STAGE}`, {
-      runtime: lambda.Runtime.NODEJS_18_X,
+      runtime: lambda.Runtime.NODEJS_22_X,
       handler: 'users/index.handler',
       code: lambda.Code.fromAsset(path.join(__dirname, 'functions')),
       functionName: `${PROJECT_NAME}--lambda-fn-users--${STAGE}`,
@@ -235,7 +235,7 @@ class BackendCdkStack extends cdk.Stack {
 
     // Lambda fn #3 (generate items by AI from user input)
     const lambdaFnDataAIGenerated = new lambda.Function(this, `${PROJECT_NAME}--lambda-fn-data-ai-generated--${STAGE}`, {
-      runtime: lambda.Runtime.NODEJS_20_X,
+      runtime: lambda.Runtime.NODEJS_22_X,
       handler: 'data-ai-generated/index.handler',
       code: lambda.Code.fromAsset(path.join(__dirname, 'functions')),
       functionName: `${PROJECT_NAME}--lambda-fn-data-ai-generated--${STAGE}`,
@@ -331,7 +331,7 @@ class BackendCdkStack extends cdk.Stack {
 
     // Lambda fn #4 (manage users: delete)
     const manageUsersFn = new lambda.Function(this, `${PROJECT_NAME}--lambda-fn-manage-users--${STAGE}`, {
-      runtime: lambda.Runtime.NODEJS_18_X,
+      runtime: lambda.Runtime.NODEJS_22_X,
       handler: 'manage-users/index.handler',
       code: lambda.Code.fromAsset(path.join(__dirname, 'functions')),
       functionName: `${PROJECT_NAME}--lambda-fn-manage-users--${STAGE}`,
@@ -353,7 +353,7 @@ class BackendCdkStack extends cdk.Stack {
 
     // Lambda fn #5 (rotate secret)
     const rotateSecretFn = new lambda.Function(this, `${PROJECT_NAME}--lambda-fn-secret-rotation--${STAGE}`, {
-      runtime: lambda.Runtime.NODEJS_18_X,
+      runtime: lambda.Runtime.NODEJS_22_X,
       handler: 'secret-rotation/index.handler',
       code: lambda.Code.fromAsset(path.join(__dirname, 'functions')),
       functionName: `${PROJECT_NAME}--lambda-fn-secret-rotation--${STAGE}`,
@@ -403,7 +403,7 @@ class BackendCdkStack extends cdk.Stack {
 
     // Lambda fn #6 (handle users: sqs)
     const lambdaFnSQS = new lambda.Function(this, `${PROJECT_NAME}--lambda-fn-users-sqs--${STAGE}`, {
-      runtime: lambda.Runtime.NODEJS_18_X,
+      runtime: lambda.Runtime.NODEJS_22_X,
       handler: 'users-sqs/index.handler',
       code: lambda.Code.fromAsset(path.join(__dirname, 'functions')),
       functionName: `${PROJECT_NAME}--lambda-fn-users-sqs--${STAGE}`,
