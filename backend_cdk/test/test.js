@@ -1,22 +1,32 @@
 const { mockClient } = require('aws-sdk-client-mock');
 require("aws-sdk-client-mock-jest");
-const { DynamoDBDocumentClient, DeleteCommand } = require('@aws-sdk/lib-dynamodb');
-const { handler } = require('../lib/functions/manage-users');
+const { DynamoDBDocumentClient, DeleteCommand, UpdateCommand } = require('@aws-sdk/lib-dynamodb');
+
+const { handler: manageUsersHandler } = require('../lib/functions/manage-users');
 const { handler: secretRotationHandler } = require('../lib/functions/secret-rotation');
-const { findAll, findAllByPrimaryKey } = require('../lib/functions/helpers');
+const { handler: usersSqsHandler } = require('../lib/functions/users-sqs');
+
+const { findAll, findAllByPrimaryKey, findUserByEmail, getSecret, saveBatchItems } = require('../lib/functions/helpers');
+const { isAiDataValid } = require('../lib/functions/helpers/openai');
 const { SSMClient, PutParameterCommand } = require('@aws-sdk/client-ssm');
+const { SESClient, SendEmailCommand, VerifyEmailIdentityCommand } = require("@aws-sdk/client-ses");
 
 // Mock the DynamoDB Document Client
 const ddbMock = mockClient(DynamoDBDocumentClient);
+// Mock the SSM client
+const ssmMock = mockClient(SSMClient);
+// Mock the SES client
+const sesMock = mockClient(SESClient);
 
 // Mock the helper functions
 jest.mock('../lib/functions/helpers', () => ({
   findAll: jest.fn(),
-  findAllByPrimaryKey: jest.fn()
+  findAllByPrimaryKey: jest.fn(),
+  findUserByEmail: jest.fn(),
+  getSecret: jest.fn(),
+  saveBatchItems: jest.fn(),
+  isAiDataValid: jest.fn,
 }));
-
-// Mock the SSM client
-const ssmMock = mockClient(SSMClient);
 
 describe('manage-users lambda', () => {
   beforeEach(() => {
@@ -24,6 +34,7 @@ describe('manage-users lambda', () => {
     ddbMock.reset();
     jest.clearAllMocks();
     ssmMock.reset();
+    sesMock.reset();
 
     // Set up environment variables
     process.env.STAGE = 'test';
@@ -41,7 +52,7 @@ describe('manage-users lambda', () => {
     ]);
 
     // Execute
-    const results = await handler();
+    const results = await manageUsersHandler();
 
     // Verify
     expect(ddbMock.calls()).toHaveLength(0);
@@ -73,7 +84,7 @@ describe('manage-users lambda', () => {
     });
     ddbMock.on(DeleteCommand).resolves({})
     // Execute
-    await handler();
+    await manageUsersHandler();
 
     // Verify
     // Should have been called for each user and their items (4 users * (1 user deletion + 2 items) = 12 calls)
@@ -106,7 +117,7 @@ describe('manage-users lambda', () => {
     findAll.mockRejectedValue(new Error('Database error'));
 
     // Execute and verify
-    await expect(handler()).rejects.toThrow('Database error');
+    await expect(manageUsersHandler()).rejects.toThrow('Database error');
   });
 });
 
@@ -135,5 +146,87 @@ describe('Secret Rotation Lambda', () => {
     expect(putParamCall.Type).toBe('SecureString');
     expect(putParamCall.Overwrite).toBe(true);
     expect(putParamCall.Value).toMatch(/^[a-f0-9]{64}$/);
+  });
+});
+
+
+describe('Users SQS: forgot-password, delete-account, change-password, verify-email, parse-ai-data', () => {
+  beforeEach(() => {
+    ddbMock.reset();
+    sesMock.reset();
+    ssmMock.reset();
+    jest.clearAllMocks();
+  });
+
+  const eventNames = ['forgot-password', 'forgot-password', 'change-password', 'verify-email', 'parse-ai-data'];
+
+  it('should change password', async () => {
+    const mockEvent = {
+      Records: [{
+          body: JSON.stringify({
+              eventName: 'change-password',
+              dbUsers: 'test-db',
+              user: 'test-user',
+              userId: 'test-user-id',
+              password: 'test-user-password'
+          })
+      }]
+    };
+
+    ddbMock.on(UpdateCommand).resolves({})
+    // Execute the handler
+    const result = await usersSqsHandler(mockEvent);
+    expect(ddbMock.calls()).toHaveLength(1);
+    expect(ddbMock).toHaveReceivedCommandWith(UpdateCommand, {
+      TableName: 'test-db',
+      Key: {
+          user: 'test-user',
+          userId: 'test-user-id',
+      },
+    });
+  });
+
+  it('should verify-email', async () => {
+    const mockEvent = {
+      Records: [{
+          body: JSON.stringify({
+              eventName: 'verify-email',
+              userEmail: 'test@example.com'
+          })
+      }]
+    };
+
+    const mockResponse = { MessageId: '12345' };
+    // Mock successful SES response
+    sesMock.on(VerifyEmailIdentityCommand).resolves(mockResponse);
+
+    // Execute the handler
+    const result = await usersSqsHandler(mockEvent);
+
+    // Verify SES client was called with correct parameters
+    const sesCalls = sesMock.calls();
+    expect(sesCalls).toHaveLength(1);
+  });
+
+
+  it('should return nothing case no eventName match', async () => {
+    const mockEvent = {
+      Records: [{
+          body: JSON.stringify({
+              eventName: 'invalid-event-name',
+          })
+      }]
+    };
+
+    // Execute the handler
+    const result = await usersSqsHandler(mockEvent);
+    expect(result).toBeUndefined();
+    expect(result).toBe(undefined)
+
+    expect(findUserByEmail).not.toHaveBeenCalled();
+    expect(getSecret).not.toHaveBeenCalled();
+    expect(saveBatchItems).not.toHaveBeenCalled();
+    expect(sesMock.calls()).toHaveLength(0);
+    expect(ddbMock.calls()).toHaveLength(0);
   });
 });
