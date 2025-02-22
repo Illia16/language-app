@@ -1,8 +1,9 @@
 
 // DynamoDB
 const { DynamoDBClient } = require("@aws-sdk/client-dynamodb");
-const { UpdateCommand } = require("@aws-sdk/lib-dynamodb");
+const { DynamoDBDocumentClient, UpdateCommand } = require("@aws-sdk/lib-dynamodb");
 const clientDynamoDB = new DynamoDBClient({});
+const docClient = DynamoDBDocumentClient.from(clientDynamoDB);
 // SES
 const { SESClient, SendEmailCommand, VerifyEmailIdentityCommand } = require("@aws-sdk/client-ses");
 const clientEmail = new SESClient({});
@@ -64,7 +65,7 @@ module.exports.handler = async (event, context) => {
             };
 
             const commandToDeleteAccount = new UpdateCommand(inputSetToDeleteAccount);
-            await clientDynamoDB.send(commandToDeleteAccount);
+            await docClient.send(commandToDeleteAccount);
         } catch (err) {
             return err;
         }
@@ -88,7 +89,7 @@ module.exports.handler = async (event, context) => {
         };
 
         const commandChangePW = new UpdateCommand(inputChangePW);
-        await clientDynamoDB.send(commandChangePW);
+        await docClient.send(commandChangePW);
     }
 
     if (eventName === 'verify-email') {
