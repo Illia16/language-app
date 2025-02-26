@@ -2,14 +2,14 @@ const { ssmMock, clearMocks, setupTestEnv } = require('../setup/mocks');
 const { PutParameterCommand } = require('@aws-sdk/client-ssm');
 const { handler: secretRotationHandler } = require('../../lib/functions/secret-rotation');
 
-describe('Secret Rotation Lambda', () => {
+describe('secret-rotation lambda', () => {
   beforeEach(() => {
     clearMocks();
     setupTestEnv();
   });
 
   it('should update SSM parameter with new random value', async () => {
-    ssmMock.on(PutParameterCommand).resolves();
+    ssmMock.on(PutParameterCommand).resolves({ Version: 1, Tier: 'Standard' });
 
     await secretRotationHandler();
 

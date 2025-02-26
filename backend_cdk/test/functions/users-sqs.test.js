@@ -5,10 +5,11 @@ const { handler: usersSqsHandler } = require('../../lib/functions/users-sqs');
 const { findUserByEmail, getSecret, saveBatchItems } = require('../../lib/functions/helpers');
 const { isAiDataValid } = require('../../lib/functions/helpers/openai');
 
-describe('Users SQS Handler', () => {
+describe('users-sqs lambda', () => {
   beforeEach(() => {
     clearMocks();
     setupTestEnv();
+    getSecret.mockResolvedValue('test-secret');
   });
 
 
@@ -24,7 +25,6 @@ describe('Users SQS Handler', () => {
         }]
       };
 
-      getSecret.mockResolvedValue('test-secret-key');
       findUserByEmail.mockResolvedValue({
         user: 'test-user',
         role: 'regular',
@@ -52,7 +52,6 @@ describe('Users SQS Handler', () => {
         }]
       };
 
-      getSecret.mockResolvedValue('test-secret-key');
       findUserByEmail.mockResolvedValue(undefined);
 
       await usersSqsHandler(mockEvent);
