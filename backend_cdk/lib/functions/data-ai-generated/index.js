@@ -46,6 +46,12 @@ module.exports.handler = async (event) => {
     }
     //
 
+    // Check if user account is not "delete"
+    const userInfo = await findUser(dbUsers, user)
+    if (userInfo[0].role === 'delete') {
+        return responseWithError('410', 'User account is to be deleted.', headerOrigin);
+    }
+
     if (action === 'POST') {
         if (!payload.prompt || payload.prompt.length > 100 || !payload.userMotherTongue || !payload.languageStudying || !payload.numberOfItems || Number(payload.numberOfItems) > 20) {
             return responseWithError('401', `Payload is invalid.`, headerOrigin)
@@ -53,7 +59,6 @@ module.exports.handler = async (event) => {
 
         // fetch user premiumStatus
         try {
-            const userInfo = await findUser(dbUsers, user);
             userTierPremium = userInfo[0].userTier === 'premium';
         } catch (error) {
             return responseWithError('401', `Failed to fetch user premiumStatus. ${error}`, headerOrigin)

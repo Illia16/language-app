@@ -65,6 +65,12 @@ module.exports.handler = async (event, context) => {
     }
     //
 
+    // Check if user account is not "delete"
+    const userInfo = await findUser(dbUsers, user)
+    if (userInfo[0].role === 'delete') {
+        return responseWithError('410', 'User account is to be deleted.', headerOrigin);
+    }
+
     if (action === 'POST' || action === 'PUT') {
         if (isBase64Encoded) {
             const contentType = headers['Content-Type'] || headers['content-type'];
@@ -103,9 +109,8 @@ module.exports.handler = async (event, context) => {
     }
 
     if (action === 'GET') {
-        const userData = await findUser(dbData, user);
         const data = await Promise.all(
-            userData
+            userInfo
                 .map((async (el) => {
                     if (el.filePath) {
                         const url = await s3GetSignedUrl(s3Files, el.filePath);
@@ -125,7 +130,6 @@ module.exports.handler = async (event, context) => {
 
     if (action === 'POST') {
         // fetch user premiumStatus
-        const userInfo = await findUser(dbUsers, user);
         userTierPremium = userInfo[0].userTier === 'premium';
         //
 

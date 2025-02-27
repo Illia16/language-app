@@ -1,6 +1,7 @@
 const cdk = require('aws-cdk-lib');
 const s3 = require('aws-cdk-lib/aws-s3');
 const cloudfront = require('aws-cdk-lib/aws-cloudfront');
+// const origins = require('aws-cdk-lib/aws-cloudfront-origins');
 const lambda = require('aws-cdk-lib/aws-lambda');
 const dynamoDb = require('aws-cdk-lib/aws-dynamodb');
 const apiGateway = require('aws-cdk-lib/aws-apigateway');
@@ -142,6 +143,28 @@ class BackendCdkStack extends cdk.Stack {
         }
       ],
     });
+
+    // const oac = new cloudfront.S3OriginAccessControl(this, `${PROJECT_NAME}--oac--${STAGE}`, {
+    //   originAccessControlName: `${PROJECT_NAME}--oac--${STAGE}`,
+    //   signing: cloudfront.Signing.SIGV4_ALWAYS,
+    // });
+
+    // new cloudfront.Distribution(this, `${PROJECT_NAME}--cf--${STAGE}`, {
+    //   defaultBehavior: {
+    //     origin: origins.S3BucketOrigin.withOriginAccessControl(websiteBucket, {
+    //       originAccessControl: oac,
+    //     }),
+    //     functionAssociations: [{
+    //       eventType: cloudfront.FunctionEventType.VIEWER_REQUEST,
+    //       function: cfFunction,
+    //     }]
+    //   },
+    //   certificate: ssl_cert,
+    //   domainNames: [STAGE === 'prod' ? 'languageapp.illusha.net' : 'languageapp-test.illusha.net'],
+    //   minimumProtocolVersion: cloudfront.SecurityPolicyProtocol.TLS_V1_2_2021,
+    //   sslSupportMethod: cloudfront.SSLMethod.SNI,
+    //   defaultRootObject: 'index.html',
+    // });
 
     const myTable = new dynamoDb.TableV2(this, `${PROJECT_NAME}--db-data--${STAGE}`, {
       tableName: `${PROJECT_NAME}--db-data--${STAGE}`,

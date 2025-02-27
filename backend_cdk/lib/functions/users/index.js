@@ -108,7 +108,7 @@ module.exports.handler = async (event, context) => {
             if (error.name === 'JsonWebTokenError' || error.name === 'TokenExpiredError') {
                 return responseWithError('401', 'Token is invalid.', headerOrigin);
             } else {
-                console.error('Internal server error:', error.message);
+                console.log('Internal server error:', error.message);
                 return responseWithError('500', error.message, headerOrigin);
             }
         }
