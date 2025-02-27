@@ -9,6 +9,12 @@ const jwt = require('jsonwebtoken');
 const { SQSClient, SendMessageCommand } = require("@aws-sdk/client-sqs");
 
 
+const getToken = (role = 'admin') => jwt.sign({
+  user: 'testuser',
+  role: role
+}, 'test-secret', { expiresIn: '25 days' });
+
+
 describe('users lambda', () => {
   beforeEach(() => {
     clearMocks();
@@ -20,16 +26,12 @@ describe('users lambda', () => {
     const mockEvent = {
       path: '/users/generate-invitation-code',
       headers: {
-        Authorization: 'Bearer valid-token'
+        Authorization: `Bearer ${getToken()}`
       },
       body: null,
     };
 
     it('should successfully generate invitation code', async () => {
-      jest.spyOn(jwt, 'verify').mockImplementation(() => ({
-        user: 'testuser',
-        role: 'admin'
-      }));
       const response = await usersHandler(mockEvent);
 
       expect(response.statusCode).toBe(200);
@@ -39,20 +41,26 @@ describe('users lambda', () => {
     })
 
     it('user is not admin', async () => {
-      jest.spyOn(jwt, 'verify').mockImplementation(() => ({
-        user: 'testuser2',
-        role: 'user'
-      }));
-      const response = await usersHandler(mockEvent);
+      const mockEventNotAdmin = {
+        ...mockEvent,
+        headers: {
+          Authorization: `Bearer ${getToken('user')}`
+        }
+      };
+
+      const response = await usersHandler(mockEventNotAdmin);
 
       expect(response.statusCode).toBe("401");
       const body = JSON.parse(response.body);
-      expect(body.message).toBe('User testuser2 is not authorized to do this action.');
+      expect(body.message).toBe('User testuser is not authorized to do this action.');
     })
 
     it('should return 401 when token is missing', async () => {
-      delete mockEvent.headers.Authorization;
-      const response = await usersHandler(mockEvent);
+      const eventWithoutToken = {
+        ...mockEvent,
+        headers: {}
+      }
+      const response = await usersHandler(eventWithoutToken);
 
       expect(response.statusCode).toBe("401");
       const body = JSON.parse(response.body);
@@ -61,11 +69,13 @@ describe('users lambda', () => {
     })
 
     it('should return 401 when token is invalid', async () => {
-      mockEvent.headers.Authorization = 'Bearer invalid-token';
-      jest.spyOn(jwt, 'verify').mockImplementation(() => {
-        throw new jwt.JsonWebTokenError('invalid signature');
-      });
-      const response = await usersHandler(mockEvent);
+      const eventWithInvalidToken = {
+        ...mockEvent,
+        headers: {
+          Authorization: 'Bearer invalid-token'
+        }
+      }
+      const response = await usersHandler(eventWithInvalidToken);
 
       expect(response.statusCode).toBe("401");
       const body = JSON.parse(response.body);
@@ -74,10 +84,6 @@ describe('users lambda', () => {
     })
 
     it('should return 500 when there is an server error (PutCommand failed)', async () => {
-      jest.spyOn(jwt, 'verify').mockImplementation(() => ({
-        user: 'testuser',
-        role: 'admin'
-      }));
       ddbMock.on(PutCommand).rejects(new Error('Internal server error'));
       const response = await usersHandler(mockEvent);
 
@@ -92,7 +98,7 @@ describe('users lambda', () => {
     const mockEvent = {
       path: '/users/delete-account',
       headers: {
-        Authorization: 'Bearer valid-token'
+        Authorization: `Bearer ${getToken()}`
       },
       body: JSON.stringify({
         user: 'testuser',
@@ -102,11 +108,6 @@ describe('users lambda', () => {
     };
 
     it('should successfully process delete account request', async () => {
-      // Mock JWT verification
-      jest.spyOn(jwt, 'verify').mockImplementation(() => ({
-        user: 'testuser'
-      }));
-      // jwt.verify.mockReturnValue({ userId: 'test-user-id', role: 'valid-role' });
       sqsMock.on(SendMessageCommand).resolves({});
       const response = await usersHandler(mockEvent);
 
@@ -118,8 +119,11 @@ describe('users lambda', () => {
     });
 
     it('should return 401 when token is missing', async () => {
-      delete mockEvent.headers.Authorization;
-      const response = await usersHandler(mockEvent);
+      const eventWithoutToken = {
+        ...mockEvent,
+        headers: {}
+      }
+      const response = await usersHandler(eventWithoutToken);
 
       expect(response.statusCode).toBe("401");
       const body = JSON.parse(response.body);
@@ -128,12 +132,13 @@ describe('users lambda', () => {
     });
 
     it('should return 401 when token is invalid', async () => {
-      mockEvent.headers.Authorization = 'Bearer invalid-token';
-
-      jest.spyOn(jwt, 'verify').mockImplementation(() => {
-        throw new Error('Invalid token');
-      });
-      const response = await usersHandler(mockEvent);
+      const eventWithInvalidToken = {
+        ...mockEvent,
+        headers: {
+          Authorization: 'Bearer invalid-token'
+        }
+      }
+      const response = await usersHandler(eventWithInvalidToken);
 
       expect(response.statusCode).toBe("401");
       const body = JSON.parse(response.body);
@@ -168,7 +173,7 @@ describe('users lambda', () => {
     const mockEvent = {
       path: '/users/change-password',
       headers: {
-        Authorization: 'Bearer valid-token'
+        Authorization: `Bearer ${getToken()}`
       },
       body: JSON.stringify({
         password: 'newPassword123',
@@ -177,11 +182,6 @@ describe('users lambda', () => {
     };
 
     it('should successfully process password change request', async () => {
-      // Mock JWT verification
-      jest.spyOn(jwt, 'verify').mockImplementation(() => ({
-        user: 'testuser'
-      }));
-
       sqsMock.on(SendMessageCommand).resolves({});
       const response = await usersHandler(mockEvent);
 
@@ -207,12 +207,14 @@ describe('users lambda', () => {
     });
 
     it('should return 401 when token is invalid', async () => {
-      // Mock JWT verification to throw error
-      jest.spyOn(jwt, 'verify').mockImplementation(() => {
-        throw new Error('Invalid token');
-      });
+      const eventWithInvalidToken = {
+        ...mockEvent,
+        headers: {
+          Authorization: 'Bearer invalid-token'
+        }
+      }
 
-      const response = await usersHandler(mockEvent);
+      const response = await usersHandler(eventWithInvalidToken);
 
       expect(response.statusCode).toBe("401");
       const body = JSON.parse(response.body);

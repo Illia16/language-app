@@ -51,6 +51,7 @@ const clearMocks = () => {
   sesMock.reset();
   sqsMock.reset();
   jest.clearAllMocks();
+  jest.restoreAllMocks();
 };
 
 module.exports = {
