@@ -17,6 +17,9 @@ jest.mock('../../lib/functions/helpers', () => ({
   findAll: jest.fn(),
   findAllByPrimaryKey: jest.fn(),
   findUserByEmail: jest.fn(),
+  findUser: jest.fn(),
+  getEventBridgeRuleInfo: jest.fn(),
+  getRateExpressionNextRun: jest.fn(),
   getSecret: jest.fn(),
   saveBatchItems: jest.fn(),
   responseWithError: jest.fn().mockImplementation((code, message) => ({

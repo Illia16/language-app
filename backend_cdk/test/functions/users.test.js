@@ -1,13 +1,14 @@
 const { ddbMock, sesMock, sqsMock, clearMocks, setupTestEnv } = require('../setup/mocks');
-const { UpdateCommand, PutCommand } = require('@aws-sdk/lib-dynamodb');
+const { UpdateCommand, PutCommand, QueryCommand } = require('@aws-sdk/lib-dynamodb');
 const { SendEmailCommand, VerifyEmailIdentityCommand } = require("@aws-sdk/client-ses");
 const { handler: usersSqsHandler } = require('../../lib/functions/users-sqs');
-const { findUserByEmail, getSecret, saveBatchItems } = require('../../lib/functions/helpers');
+const { findUser, findUserByEmail, getSecret, saveBatchItems, getEventBridgeRuleInfo, getRateExpressionNextRun } = require('../../lib/functions/helpers');
 const { isAiDataValid } = require('../../lib/functions/helpers/openai');
+const { hashPassword, checkPassword } = require('../../lib/functions/helpers/auth');
 const { handler: usersHandler } = require('../../lib/functions/users');
 const jwt = require('jsonwebtoken');
 const { SQSClient, SendMessageCommand } = require("@aws-sdk/client-sqs");
-
+const { DescribeRuleCommand } = require('@aws-sdk/client-eventbridge');
 
 const getToken = (role = 'admin') => jwt.sign({
   user: 'testuser',
@@ -21,6 +22,94 @@ describe('users lambda', () => {
     setupTestEnv();
     getSecret.mockResolvedValue('test-secret');
   });
+
+
+  describe('/users/login path', () => {
+    const mockEvent = {
+      path: '/users/login',
+      body: JSON.stringify({
+        user: 'testuser',
+        password: 'testpassword'
+      })
+    }
+
+    it('should successfully login', async () => {
+      const res = [{
+        user: 'testuser',
+        userId: 'test-user-id',
+        userMotherTongue: 'en',
+        password: await hashPassword('testpassword'),
+        role: 'admin'
+      }]
+      findUser.mockResolvedValue(res);
+      const response = await usersHandler(mockEvent);
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(response.body);
+
+      expect(body.success).toBe(true);
+      const decoded = jwt.verify(body.data.token, 'test-secret')
+      expect(decoded).toEqual({
+        user: 'testuser',
+        role: 'admin',
+        iat: expect.any(Number),
+        exp: expect.any(Number)
+      });
+
+      expect(body.data.token).toBeDefined();
+      expect(body.data.user).toBeDefined();
+      expect(body.data.userId).toBeDefined();
+      expect(body.data.userMotherTongue).toBeDefined();
+      expect(body.data.role).toBeDefined();
+    })
+
+    it('no user found', async () => {
+      findUser.mockResolvedValue([]);
+      const response = await usersHandler(mockEvent);
+
+      expect(response.statusCode).toBe("500");
+      const body = JSON.parse(response.body);
+      expect(body.message).toBe('Either user does not exist or wrong password.');
+    })
+
+    it('wrong password', async () => {
+      findUser.mockResolvedValue([{
+        user: 'testuser',
+        userId: 'test-user-id',
+        userMotherTongue: 'en',
+        password: await hashPassword('wrongpassword'),
+        role: 'admin'
+      }]);
+      const response = await usersHandler(mockEvent);
+
+      expect(response.statusCode).toBe("500");
+      const body = JSON.parse(response.body);
+      expect(body.message).toBe('Either user does not exist or wrong password.');
+    })
+
+    it('user is to be deleted', async () => {
+      findUser.mockResolvedValue([{
+        user: 'testuser',
+        userId: 'test-user-id',
+        userMotherTongue: 'en',
+        password: await hashPassword('testpassword'),
+        role: 'delete'
+      }]);
+
+      getEventBridgeRuleInfo.mockResolvedValue({
+        ScheduleExpression: 'rate(30 days)'
+      });
+      getRateExpressionNextRun.mockReturnValue(1000 * 60 * 60 * 24 * 30);
+      const response = await usersHandler(mockEvent);
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(response.body);
+
+      expect(body.success).toBe(true);
+      expect(body.data.accountDeletionTime).toBeDefined();
+      expect(body.data.accountDeletionTime).toBe(1000 * 60 * 60 * 24 * 30);
+    })
+  })
 
   describe('/users/generate-invitation-code path', () => {
     const mockEvent = {
