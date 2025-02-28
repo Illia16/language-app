@@ -109,8 +109,9 @@ module.exports.handler = async (event, context) => {
     }
 
     if (action === 'GET') {
+        const userData = await findUser(dbData, user);
         const data = await Promise.all(
-            userInfo
+            userData
                 .map((async (el) => {
                     if (el.filePath) {
                         const url = await s3GetSignedUrl(s3Files, el.filePath);
