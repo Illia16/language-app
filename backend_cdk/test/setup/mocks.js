@@ -4,6 +4,8 @@ const { DynamoDBDocumentClient } = require('@aws-sdk/lib-dynamodb');
 const { SSMClient } = require('@aws-sdk/client-ssm');
 const { SESClient } = require("@aws-sdk/client-ses");
 const { SQSClient } = require("@aws-sdk/client-sqs");
+const { getAudio, getIncorrectItems, getAIDataBasedOnUserInput } = require('../../lib/functions/helpers/openai');
+const { cleanUpFileName } = require('../../lib/functions/helpers');
 // const jwt = require('jsonwebtoken');
 // jest.mock('jsonwebtoken');
 
@@ -22,6 +24,8 @@ jest.mock('../../lib/functions/helpers', () => ({
   getRateExpressionNextRun: jest.fn(),
   getSecret: jest.fn(),
   saveBatchItems: jest.fn(),
+  cleanUpFileName: jest.fn(), // ??? why do I need to mock this
+  s3UploadFile: jest.fn(),
   responseWithError: jest.fn().mockImplementation((code, message) => ({
     statusCode: code,
     body: JSON.stringify({ message })
@@ -30,6 +34,9 @@ jest.mock('../../lib/functions/helpers', () => ({
 
 jest.mock('../../lib/functions/helpers/openai', () => ({
   isAiDataValid: jest.fn(),
+  getAudio: jest.fn(),
+  getIncorrectItems: jest.fn(),
+  getAIDataBasedOnUserInput: jest.fn(),
 }));
 
 const setupTestEnv = () => {

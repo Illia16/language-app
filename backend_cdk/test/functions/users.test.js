@@ -2,18 +2,14 @@ const { ddbMock, sesMock, sqsMock, clearMocks, setupTestEnv } = require('../setu
 const { UpdateCommand, PutCommand, QueryCommand } = require('@aws-sdk/lib-dynamodb');
 const { SendEmailCommand, VerifyEmailIdentityCommand } = require("@aws-sdk/client-ses");
 const { handler: usersSqsHandler } = require('../../lib/functions/users-sqs');
-const { findUser, findUserByEmail, getSecret, saveBatchItems, getEventBridgeRuleInfo, getRateExpressionNextRun } = require('../../lib/functions/helpers');
-const { isAiDataValid } = require('../../lib/functions/helpers/openai');
+const { s3UploadFile, findUser, findUserByEmail, getSecret, saveBatchItems, getEventBridgeRuleInfo, getRateExpressionNextRun } = require('../../lib/functions/helpers');
+const { isAiDataValid, getAudio, getIncorrectItems } = require('../../lib/functions/helpers/openai');
 const { hashPassword, checkPassword } = require('../../lib/functions/helpers/auth');
 const { handler: usersHandler } = require('../../lib/functions/users');
 const jwt = require('jsonwebtoken');
 const { SQSClient, SendMessageCommand } = require("@aws-sdk/client-sqs");
 const { DescribeRuleCommand } = require('@aws-sdk/client-eventbridge');
-
-const getToken = (role = 'admin') => jwt.sign({
-  user: 'testuser',
-  role: role
-}, 'test-secret', { expiresIn: '25 days' });
+const { getToken } = require('../util');
 
 
 describe('users lambda', () => {
@@ -180,6 +176,71 @@ describe('users lambda', () => {
       const body = JSON.parse(response.body);
       expect(body.message).toBe('Internal server error');
       expect(ddbMock.calls()).toHaveLength(1);
+    })
+  })
+
+  describe('/users/register path', () => {
+    const mockEvent = {
+      path: '/users/register',
+      body: JSON.stringify({
+        user: 'testuser',
+        password: 'testpassword',
+        userEmail: 'test@example.com',
+        invitationCode: 'test-invitation-code',
+        userMotherTongue: 'en'
+      })
+    }
+
+    it('should successfully register user', async () => {
+      findUser
+        .mockResolvedValueOnce([]) // First call: check username/email availability
+        .mockResolvedValueOnce([{ user: 'valid-code' }]); // Second call: check invitation code
+
+      getAudio.mockResolvedValue('audio_data');
+      s3UploadFile.mockResolvedValue();
+      getIncorrectItems.mockResolvedValue(['incorrect1', 'incorrect2', 'incorrect3']);
+
+      ddbMock.on(PutCommand).resolves({ Attributes: { user: 'testuser' } });
+      sqsMock.on(SendMessageCommand).resolves({});
+
+      const response = await usersHandler(mockEvent);
+
+      // Verify response
+      expect(response.statusCode).toBe(200);
+      expect(JSON.parse(response.body)).toEqual({
+        success: true,
+        data: { user: 'testuser' }
+      });
+      expect(ddbMock.calls()).toHaveLength(3); // 1 for delete code, 1 for create user, 1 for put welcome item
+      expect(sqsMock.calls()).toHaveLength(1);
+      expect(sqsMock).toHaveReceivedCommandWith(SendMessageCommand, {
+        QueueUrl: 'test_sqs_url',
+        MessageBody: JSON.stringify({ eventName: 'verify-email', userEmail: 'test@example.com' }),
+      });
+    })
+
+    it('should return 500 if username is already taken', async () => {
+      findUser.mockResolvedValueOnce([{ user: 'testuser' }]);
+      const response = await usersHandler(mockEvent);
+
+      expect(response.statusCode).toBe('500');
+      const body = JSON.parse(response.body);
+      expect(body.message).toBe('Either username already taken or inivation code is wrong.');
+      expect(ddbMock.calls()).toHaveLength(0);
+      expect(sqsMock.calls()).toHaveLength(0);
+    })
+
+    it('should return 500 if invitation code is wrong', async () => {
+      findUser
+        .mockResolvedValueOnce([]) // username is available
+        .mockResolvedValueOnce([]); // invitation code is wrong
+      const response = await usersHandler(mockEvent);
+
+      expect(response.statusCode).toBe('500');
+      const body = JSON.parse(response.body);
+      expect(body.message).toBe('Either username already taken or inivation code is wrong.');
+      expect(ddbMock.calls()).toHaveLength(0);
+      expect(sqsMock.calls()).toHaveLength(0);
     })
   })
 
