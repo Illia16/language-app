@@ -60,6 +60,7 @@ module.exports.handler = async (event, context) => {
 
         let accountDeleteAt;
         if (userObj.role === 'delete') {
+            // Currently it tells that expression only, not the next run date
             const eventBridgeManageUsersData = await getEventBridgeRuleInfo(eventBridgeManageUsers);
             accountDeleteAt = getRateExpressionNextRun(eventBridgeManageUsersData.ScheduleExpression)
         }
