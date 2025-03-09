@@ -1,8 +1,8 @@
 const jwt = require('jsonwebtoken');
-const getToken = (role = 'admin') => jwt.sign({
-  user: 'testuser',
+const getToken = (user, role = 'admin', secret) => jwt.sign({
+  user: user,
   role: role
-}, 'test-secret', { expiresIn: '25 days' });
+}, secret, { expiresIn: '25 days' });
 
 module.exports = {
   getToken

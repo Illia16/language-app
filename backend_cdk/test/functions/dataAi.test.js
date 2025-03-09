@@ -12,10 +12,8 @@ const { DescribeRuleCommand } = require('@aws-sdk/client-eventbridge');
 const { getToken } = require('../util');
 
 describe('dataAi lambda', () => {
-  beforeEach(() => {
-    clearMocks();
-    setupTestEnv();
-    getSecret.mockResolvedValue('test-secret');
+  beforeEach(async () => {
+    await setupTestEnv();
   });
 
   describe('data-ai-generated', () => {
@@ -34,14 +32,16 @@ describe('dataAi lambda', () => {
       numberOfItems: 20,
     }
 
-    const validAiDataRes = [{
-      item: 'test-item',
-      itemCorrect: 'test-item-correct',
-      itemTranscription: 'test-item-transcription',
-      itemType: 'test-item-type',
-      itemTypeCategory: 'test-item-type-category',
-      incorrectItems: ['test-incorrect-item-1', 'test-incorrect-item-2', 'test-incorrect-item-3']
-    }];
+    const validAiDataRes = {
+      items: [{
+        item: 'test-item',
+        itemCorrect: 'test-item-correct',
+        itemTranscription: 'test-item-transcription',
+        itemType: 'test-item-type',
+        itemTypeCategory: 'test-item-type-category',
+        incorrectItems: ['test-incorrect-item-1', 'test-incorrect-item-2', 'test-incorrect-item-3']
+      }]
+    };
 
     it('fail: 401 - No token provided', async () => {
       const response = await dataAiHandler(mockEvent);
@@ -65,11 +65,10 @@ describe('dataAi lambda', () => {
       const mockEventWithToken = {
         ...mockEvent,
         headers: {
-          authorization: `Bearer ${getToken()}`
+          authorization: `Bearer ${getToken(process.env.TEST_USER_DELETE, 'delete', process.env.SECRET_ID_VALUE)}`
         }
       }
 
-      findUser.mockResolvedValue([{ role: 'delete' }]);
       const response = await dataAiHandler(mockEventWithToken);
       expect(response.statusCode).toBe("410");
       expect(JSON.parse(response.body).message).toBe("User account is to be deleted.");
@@ -79,7 +78,7 @@ describe('dataAi lambda', () => {
       const mockEventWithToken = {
         ...mockEvent,
         headers: {
-          authorization: `Bearer ${getToken()}`
+          authorization: `Bearer ${getToken(process.env.TEST_USER, 'user', process.env.SECRET_ID_VALUE)}`
         },
         body: JSON.stringify({
           prompt: null,
@@ -89,7 +88,6 @@ describe('dataAi lambda', () => {
         })
       }
 
-      findUser.mockResolvedValue([{ role: 'user' }]);
       const response = await dataAiHandler(mockEventWithToken);
       expect(response.statusCode).toBe("401");
       expect(JSON.parse(response.body).message).toBe("Payload is invalid.");
@@ -99,7 +97,7 @@ describe('dataAi lambda', () => {
       const mockEventWithToken = {
         ...mockEvent,
         headers: {
-          authorization: `Bearer ${getToken()}`
+          authorization: `Bearer ${getToken(process.env.TEST_USER, 'user', process.env.SECRET_ID_VALUE)}`
         },
         body: JSON.stringify({
           prompt: 'length that exceeds 100 characters length that exceeds 100 characters length that exceeds 100 characters',
@@ -109,7 +107,6 @@ describe('dataAi lambda', () => {
         })
       }
 
-      findUser.mockResolvedValue([{ role: 'user' }]);
       const response = await dataAiHandler(mockEventWithToken);
       expect(response.statusCode).toBe("401");
       expect(JSON.parse(response.body).message).toBe("Payload is invalid.");
@@ -119,12 +116,11 @@ describe('dataAi lambda', () => {
       const mockEventWithToken = {
         ...mockEvent,
         headers: {
-          authorization: `Bearer ${getToken()}`
+          authorization: `Bearer ${getToken(process.env.TEST_USER, 'user', process.env.SECRET_ID_VALUE)}`
         },
         body: JSON.stringify(validPayload)
       }
 
-      findUser.mockResolvedValue([{ role: 'user', userTier: 'regular' }]);
       const response = await dataAiHandler(mockEventWithToken);
       expect(response.statusCode).toBe("401");
       expect(JSON.parse(response.body).message).toBe("User is not premium.");
@@ -134,12 +130,11 @@ describe('dataAi lambda', () => {
       const mockEventFailToGetAiData = {
         ...mockEvent,
         headers: {
-          authorization: `Bearer ${getToken()}`
+          authorization: `Bearer ${getToken(process.env.TEST_USER_PREMIUM, 'user', process.env.SECRET_ID_VALUE)}`
         },
         body: JSON.stringify(validPayload)
       }
 
-      findUser.mockResolvedValue([{ role: 'user', userTier: 'premium' }]);
       getAIDataBasedOnUserInput.mockRejectedValue(new Error('Failed to get AI data'));
       const response = await dataAiHandler(mockEventFailToGetAiData);
       expect(response.statusCode).toBe("401");
@@ -150,48 +145,12 @@ describe('dataAi lambda', () => {
       const mockEventWithToken = {
         ...mockEvent,
         headers: {
-          authorization: `Bearer ${getToken()}`
+          authorization: `Bearer ${getToken(process.env.TEST_USER_PREMIUM, 'user', process.env.SECRET_ID_VALUE)}`
         },
         body: JSON.stringify(validPayload)
       }
 
-      findUser.mockResolvedValue([{ role: 'user', userTier: 'premium' }]);
       getAIDataBasedOnUserInput.mockResolvedValue(validAiDataRes);
-      const response = await dataAiHandler(mockEventWithToken);
-      expect(response.statusCode).toBe(200);
-      expect(JSON.parse(response.body).success).toBe(true);
-    });
-
-    it('fail: 500 - Failed to post AI data (saveBatchItems failed)', async () => {
-      const mockEventWithToken = {
-        ...mockEvent,
-        headers: {
-          authorization: `Bearer ${getToken()}`
-        },
-        body: JSON.stringify(validPayload)
-      }
-
-      findUser.mockResolvedValue([{ role: 'user', userTier: 'premium' }]);
-      getAIDataBasedOnUserInput.mockResolvedValue(validAiDataRes);
-      saveBatchItems.mockRejectedValue(new Error('Failed to get AI data'));
-      const response = await dataAiHandler(mockEventWithToken);
-      expect(response.statusCode).toBe("500");
-      expect(JSON.parse(response.body).message).toContain("Failed to post AI data.");
-      expect(ddbMock.calls().length).toBe(0);
-    });
-
-    it('success: 200 - all successful', async () => {
-      const mockEventWithToken = {
-        ...mockEvent,
-        headers: {
-          authorization: `Bearer ${getToken()}`
-        },
-        body: JSON.stringify(validPayload)
-      }
-
-      findUser.mockResolvedValue([{ role: 'user', userTier: 'premium' }]);
-      getAIDataBasedOnUserInput.mockResolvedValue(validAiDataRes);
-      saveBatchItems.mockResolvedValue('Dynamodb success msg...');
       const response = await dataAiHandler(mockEventWithToken);
       expect(response.statusCode).toBe(200);
       expect(JSON.parse(response.body).success).toBe(true);

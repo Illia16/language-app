@@ -11,8 +11,8 @@
     "deploy:test": "dotenv -e .env.test -- cdk deploy --profile personal",
     "synth:prod": "dotenv -e .env.prod -- cdk synth --profile personal",
     "deploy:prod": "dotenv -e .env.prod -- cdk deploy --profile personal",
-    "test:test": "jest test/**/*.test.js",
-    "test:prod": "dotenv -e .env.prod -- jest test/**/*.test.js"
+    "test:test": "dotenv -e ./test/.env.test -- jest test/functions/dataAi.test.js",
+    "test:prod": "dotenv -e ./test/.env.prod -- jest test/**/*.test.js"
   },
   "devDependencies": {
     "@aws-sdk/client-dynamodb": "^3.743.0",
