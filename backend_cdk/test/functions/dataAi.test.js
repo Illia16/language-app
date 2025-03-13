@@ -1,4 +1,4 @@
-const { ddbMock, sesMock, sqsMock, clearMocks, setupTestEnv } = require('../setup/mocks');
+const { ddbMock, sesMock, sqsMock, clearMocks, setupTestEnv, cleanupTestEnv } = require('../setup/mocks');
 const { UpdateCommand, PutCommand, QueryCommand } = require('@aws-sdk/lib-dynamodb');
 const { SendEmailCommand, VerifyEmailIdentityCommand } = require("@aws-sdk/client-ses");
 const { handler: usersSqsHandler } = require('../../lib/functions/users-sqs');
@@ -12,8 +12,12 @@ const { DescribeRuleCommand } = require('@aws-sdk/client-eventbridge');
 const { getToken } = require('../util');
 
 describe('dataAi lambda', () => {
-  beforeEach(async () => {
+  beforeAll(async () => {
     await setupTestEnv();
+  });
+
+  afterAll(async () => {
+    await cleanupTestEnv();
   });
 
   describe('data-ai-generated', () => {

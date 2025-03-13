@@ -1,27 +1,31 @@
-const { ssmMock, clearMocks, setupTestEnv } = require('../setup/mocks');
+const { ssmMock, clearMocks, setupTestEnv, cleanupTestEnv } = require('../setup/mocks');
 const { PutParameterCommand } = require('@aws-sdk/client-ssm');
 const { handler: secretRotationHandler } = require('../../lib/functions/secret-rotation');
+const { createSecret, deleteSecret, getSecret } = require('../util');
 
 describe('secret-rotation lambda', () => {
-  beforeEach(() => {
-    clearMocks();
-    setupTestEnv();
+  beforeAll(async () => {
+    await setupTestEnv();
+  });
+
+  afterAll(async () => {
+    await cleanupTestEnv();
   });
 
   it('should update SSM parameter with new random value', async () => {
-    ssmMock.on(PutParameterCommand).resolves({ Version: 1, Tier: 'Standard' });
+    const originalSecret = process.env.SECRET_ID;
+    process.env.SECRET_ID = 'test-temp-secret';
 
+    await createSecret(process.env.SECRET_ID);
+    const res = await getSecret(process.env.SECRET_ID);
+    const generatedSecret = res.Parameters[0].Value;
     await secretRotationHandler();
 
-    const ssmCalls = ssmMock.calls();
-    expect(ssmCalls).toHaveLength(1);
+    const resUpdated = await getSecret(process.env.SECRET_ID);
 
-    const putParamCall = ssmCalls[0].args[0].input;
-    expect(putParamCall).toEqual({
-      Name: '/test/secret',
-      Type: 'SecureString',
-      Overwrite: true,
-      Value: expect.stringMatching(/^[a-f0-9]{64}$/)
-    });
+    expect(resUpdated.Parameters[0].Value).not.toEqual(generatedSecret);
+
+    await deleteSecret(process.env.SECRET_ID);
+    process.env.SECRET_ID = originalSecret;
   });
 });

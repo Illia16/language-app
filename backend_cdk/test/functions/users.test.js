@@ -1,4 +1,4 @@
-const { ddbMock, sesMock, sqsMock, clearMocks, setupTestEnv } = require('../setup/mocks');
+const { ddbMock, sesMock, sqsMock, clearMocks, setupTestEnv, cleanupTestEnv } = require('../setup/mocks');
 const { UpdateCommand, PutCommand, QueryCommand } = require('@aws-sdk/lib-dynamodb');
 const { SendEmailCommand, VerifyEmailIdentityCommand } = require("@aws-sdk/client-ses");
 const { handler: usersSqsHandler } = require('../../lib/functions/users-sqs');
@@ -15,6 +15,10 @@ const { getToken } = require('../util');
 describe('users lambda', () => {
   beforeAll(async () => {
     await setupTestEnv();
+  });
+
+  afterAll(async () => {
+    await cleanupTestEnv();
   });
 
   describe('/users/login path', () => {
@@ -190,7 +194,7 @@ describe('users lambda', () => {
       const mockEvent = {
         path: '/users/register',
         body: JSON.stringify({
-          user: 'testuser',
+          user: 'user_register_from_integration_test',
           password: 'testpassword',
           userEmail: 'test@illusha.net',
           invitationCode: process.env.INVITATION_CODE,
@@ -229,7 +233,7 @@ describe('users lambda', () => {
       const mockEventInvitationCodeWrong = {
         path: '/users/register',
         body: JSON.stringify({
-          user: 'testuser',
+          user: 'user_register_from_integration_test',
           password: 'testpassword',
           userEmail: 'test@illusha.net',
           invitationCode: 'wrong-invitation-code',
