@@ -4,7 +4,7 @@ const { DynamoDBDocumentClient } = require('@aws-sdk/lib-dynamodb');
 const { SSMClient } = require('@aws-sdk/client-ssm');
 const { SESClient } = require("@aws-sdk/client-ses");
 const { SQSClient } = require("@aws-sdk/client-sqs");
-const { getAudio, getIncorrectItems, getAIDataBasedOnUserInput } = require('../../lib/functions/helpers/openai');
+// const { getAudio, getIncorrectItems, getAIDataBasedOnUserInput } = require('../../lib/functions/helpers/openai');
 const { cleanUpFileName, getSecret } = require('../../lib/functions/helpers');
 const { createInvitationCode, createUser, deleteUser, deleteMultipleUserItems } = require('../util');
 
@@ -35,7 +35,7 @@ const { v4: uuidv4 } = require("uuid");
 // }));
 
 jest.mock('../../lib/functions/helpers/openai', () => ({
-  isAiDataValid: jest.fn(),
+  isAiDataValid: jest.requireActual('../../lib/functions/helpers/openai').isAiDataValid,
   getAudio: jest.fn(() => {
     const path = require('path');
     const fs = require('fs');
@@ -74,6 +74,33 @@ const tempUsers = [
     userTier: 'default',
   }
 ]
+
+const fakeAiItems = [
+  {
+    item: 'test-item parse-ai-data 1',
+    itemCorrect: 'test-item-correct parse-ai-data 1',
+    itemTranscription: 'test-item-transcription parse-ai-data 1',
+    itemType: 'test-item-type parse-ai-data 1',
+    itemTypeCategory: 'test-item-type-category parse-ai-data 1',
+    incorrectItems: ['test-incorrect-item-1 parse-ai-data 1', 'test-incorrect-item-2 parse-ai-data 1', 'test-incorrect-item-3 parse-ai-data 1']
+  },
+  {
+    item: 'test-item parse-ai-data 2',
+    itemCorrect: 'test-item-correct parse-ai-data 2',
+    itemTranscription: 'test-item-transcription parse-ai-data 2',
+    itemType: 'test-item-type parse-ai-data 2',
+    itemTypeCategory: 'test-item-type-category parse-ai-data 2',
+    incorrectItems: ['test-incorrect-item-1 parse-ai-data 2', 'test-incorrect-item-2 parse-ai-data 2', 'test-incorrect-item-3 parse-ai-data 2']
+  },
+  {
+    item: 'test-item parse-ai-data 3',
+    itemCorrect: 'test-item-correct parse-ai-data 3',
+    itemTranscription: 'test-item-transcription parse-ai-data 3',
+    itemType: 'test-item-type parse-ai-data 3',
+    itemTypeCategory: 'test-item-type-category parse-ai-data 3',
+    incorrectItems: ['test-incorrect-item-1 parse-ai-data 3', 'test-incorrect-item-2 parse-ai-data 3', 'test-incorrect-item-3 parse-ai-data 3']
+  }
+];
 
 const setupTestEnv = async () => {
   // Need to get secret to sign JWT for tests
@@ -129,4 +156,5 @@ module.exports = {
   // clearMocks,
   cleanupTestEnv,
   tempUsers,
+  fakeAiItems,
 };

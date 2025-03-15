@@ -42,7 +42,15 @@ module.exports.handler = async (event, context) => {
             };
 
             const command = new SendEmailCommand(input);
-            await clientEmail.send(command);
+            const res = await clientEmail.send(command);
+            return res;
+        }
+
+        return {
+            statusCode: 200,
+            body: JSON.stringify({
+                message: 'User not found'
+            })
         }
     }
 
@@ -65,7 +73,15 @@ module.exports.handler = async (event, context) => {
             };
 
             const commandToDeleteAccount = new UpdateCommand(inputSetToDeleteAccount);
-            await docClient.send(commandToDeleteAccount);
+            const res = await docClient.send(commandToDeleteAccount);
+
+            return {
+                statusCode: 200,
+                body: JSON.stringify({
+                    message: 'User deleted',
+                    data: res,
+                })
+            }
         } catch (err) {
             return err;
         }
@@ -89,14 +105,27 @@ module.exports.handler = async (event, context) => {
         };
 
         const commandChangePW = new UpdateCommand(inputChangePW);
-        await docClient.send(commandChangePW);
+        const res = await docClient.send(commandChangePW);
+        return {
+            statusCode: 200,
+            body: JSON.stringify({
+                message: 'Password changed',
+                data: res,
+            })
+        }
     }
 
     if (eventName === 'verify-email') {
         const verifyEmailIdentityCommand = new VerifyEmailIdentityCommand({ EmailAddress: userEmail });
         try {
             const res = await clientEmail.send(verifyEmailIdentityCommand);
-            return res;
+            return {
+                statusCode: 200,
+                body: JSON.stringify({
+                    message: 'Email verification sent',
+                    data: res,
+                })
+            }
         } catch (err) {
             return err;
         }
@@ -107,7 +136,13 @@ module.exports.handler = async (event, context) => {
         // 1) AI retuns invalid data (vs what is expected)
         // 2) When redriving manually from DLQ. When redriving, ensure data passes "isAiDataValid" (correct num of items, object shape etc.)
         if (!isAiDataValid(data.aiData, data.userData).isValid) {
-            throw new Error("Failed to validate AI data. Please, redrive manually.");
+            // throw new Error("Failed to validate AI data. Please, redrive manually.");
+            return {
+                statusCode: 200,
+                body: JSON.stringify({
+                    message: 'Failed to validate AI data. Please, redrive manually.',
+                })
+            }
         }
 
         try {
@@ -118,8 +153,22 @@ module.exports.handler = async (event, context) => {
                 data.userData.userMotherTongue,
                 data.userData.languageStudying,
             );
+
+            return {
+                statusCode: 200,
+                body: JSON.stringify({
+                    message: 'Items saved to DB',
+                })
+            }
         } catch (error) {
             throw new Error("Failed to saveBatchItems from SQS");
         }
+    }
+
+    return {
+        statusCode: 200,
+        body: JSON.stringify({
+            message: 'Unknown event name',
+        })
     }
 };
