@@ -20,38 +20,47 @@ module.exports.handler = async (event, context) => {
     async function deleteUser(user) {
         const inputDeleteUser = {
             TableName: dbUsers,
-            Key: { 
-                user: user.user, 
-                userId: user.userId 
+            Key: {
+                user: user.user,
+                userId: user.userId
             },
         };
         const commandInputDeleteUser = new DeleteCommand(inputDeleteUser);
         await docClient.send(commandInputDeleteUser);
         return user.user;
     }
-    
+
+    let deletedItemsCount = 0;
     async function deleteItemsForUser(user) {
         const userItems = await findAllByPrimaryKey(dbData, user.user);
-        
+        deletedItemsCount += userItems.length;
+
         const deleteCommands = userItems.map(async (el) => {
             const inputDeleteItem = {
                 TableName: dbData,
-                Key: { 
-                    user: el.user, 
-                    itemID: el.itemID 
+                Key: {
+                    user: el.user,
+                    itemID: el.itemID
                 },
             };
 
             const commandInputDeleteItem = new DeleteCommand(inputDeleteItem);
             return docClient.send(commandInputDeleteItem);
         });
-    
+
         return Promise.all(deleteCommands);
     }
 
     const usersToDelete = allUsers.filter(user => user && user.role === 'delete');
 
-    if (!usersToDelete.length) return;
-    await Promise.all(usersToDelete.map(deleteUser));
+    if (!usersToDelete.length) return { deletedUsers: [], deletedItems: 0 };
+    const deletedUsers = await Promise.all(usersToDelete.map(deleteUser));
     await Promise.all(usersToDelete.map(deleteItemsForUser));
+
+    return {
+        success: true,
+        deletedUsers,
+        deletedItemsCount,
+        timestamp: new Date().toISOString()
+    };
 };

@@ -1,5 +1,5 @@
 const { DynamoDBClient } = require("@aws-sdk/client-dynamodb");
-const { DynamoDBDocumentClient, QueryCommand, PutCommand, DeleteCommand, UpdateCommand, ScanCommand } = require("@aws-sdk/lib-dynamodb");
+const { DynamoDBDocumentClient, QueryCommand, PutCommand, DeleteCommand, BatchWriteCommand, UpdateCommand, ScanCommand } = require("@aws-sdk/lib-dynamodb");
 const { SSMClient, GetParametersCommand, PutParameterCommand, DeleteParameterCommand } = require('@aws-sdk/client-ssm');
 
 const client = new DynamoDBClient({});
@@ -95,6 +95,52 @@ const deleteUser = async ({ dbUsers, user, userId }) => {
   await docClient.send(commandInputDeleteUser);
 }
 
+const createUserItem = async ({ dbData, user, itemID }) => {
+  const input = {
+    "Item": {
+      user: user,
+      itemID: itemID,
+      item: 'fake_item',
+      itemCorrect: 'fake_item_correct',
+      incorrectItems: JSON.stringify(['fake_incorrect_item_1', 'fake_incorrect_item_2']),
+      itemType: 'fake_item_type',
+      itemTypeCategory: 'fake_item_type_category',
+      userMotherTongue: 'ru',
+      languageStudying: 'en',
+      level: '0',
+      getAudioAI: true,
+      itemTranscription: 'fake_item_transcription',
+      filePath: 'fake_file_path',
+      existingFileNameS3: 'fake_existing_file_name_s3',
+      audioFilePathAi: 'fake_audio_file_path_ai',
+    },
+    "TableName": dbData
+  };
+
+  const command = new PutCommand(input);
+  await docClient.send(command);
+}
+
+const deleteMultipleUserItems = async ({ dbData, items }) => {
+  const deleteRequests = items.map(item => ({
+    DeleteRequest: {
+      Key: {
+        user: item.user,
+        itemID: item.itemID,
+      }
+    }
+  }));
+
+  const input = {
+    "RequestItems": {
+      [dbData]: deleteRequests
+    }
+  };
+
+  const command = new BatchWriteCommand(input);
+  await docClient.send(command);
+}
+
 module.exports = {
   getToken,
   createSecret,
@@ -102,5 +148,7 @@ module.exports = {
   getSecret,
   createInvitationCode,
   createUser,
-  deleteUser
+  deleteUser,
+  deleteMultipleUserItems,
+  createUserItem,
 }

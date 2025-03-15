@@ -6,7 +6,7 @@ const { SESClient } = require("@aws-sdk/client-ses");
 const { SQSClient } = require("@aws-sdk/client-sqs");
 const { getAudio, getIncorrectItems, getAIDataBasedOnUserInput } = require('../../lib/functions/helpers/openai');
 const { cleanUpFileName, getSecret } = require('../../lib/functions/helpers');
-const { createInvitationCode, createUser, deleteUser } = require('../util');
+const { createInvitationCode, createUser, deleteUser, deleteMultipleUserItems } = require('../util');
 
 const { v4: uuidv4 } = require("uuid");
 
@@ -103,17 +103,22 @@ const cleanupTestEnv = async () => {
     await deleteUser({ dbUsers: process.env.DB_USERS, user: user.username, userId: user.userId })
   }));
 
-  await deleteUser({ dbUsers: process.env.DB_USERS, user: 'user_register_from_integration_test', userId: 'user_register_from_integration_test' + '___' + process.env.INVITATION_CODE });
-}
+  const registeredUserName = 'user_register_from_integration_test';
+  const registeredUserId = registeredUserName + '___' + process.env.INVITATION_CODE;
+  const registeredUserItemId = 'i_like_learning_english_every_day___welcome_item'; // welcome item ID that comes from when user registers
 
-const clearMocks = () => {
-  ddbMock.reset();
-  ssmMock.reset();
-  sesMock.reset();
-  sqsMock.reset();
-  jest.clearAllMocks();
-  jest.restoreAllMocks();
-};
+  await deleteUser({ dbUsers: process.env.DB_USERS, user: registeredUserName, userId: registeredUserId });
+  await deleteMultipleUserItems({ dbData: process.env.DB_DATA, items: [{ user: registeredUserName, itemID: registeredUserItemId }] });
+
+  const clearMocks = () => {
+    ddbMock.reset();
+    ssmMock.reset();
+    sesMock.reset();
+    sqsMock.reset();
+    jest.clearAllMocks();
+    jest.restoreAllMocks();
+  };
+}
 
 module.exports = {
   // ddbMock,
@@ -122,5 +127,6 @@ module.exports = {
   // sqsMock,
   setupTestEnv,
   // clearMocks,
-  cleanupTestEnv
+  cleanupTestEnv,
+  tempUsers,
 };
