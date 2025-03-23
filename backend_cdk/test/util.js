@@ -7,6 +7,9 @@ const docClient = DynamoDBDocumentClient.from(client);
 
 const clientSSM = new SSMClient({});
 
+const { DeleteObjectCommand, S3Client } = require("@aws-sdk/client-s3");
+const clientS3 = new S3Client({});
+
 const jwt = require('jsonwebtoken');
 const { v4: uuidv4 } = require("uuid");
 const { hashPassword } = require('../lib/functions/helpers/auth');
@@ -102,7 +105,7 @@ const createUserItem = async ({ dbData, user, itemID }) => {
       itemID: itemID,
       item: 'fake_item',
       itemCorrect: 'fake_item_correct',
-      incorrectItems: JSON.stringify(['fake_incorrect_item_1', 'fake_incorrect_item_2']),
+      incorrectItems: JSON.stringify(['fake_incorrect_item_1', 'fake_incorrect_item_2', 'fake_incorrect_item_3']),
       itemType: 'fake_item_type',
       itemTypeCategory: 'fake_item_type_category',
       userMotherTongue: 'ru',
@@ -111,8 +114,6 @@ const createUserItem = async ({ dbData, user, itemID }) => {
       getAudioAI: true,
       itemTranscription: 'fake_item_transcription',
       filePath: 'fake_file_path',
-      existingFileNameS3: 'fake_existing_file_name_s3',
-      audioFilePathAi: 'fake_audio_file_path_ai',
     },
     "TableName": dbData
   };
@@ -141,6 +142,19 @@ const deleteMultipleUserItems = async ({ dbData, items }) => {
   await docClient.send(command);
 }
 
+const s3DeleteFile = async (s3_buckname, filenamepath) => {
+  const input = {
+    Bucket: s3_buckname,
+    Key: filenamepath,
+  };
+  const command = new DeleteObjectCommand(input);
+  try {
+    await clientS3.send(command);
+  } catch (err) {
+    console.error('failed to delete test files from S3:', err);
+  }
+}
+
 module.exports = {
   getToken,
   createSecret,
@@ -151,4 +165,5 @@ module.exports = {
   deleteUser,
   deleteMultipleUserItems,
   createUserItem,
+  s3DeleteFile,
 }

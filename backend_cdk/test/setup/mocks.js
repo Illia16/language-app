@@ -6,7 +6,7 @@ const { SESClient } = require("@aws-sdk/client-ses");
 const { SQSClient } = require("@aws-sdk/client-sqs");
 // const { getAudio, getIncorrectItems, getAIDataBasedOnUserInput } = require('../../lib/functions/helpers/openai');
 const { cleanUpFileName, getSecret } = require('../../lib/functions/helpers');
-const { createInvitationCode, createUser, deleteUser, deleteMultipleUserItems } = require('../util');
+const { createInvitationCode, createUser, deleteUser, deleteMultipleUserItems, createUserItem, s3DeleteFile } = require('../util');
 
 const { v4: uuidv4 } = require("uuid");
 
@@ -123,6 +123,15 @@ const setupTestEnv = async () => {
       userTier: user.userTier,
     });
   };
+
+  const userItemsToCreate = tempUsers.filter(usr => usr.userRole !== 'delete');
+  for (const user of userItemsToCreate) {
+    await createUserItem({
+      dbData: process.env.DB_DATA,
+      user: user.username,
+      itemID: user.userId,
+    });
+  }
 };
 
 const cleanupTestEnv = async () => {
@@ -134,18 +143,26 @@ const cleanupTestEnv = async () => {
   const registeredUserId = registeredUserName + '___' + process.env.INVITATION_CODE;
   const registeredUserItemId = 'i_like_learning_english_every_day___welcome_item'; // welcome item ID that comes from when user registers
 
-  await deleteUser({ dbUsers: process.env.DB_USERS, user: registeredUserName, userId: registeredUserId });
-  await deleteMultipleUserItems({ dbData: process.env.DB_DATA, items: [{ user: registeredUserName, itemID: registeredUserItemId }] });
+  const userItemsToDelete = tempUsers.filter(usr => usr.userRole !== 'delete');
 
-  const clearMocks = () => {
-    ddbMock.reset();
-    ssmMock.reset();
-    sesMock.reset();
-    sqsMock.reset();
-    jest.clearAllMocks();
-    jest.restoreAllMocks();
-  };
+  await deleteUser({ dbUsers: process.env.DB_USERS, user: registeredUserName, userId: registeredUserId });
+  // Delete welcome item + user fake items generated for data fn
+  await deleteMultipleUserItems({ dbData: process.env.DB_DATA, items: [...userItemsToDelete.map(user => ({ user: user.username, itemID: user.userId })), { user: registeredUserName, itemID: registeredUserItemId }] });
+
+  // Delete test files from S3
+  await s3DeleteFile(process.env.S3_FILES, 'audio/test_put_item_1/test_put_item_1.m4a');
+  await s3DeleteFile(process.env.S3_FILES, 'audio/test_post_item_1/test_post_item_1.m4a');
+  await s3DeleteFile(process.env.S3_FILES, 'audio/test_post_item_2/test_post_item_2.mp3');
 }
+
+const clearMocks = () => {
+  // ddbMock.reset();
+  // ssmMock.reset();
+  // sesMock.reset();
+  // sqsMock.reset();
+  // jest.clearAllMocks();
+  // jest.restoreAllMocks();
+};
 
 module.exports = {
   // ddbMock,

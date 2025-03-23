@@ -11,7 +11,7 @@
     "deploy:test": "dotenv -e .env.test -- cdk deploy --profile personal",
     "synth:prod": "dotenv -e .env.prod -- cdk synth --profile personal",
     "deploy:prod": "dotenv -e .env.prod -- cdk deploy --profile personal",
-    "test:test": "dotenv -e ./test/.env.test -- jest test/functions/users-sqs.test.js",
+    "test:test": "dotenv -e ./test/.env.test -- jest test/functions/data.test.js",
     "test:prod": "dotenv -e ./test/.env.prod -- jest test/**/*.test.js"
   },
   "devDependencies": {
@@ -28,9 +28,11 @@
     "aws-sdk-client-mock-jest": "^4.1.0",
     "bcryptjs": "^3.0.2",
     "dotenv-cli": "^7.4.2",
+    "form-data": "^4.0.2",
     "jest": "^29.7.0",
     "jsonwebtoken": "^9.0.2",
-    "openai": "^4.83.0"
+    "openai": "^4.83.0",
+    "parse-multipart-data": "^1.5.0"
   },
   "dependencies": {
     "aws-cdk-lib": "^2.171.1",
