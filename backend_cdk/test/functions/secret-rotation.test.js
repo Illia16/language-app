@@ -1,5 +1,4 @@
-const { ssmMock, clearMocks, setupTestEnv, cleanupTestEnv } = require('../setup/mocks');
-const { PutParameterCommand } = require('@aws-sdk/client-ssm');
+const { setupTestEnv, cleanupTestEnv } = require('../setup/mocks');
 const { handler: secretRotationHandler } = require('../../lib/functions/secret-rotation');
 const { createSecret, deleteSecret, getSecret } = require('../util');
 

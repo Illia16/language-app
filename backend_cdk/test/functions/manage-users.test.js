@@ -1,7 +1,5 @@
-const { ddbMock, setupTestEnv, cleanupTestEnv, clearMocks, tempUsers } = require('../setup/mocks');
-const { DeleteCommand } = require('@aws-sdk/lib-dynamodb');
+const { tempUsers } = require('../setup/mocks');
 const { handler: manageUsersHandler } = require('../../lib/functions/manage-users');
-const { findAll, findAllByPrimaryKey } = require('../../lib/functions/helpers');
 
 const { createUser, createUserItem } = require('../util');
 

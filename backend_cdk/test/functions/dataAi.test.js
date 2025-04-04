@@ -1,15 +1,9 @@
-const { ddbMock, sesMock, sqsMock, clearMocks, setupTestEnv, cleanupTestEnv } = require('../setup/mocks');
-const { UpdateCommand, PutCommand, QueryCommand } = require('@aws-sdk/lib-dynamodb');
-const { SendEmailCommand, VerifyEmailIdentityCommand } = require("@aws-sdk/client-ses");
-const { handler: usersSqsHandler } = require('../../lib/functions/users-sqs');
-const { s3UploadFile, findUser, findUserByEmail, getSecret, saveBatchItems, getEventBridgeRuleInfo, getRateExpressionNextRun } = require('../../lib/functions/helpers');
-const { isAiDataValid, getAudio, getIncorrectItems, getAIDataBasedOnUserInput } = require('../../lib/functions/helpers/openai');
-const { hashPassword, checkPassword } = require('../../lib/functions/helpers/auth');
+const { setupTestEnv, cleanupTestEnv } = require('../setup/mocks');
+const { getAIDataBasedOnUserInput } = require('../../lib/functions/helpers/openai');
 const { handler: dataAiHandler } = require('../../lib/functions/data-ai-generated');
-const jwt = require('jsonwebtoken');
-const { SQSClient, SendMessageCommand } = require("@aws-sdk/client-sqs");
-const { DescribeRuleCommand } = require('@aws-sdk/client-eventbridge');
 const { getToken } = require('../util');
+
+const { user_a, user_b, user_c } = require('../fixtures/users');
 
 describe('dataAi lambda', () => {
   beforeAll(async () => {
@@ -69,7 +63,7 @@ describe('dataAi lambda', () => {
       const mockEventWithToken = {
         ...mockEvent,
         headers: {
-          authorization: `Bearer ${getToken(process.env.TEST_USER_DELETE, 'delete', process.env.SECRET_ID_VALUE)}`
+          authorization: `Bearer ${getToken(user_c.username, user_c.role, process.env.SECRET_ID_VALUE)}`
         }
       }
 
@@ -82,7 +76,7 @@ describe('dataAi lambda', () => {
       const mockEventWithToken = {
         ...mockEvent,
         headers: {
-          authorization: `Bearer ${getToken(process.env.TEST_USER, 'user', process.env.SECRET_ID_VALUE)}`
+          authorization: `Bearer ${getToken(user_b.username, user_b.role, process.env.SECRET_ID_VALUE)}`
         },
         body: JSON.stringify({
           prompt: null,
@@ -101,7 +95,7 @@ describe('dataAi lambda', () => {
       const mockEventWithToken = {
         ...mockEvent,
         headers: {
-          authorization: `Bearer ${getToken(process.env.TEST_USER, 'user', process.env.SECRET_ID_VALUE)}`
+          authorization: `Bearer ${getToken(user_b.username, user_b.role, process.env.SECRET_ID_VALUE)}`
         },
         body: JSON.stringify({
           prompt: 'length that exceeds 100 characters length that exceeds 100 characters length that exceeds 100 characters',
@@ -120,7 +114,7 @@ describe('dataAi lambda', () => {
       const mockEventWithToken = {
         ...mockEvent,
         headers: {
-          authorization: `Bearer ${getToken(process.env.TEST_USER, 'user', process.env.SECRET_ID_VALUE)}`
+          authorization: `Bearer ${getToken(user_b.username, user_b.role, process.env.SECRET_ID_VALUE)}`
         },
         body: JSON.stringify(validPayload)
       }
@@ -134,7 +128,7 @@ describe('dataAi lambda', () => {
       const mockEventFailToGetAiData = {
         ...mockEvent,
         headers: {
-          authorization: `Bearer ${getToken(process.env.TEST_USER_PREMIUM, 'user', process.env.SECRET_ID_VALUE)}`
+          authorization: `Bearer ${getToken(user_a.username, user_a.role, process.env.SECRET_ID_VALUE)}`
         },
         body: JSON.stringify(validPayload)
       }
@@ -149,7 +143,7 @@ describe('dataAi lambda', () => {
       const mockEventWithToken = {
         ...mockEvent,
         headers: {
-          authorization: `Bearer ${getToken(process.env.TEST_USER_PREMIUM, 'user', process.env.SECRET_ID_VALUE)}`
+          authorization: `Bearer ${getToken(user_a.username, user_a.role, process.env.SECRET_ID_VALUE)}`
         },
         body: JSON.stringify(validPayload)
       }

@@ -142,6 +142,31 @@ const deleteMultipleUserItems = async ({ dbData, items }) => {
   await docClient.send(command);
 }
 
+const deleteUserItemsByUserId = async ({ dbData, user }) => {
+  const queryInput = {
+    TableName: dbData,
+    KeyConditionExpression: "#user = :user",
+    ExpressionAttributeNames: {
+      "#user": "user"
+    },
+    ExpressionAttributeValues: {
+      ":user": user
+    }
+  };
+
+  const queryCommand = new QueryCommand(queryInput);
+  const items = await docClient.send(queryCommand);
+
+  if (items.Items.length === 0) {
+    return;
+  }
+
+  await deleteMultipleUserItems({
+    dbData,
+    items: items.Items
+  });
+}
+
 const s3DeleteFile = async (s3_buckname, filenamepath) => {
   const input = {
     Bucket: s3_buckname,
@@ -164,6 +189,7 @@ module.exports = {
   createUser,
   deleteUser,
   deleteMultipleUserItems,
+  deleteUserItemsByUserId,
   createUserItem,
   s3DeleteFile,
 }

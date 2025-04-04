@@ -1,10 +1,9 @@
-const { ddbMock, sesMock, clearMocks, setupTestEnv, cleanupTestEnv, fakeAiItems } = require('../setup/mocks');
-const { UpdateCommand } = require('@aws-sdk/lib-dynamodb');
-const { SendEmailCommand, VerifyEmailIdentityCommand } = require("@aws-sdk/client-ses");
+const { setupTestEnv, cleanupTestEnv, fakeAiItems } = require('../setup/mocks');
 const { handler: usersSqsHandler } = require('../../lib/functions/users-sqs');
-const { findUserByEmail, getSecret, saveBatchItems } = require('../../lib/functions/helpers');
-const { isAiDataValid } = require('../../lib/functions/helpers/openai');
 const { hashPassword } = require('../../lib/functions/helpers/auth');
+
+const { user_a, user_d } = require('../fixtures/users');
+
 describe('users-sqs lambda', () => {
   beforeAll(async () => {
     await setupTestEnv();
@@ -57,8 +56,8 @@ describe('users-sqs lambda', () => {
           body: JSON.stringify({
             eventName: 'delete-account',
             dbUsers: process.env.DB_USERS,
-            username: process.env.TEST_USER,
-            userId: process.env.TEST_USER_ID,
+            username: user_d.username,
+            userId: user_d.userId,
             toBeDeleted: 'delete'
           })
         }]
@@ -69,21 +68,21 @@ describe('users-sqs lambda', () => {
       expect(result.statusCode).toBe(200);
       expect(body.message).toBe('User deleted');
       expect(body.data.$metadata.httpStatusCode).toBe(200);
-      expect(body.data.Attributes.user).toBe(process.env.TEST_USER);
+      expect(body.data.Attributes.user).toBe(user_d.username);
     });
   });
 
   describe('change-password flow', () => {
     it('should handle password change request', async () => {
-      const hashedPassword = await hashPassword(process.env.TEST_USER_PASSWORD)
+      const hashedPassword = await hashPassword(user_d.password)
 
       const mockEvent = {
         Records: [{
           body: JSON.stringify({
             eventName: 'change-password',
             dbUsers: process.env.DB_USERS,
-            user: process.env.TEST_USER,
-            userId: process.env.TEST_USER_ID,
+            user: user_d.username,
+            userId: user_d.userId,
             password: hashedPassword
           })
         }]
@@ -94,7 +93,7 @@ describe('users-sqs lambda', () => {
       expect(result.statusCode).toBe(200);
       expect(body.message).toBe('Password changed');
       expect(body.data.$metadata.httpStatusCode).toBe(200);
-      expect(body.data.Attributes.user).toBe(process.env.TEST_USER);
+      expect(body.data.Attributes.user).toBe(user_d.username);
     });
   });
 
@@ -126,7 +125,7 @@ describe('users-sqs lambda', () => {
             items: fakeAiItems
           },
           userData: {
-            user: process.env.TEST_USER_PREMIUM,
+            user: user_a.username,
             userMotherTongue: 'ru',
             languageStudying: 'zh',
             userTierPremium: true,
@@ -161,7 +160,7 @@ describe('users-sqs lambda', () => {
             }]
           },
           userData: {
-            user: process.env.TEST_USER_PREMIUM,
+            user: user_a.username,
             userMotherTongue: 'ru',
             languageStudying: 'zh',
             userTierPremium: true,

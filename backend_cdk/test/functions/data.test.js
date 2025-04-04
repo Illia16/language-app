@@ -1,20 +1,14 @@
-const { ddbMock, sesMock, sqsMock, clearMocks, setupTestEnv, cleanupTestEnv } = require('../setup/mocks');
-const { UpdateCommand, PutCommand, QueryCommand } = require('@aws-sdk/lib-dynamodb');
-const { SendEmailCommand, VerifyEmailIdentityCommand } = require("@aws-sdk/client-ses");
+const { setupTestEnv, cleanupTestEnv } = require('../setup/mocks');
 const { handler: dataHandler } = require('../../lib/functions/data');
-const { s3UploadFile, findUser, findUserByEmail, getSecret, saveBatchItems, getEventBridgeRuleInfo, getRateExpressionNextRun } = require('../../lib/functions/helpers');
-const { isAiDataValid, getAudio, getIncorrectItems, getAIDataBasedOnUserInput } = require('../../lib/functions/helpers/openai');
-const { hashPassword, checkPassword } = require('../../lib/functions/helpers/auth');
-const { handler: dataAiHandler } = require('../../lib/functions/data-ai-generated');
-const jwt = require('jsonwebtoken');
-const { SQSClient, SendMessageCommand } = require("@aws-sdk/client-sqs");
-const { DescribeRuleCommand } = require('@aws-sdk/client-eventbridge');
+const { getIncorrectItems } = require('../../lib/functions/helpers/openai');
 const { getToken } = require('../util');
 
 const FormData = require('form-data');
 
 const path = require('path');
 const fs = require('fs');
+
+const { user_a, user_b, user_c } = require('../fixtures/users');
 
 describe('data lambda', () => {
   beforeAll(async () => {
@@ -58,7 +52,7 @@ describe('data lambda', () => {
       const eventWithInvalidToken = {
         ...mockEventData,
         headers: {
-          Authorization: `Bearer ${getToken(process.env.TEST_USER_DELETE, 'delete', process.env.SECRET_ID_VALUE)}`
+          Authorization: `Bearer ${getToken(user_c.username, user_c.role, process.env.SECRET_ID_VALUE)}`
         },
       }
       const response = await dataHandler(eventWithInvalidToken);
@@ -72,7 +66,7 @@ describe('data lambda', () => {
       const eventWithInvalidToken = {
         ...mockEventData,
         headers: {
-          Authorization: `Bearer ${getToken(process.env.TEST_USER_PREMIUM, 'admin', process.env.SECRET_ID_VALUE)}`
+          Authorization: `Bearer ${getToken(user_a.username, user_a.role, process.env.SECRET_ID_VALUE)}`
         },
       }
 
@@ -109,10 +103,10 @@ describe('data lambda', () => {
       const eventDelete = {
         httpMethod: 'DELETE',
         headers: {
-          Authorization: `Bearer ${getToken(process.env.TEST_USER_PREMIUM, 'admin', process.env.SECRET_ID_VALUE)}`
+          Authorization: `Bearer ${getToken(user_a.username, user_a.role, process.env.SECRET_ID_VALUE)}`
         },
         body: JSON.stringify({
-          itemID: process.env.TEST_USER_PREMIUM_ID // USER ID is used as itemID
+          itemID: user_a.userId // USER ID is used as itemID
         })
       }
 
@@ -158,8 +152,8 @@ describe('data lambda', () => {
 
     it('success: 200 - PUT', async () => {
       const formData = new FormData();
-      formData.append('user', process.env.TEST_USER);
-      formData.append('itemID', process.env.TEST_USER_ID);
+      formData.append('user', user_b.username);
+      formData.append('itemID', user_b.userId);
       formData.append('item', 'test put item 1');
       formData.append('itemCorrect', 'test put item correct 1');
       formData.append('itemType', 'test put item type 1');
@@ -176,23 +170,23 @@ describe('data lambda', () => {
         contentType: 'audio/mp4',
       });
 
-      const response = await dataHandler(createFormDataEvent(formData, process.env.TEST_USER, 'user'));
+      const response = await dataHandler(createFormDataEvent(formData, user_b.username, user_b.role));
       const body = JSON.parse(response.body);
       expect(response.statusCode).toBe(200);
       expect(body.success).toBe(true);
       expect(body.data.languageStudying).toBe('en');
       expect(body.data.filePath).toBe('audio/test_put_item_1/test_put_item_1.m4a');
-      expect(body.data.user).toBe(process.env.TEST_USER);
-      expect(body.data.itemID).toBe(process.env.TEST_USER_ID);
+      expect(body.data.user).toBe(user_b.username);
+      expect(body.data.itemID).toBe(user_b.userId);
     })
 
     it('success: 200 - PUT - update min', async () => {
       const formData = new FormData();
-      formData.append('user', process.env.TEST_USER);
-      formData.append('itemID', process.env.TEST_USER_ID);
+      formData.append('user', user_b.username);
+      formData.append('itemID', user_b.userId);
       formData.append('level', '2');
 
-      const response = await dataHandler(createFormDataEvent(formData, process.env.TEST_USER, 'user'));
+      const response = await dataHandler(createFormDataEvent(formData, user_b.username, user_b.role));
       const body = JSON.parse(response.body);
       expect(response.statusCode).toBe(200);
       expect(body.success).toBe(true);
@@ -201,8 +195,8 @@ describe('data lambda', () => {
 
     it('success: 200 - POST - user not admin, not premium', async () => {
       const formData = new FormData();
-      formData.append('user', process.env.TEST_USER);
-      formData.append('itemID', process.env.TEST_USER_ID);
+      formData.append('user', user_b.username);
+      formData.append('itemID', user_b.userId);
       formData.append('item', 'test post item 1');
       formData.append('itemCorrect', 'test post item correct 1');
       formData.append('itemType', 'test post item type 1');
@@ -218,17 +212,17 @@ describe('data lambda', () => {
         contentType: 'audio/mp4',
       });
 
-      const response = await dataHandler(createFormDataEvent(formData, process.env.TEST_USER, 'user', 'POST'));
+      const response = await dataHandler(createFormDataEvent(formData, user_b.username, user_b.role, 'POST'));
       const body = JSON.parse(response.body);
       expect(response.statusCode).toBe(200);
       expect(body.success).toBe(true);
-      expect(body.data).toBe(`Successfully added test post item 1 by ${process.env.TEST_USER}.`);
+      expect(body.data).toBe(`Successfully added test post item 1 by ${user_b.username}.`);
     })
 
     it('success: 200 - POST - admin, premium', async () => {
       const formData = new FormData();
-      formData.append('user', process.env.TEST_USER_PREMIUM);
-      formData.append('itemID', process.env.TEST_USER_PREMIUM_ID);
+      formData.append('user', user_a.username);
+      formData.append('itemID', user_a.userId);
       formData.append('item', 'test post item 2');
       formData.append('itemCorrect', 'test post item correct 2');
       formData.append('itemType', 'test post item type 2');
@@ -240,11 +234,11 @@ describe('data lambda', () => {
 
 
       getIncorrectItems.mockResolvedValue(['test-post-item-ai-incorrect-item-1', 'test-post-item-ai-incorrect-item-2', 'test-post-item-ai-incorrect-item-3']);
-      const response = await dataHandler(createFormDataEvent(formData, process.env.TEST_USER_PREMIUM, 'admin', 'POST'));
+      const response = await dataHandler(createFormDataEvent(formData, user_a.username, user_a.role, 'POST'));
       const body = JSON.parse(response.body);
       expect(response.statusCode).toBe(200);
       expect(body.success).toBe(true);
-      expect(body.data).toBe(`Successfully added test post item 2 by ${process.env.TEST_USER_PREMIUM}.`);
+      expect(body.data).toBe(`Successfully added test post item 2 by ${user_a.username}.`);
     })
   });
 });

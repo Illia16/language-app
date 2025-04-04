@@ -1,16 +1,10 @@
-const { ddbMock, sesMock, sqsMock, clearMocks, setupTestEnv, cleanupTestEnv } = require('../setup/mocks');
-const { UpdateCommand, PutCommand, QueryCommand } = require('@aws-sdk/lib-dynamodb');
-const { SendEmailCommand, VerifyEmailIdentityCommand } = require("@aws-sdk/client-ses");
-const { handler: usersSqsHandler } = require('../../lib/functions/users-sqs');
-const { s3UploadFile, findUser, findUserByEmail, getSecret, saveBatchItems, getEventBridgeRuleInfo, getRateExpressionNextRun } = require('../../lib/functions/helpers');
-const { isAiDataValid, getAudio, getIncorrectItems } = require('../../lib/functions/helpers/openai');
-const { hashPassword, checkPassword } = require('../../lib/functions/helpers/auth');
+const { setupTestEnv, cleanupTestEnv } = require('../setup/mocks');
+const { getIncorrectItems } = require('../../lib/functions/helpers/openai');
 const { handler: usersHandler } = require('../../lib/functions/users');
 const jwt = require('jsonwebtoken');
-const { SQSClient, SendMessageCommand } = require("@aws-sdk/client-sqs");
-const { DescribeRuleCommand } = require('@aws-sdk/client-eventbridge');
 const { getToken } = require('../util');
 
+const { user_a, user_b, user_c } = require('../fixtures/users');
 
 describe('users lambda', () => {
   beforeAll(async () => {
@@ -25,8 +19,8 @@ describe('users lambda', () => {
     const usersEvent = {
       path: '/users/login',
       body: JSON.stringify({
-        user: process.env.TEST_USER_PREMIUM,
-        password: process.env.TEST_USER_PREMIUM_PASSWORD
+        user: user_a.username,
+        password: user_a.password
       })
     }
 
@@ -40,7 +34,7 @@ describe('users lambda', () => {
       const decoded = jwt.verify(body.data.token, process.env.SECRET_ID_VALUE)
 
       expect(decoded).toEqual({
-        user: process.env.TEST_USER_PREMIUM,
+        user: user_a.username,
         role: expect.any(String),
         iat: expect.any(Number),
         exp: expect.any(Number)
@@ -72,7 +66,7 @@ describe('users lambda', () => {
       const usersEventWrongPassword = {
         ...usersEvent,
         body: JSON.stringify({
-          user: process.env.TEST_USER_PREMIUM,
+          user: user_a.username,
           password: 'wrong-password'
         })
       };
@@ -87,8 +81,8 @@ describe('users lambda', () => {
       const usersEventDeleteUser = {
         ...usersEvent,
         body: JSON.stringify({
-          user: process.env.TEST_USER_DELETE,
-          password: process.env.TEST_USER_DELETE_PASSWORD
+          user: user_c.username,
+          password: user_c.password
         })
       }
 
@@ -113,7 +107,7 @@ describe('users lambda', () => {
       const mockEventSuccess = {
         ...mockEventGenerateInvitationCode,
         headers: {
-          Authorization: `Bearer ${getToken(process.env.TEST_USER_PREMIUM, 'admin', process.env.SECRET_ID_VALUE)}`
+          Authorization: `Bearer ${getToken(user_a.username, user_a.role, process.env.SECRET_ID_VALUE)}`
         },
       }
 
@@ -128,7 +122,7 @@ describe('users lambda', () => {
       const mockEventNotAdmin = {
         ...mockEventGenerateInvitationCode,
         headers: {
-          Authorization: `Bearer ${getToken(process.env.TEST_USER, 'user', process.env.SECRET_ID_VALUE)}`
+          Authorization: `Bearer ${getToken(user_b.username, user_b.role, process.env.SECRET_ID_VALUE)}`
         }
       };
 
@@ -136,7 +130,7 @@ describe('users lambda', () => {
 
       expect(response.statusCode).toBe("401");
       const body = JSON.parse(response.body);
-      expect(body.message).toBe(`User ${process.env.TEST_USER} is not authorized to do this action.`);
+      expect(body.message).toBe(`User ${user_b.username} is not authorized to do this action.`);
     })
 
     it('should return 401 when token is missing', async () => {
@@ -174,7 +168,7 @@ describe('users lambda', () => {
         const mockEvent = {
           ...mockEventGenerateInvitationCode,
           headers: {
-            Authorization: `Bearer ${getToken(process.env.TEST_USER_PREMIUM, 'admin', process.env.SECRET_ID_VALUE)}`
+            Authorization: `Bearer ${getToken(user_a.username, user_a.role, process.env.SECRET_ID_VALUE)}`
           },
         };
 
@@ -215,9 +209,9 @@ describe('users lambda', () => {
       const mockEventUsernameTaken = {
         path: '/users/register',
         body: JSON.stringify({
-          user: process.env.TEST_USER_PREMIUM,
-          password: process.env.TEST_USER_PREMIUM_PASSWORD,
-          userEmail: process.env.TEST_USER_PREMIUM_EMAIL,
+          user: user_a.username,
+          password: user_a.password,
+          userEmail: user_a.email,
           invitationCode: process.env.INVITATION_CODE,
           userMotherTongue: 'en'
         })
@@ -253,8 +247,8 @@ describe('users lambda', () => {
     const mockEventDeleteAccount = {
       path: '/users/delete-account',
       body: JSON.stringify({
-        user: process.env.TEST_USER,
-        userId: process.env.TEST_USER_ID,
+        user: user_b.username,
+        userId: user_b.userId,
         toBeDeleted: true
       })
     };
@@ -263,7 +257,7 @@ describe('users lambda', () => {
       const eventDeleteAccount = {
         ...mockEventDeleteAccount,
         headers: {
-          Authorization: `Bearer ${getToken(process.env.TEST_USER, 'user', process.env.SECRET_ID_VALUE)}`
+          Authorization: `Bearer ${getToken(user_b.username, user_b.role, process.env.SECRET_ID_VALUE)}`
         },
       }
       const response = await usersHandler(eventDeleteAccount);
@@ -306,7 +300,7 @@ describe('users lambda', () => {
     const mockEventForgotPW = {
       path: '/users/forgot-password',
       body: JSON.stringify({
-        userEmail: process.env.TEST_USER_PREMIUM_EMAIL,
+        userEmail: user_a.email,
       })
     };
 
@@ -324,8 +318,8 @@ describe('users lambda', () => {
     const mockEventChangePW = {
       path: '/users/change-password',
       body: JSON.stringify({
-        password: process.env.TEST_USER_PREMIUM_PASSWORD, // use existing password as a "new" pw
-        userId: process.env.TEST_USER_PREMIUM_ID,
+        password: user_a.password, // use existing password as a "new" pw
+        userId: user_a.userId,
       })
     };
 
@@ -333,7 +327,7 @@ describe('users lambda', () => {
       const eventChangePW = {
         ...mockEventChangePW,
         headers: {
-          Authorization: `Bearer ${getToken(process.env.TEST_USER_PREMIUM, 'admin', process.env.SECRET_ID_VALUE)}`
+          Authorization: `Bearer ${getToken(user_a.username, user_a.role, process.env.SECRET_ID_VALUE)}`
         }
       }
 
