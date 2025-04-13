@@ -395,7 +395,7 @@ class BackendCdkStack extends cdk.Stack {
     const rule = new events.Rule(this, `${PROJECT_NAME}--secret-update-schedule-rule--${STAGE}`, {
       ruleName: `${PROJECT_NAME}--secret-update-schedule-rule--${STAGE}`,
       description: `Event to update auth secret for ${PROJECT_NAME} project ${STAGE} env`,
-      schedule: events.Schedule.rate(cdk.Duration.days(25)),
+      schedule: events.Schedule.cron({ minute: '5', hour: '10', day: '25', month: '*', year: '*' }),
       targets: [new eventsTargets.LambdaFunction(rotateSecretFn, {
         retryAttempts: 0,
       })],
