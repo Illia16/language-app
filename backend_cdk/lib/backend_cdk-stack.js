@@ -404,7 +404,7 @@ class BackendCdkStack extends cdk.Stack {
     const manageUsersRule = new events.Rule(this, `${PROJECT_NAME}--manage-users-schedule-rule--${STAGE}`, {
       ruleName: `${PROJECT_NAME}--manage-users-schedule-rule--${STAGE}`,
       description: `Event to manage users for ${PROJECT_NAME} project ${STAGE} env`,
-      schedule: events.Schedule.rate(cdk.Duration.days(30)),
+      schedule: events.Schedule.cron({ minute: '5', hour: '10', day: '25', month: '*', year: '*' }),
       targets: [new eventsTargets.LambdaFunction(manageUsersFn, {
         retryAttempts: 0,
       })],
