@@ -31,6 +31,25 @@ const users = {
         email: 'user_d@email.illusha.net',
         tier: 'default',
     },
+    user_e: {
+        username: 'user_e',
+        userId: 'user_e___uuid',
+        password: 'user_e_pw',
+        role: 'user',
+        email: 'user_e@email.illusha.net',
+        tier: 'default',
+    },
 }
 
-module.exports = users;
+const temp_users = {
+    user_delete: {
+        username: 'user_delete',
+        userId: 'user_delete___uuid',
+        password: 'user_delete_pw',
+        role: 'delete',
+        email: 'user_delete@email.illusha.net',
+        tier: 'default',
+    },
+}
+
+module.exports = { users, temp_users };

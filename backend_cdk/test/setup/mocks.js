@@ -3,7 +3,7 @@ require("aws-sdk-client-mock-jest");
 const { getSecret } = require('../../lib/functions/helpers');
 const { createInvitationCode, createUser, deleteUser, deleteUserItemsByUserId, createUserItem, s3DeleteFile } = require('../util');
 
-const users = require('../fixtures/users');
+const { users } = require('../fixtures/users');
 
 jest.mock('../../lib/functions/helpers/openai', () => ({
   isAiDataValid: jest.requireActual('../../lib/functions/helpers/openai').isAiDataValid,
@@ -77,8 +77,9 @@ const setupTestEnv = async () => {
     });
   };
 
-  const userItemsToCreate = tempUsers.filter(usr => usr.userRole !== 'delete');
-  for (const user of userItemsToCreate) {
+  // const userItemsToCreate = tempUsers.filter(usr => usr.userRole !== 'delete');
+  // for (const user of userItemsToCreate) {
+  for (const user of tempUsers) {
     await createUserItem({
       dbData: process.env.DB_DATA,
       user: user.username,
