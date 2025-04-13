@@ -186,15 +186,15 @@ module.exports = {
             return error;
         }
     },
-    getRateExpressionNextRun: (scheduleExpression) => {
-        if (!scheduleExpression.startsWith('rate(')) {
+    getCronExpressionNextRun: (scheduleExpression) => {
+        if (!scheduleExpression.startsWith('cron(')) {
             throw new Error('Invalid scheduleExpression');
         }
 
         const now = new Date();
-        const match = scheduleExpression.match(/rate\((\d+) (minute|minutes|hour|hours|day|days)\)/);
+        const match = scheduleExpression.match(/cron\((\d+) (minute|minutes|hour|hours|day|days)\)/);
 
-        if (!match) throw new Error('Invalid rate expression');
+        if (!match) throw new Error('Invalid cron expression');
 
         const value = parseInt(match[1], 10);
         const unit = match[2];

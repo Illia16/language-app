@@ -1,57 +1,41 @@
-const { ddbMock, sesMock, sqsMock, clearMocks, setupTestEnv } = require('../setup/mocks');
-const { UpdateCommand, PutCommand, QueryCommand } = require('@aws-sdk/lib-dynamodb');
-const { SendEmailCommand, VerifyEmailIdentityCommand } = require("@aws-sdk/client-ses");
-const { handler: usersSqsHandler } = require('../../lib/functions/users-sqs');
-const { findUser, findUserByEmail, getSecret, saveBatchItems, getEventBridgeRuleInfo, getRateExpressionNextRun } = require('../../lib/functions/helpers');
-const { isAiDataValid } = require('../../lib/functions/helpers/openai');
-const { hashPassword, checkPassword } = require('../../lib/functions/helpers/auth');
+const { setupTestEnv, cleanupTestEnv } = require('../setup/mocks');
+const { getIncorrectItems } = require('../../lib/functions/helpers/openai');
 const { handler: usersHandler } = require('../../lib/functions/users');
 const jwt = require('jsonwebtoken');
-const { SQSClient, SendMessageCommand } = require("@aws-sdk/client-sqs");
-const { DescribeRuleCommand } = require('@aws-sdk/client-eventbridge');
+const { getToken } = require('../util');
 
-const getToken = (role = 'admin') => jwt.sign({
-  user: 'testuser',
-  role: role
-}, 'test-secret', { expiresIn: '25 days' });
-
+const { user_a, user_b, user_c } = require('../fixtures/users');
 
 describe('users lambda', () => {
-  beforeEach(() => {
-    clearMocks();
-    setupTestEnv();
-    getSecret.mockResolvedValue('test-secret');
+  beforeAll(async () => {
+    await setupTestEnv();
   });
 
+  afterAll(async () => {
+    await cleanupTestEnv();
+  });
 
   describe('/users/login path', () => {
-    const mockEvent = {
+    const usersEvent = {
       path: '/users/login',
       body: JSON.stringify({
-        user: 'testuser',
-        password: 'testpassword'
+        user: user_a.username,
+        password: user_a.password
       })
     }
 
     it('should successfully login', async () => {
-      const res = [{
-        user: 'testuser',
-        userId: 'test-user-id',
-        userMotherTongue: 'en',
-        password: await hashPassword('testpassword'),
-        role: 'admin'
-      }]
-      findUser.mockResolvedValue(res);
-      const response = await usersHandler(mockEvent);
-
+      const response = await usersHandler(usersEvent);
       expect(response.statusCode).toBe(200);
       const body = JSON.parse(response.body);
 
       expect(body.success).toBe(true);
-      const decoded = jwt.verify(body.data.token, 'test-secret')
+
+      const decoded = jwt.verify(body.data.token, process.env.SECRET_ID_VALUE)
+
       expect(decoded).toEqual({
-        user: 'testuser',
-        role: 'admin',
+        user: user_a.username,
+        role: expect.any(String),
         iat: expect.any(Number),
         exp: expect.any(Number)
       });
@@ -64,8 +48,14 @@ describe('users lambda', () => {
     })
 
     it('no user found', async () => {
-      findUser.mockResolvedValue([]);
-      const response = await usersHandler(mockEvent);
+      const usersEventNoUser = {
+        ...usersEvent,
+        body: JSON.stringify({
+          user: 'non-existing-user',
+          password: 'non-existing-password'
+        })
+      }
+      const response = await usersHandler(usersEventNoUser);
 
       expect(response.statusCode).toBe("500");
       const body = JSON.parse(response.body);
@@ -73,14 +63,14 @@ describe('users lambda', () => {
     })
 
     it('wrong password', async () => {
-      findUser.mockResolvedValue([{
-        user: 'testuser',
-        userId: 'test-user-id',
-        userMotherTongue: 'en',
-        password: await hashPassword('wrongpassword'),
-        role: 'admin'
-      }]);
-      const response = await usersHandler(mockEvent);
+      const usersEventWrongPassword = {
+        ...usersEvent,
+        body: JSON.stringify({
+          user: user_a.username,
+          password: 'wrong-password'
+        })
+      };
+      const response = await usersHandler(usersEventWrongPassword);
 
       expect(response.statusCode).toBe("500");
       const body = JSON.parse(response.body);
@@ -88,20 +78,15 @@ describe('users lambda', () => {
     })
 
     it('user is to be deleted', async () => {
-      findUser.mockResolvedValue([{
-        user: 'testuser',
-        userId: 'test-user-id',
-        userMotherTongue: 'en',
-        password: await hashPassword('testpassword'),
-        role: 'delete'
-      }]);
+      const usersEventDeleteUser = {
+        ...usersEvent,
+        body: JSON.stringify({
+          user: user_c.username,
+          password: user_c.password
+        })
+      }
 
-      getEventBridgeRuleInfo.mockResolvedValue({
-        ScheduleExpression: 'rate(30 days)'
-      });
-      getRateExpressionNextRun.mockReturnValue(1000 * 60 * 60 * 24 * 30);
-      const response = await usersHandler(mockEvent);
-
+      const response = await usersHandler(usersEventDeleteUser);
       expect(response.statusCode).toBe(200);
       const body = JSON.parse(response.body);
 
@@ -109,31 +94,35 @@ describe('users lambda', () => {
       expect(body.data.accountDeletionTime).toBeDefined();
       expect(body.data.accountDeletionTime).toBe(1000 * 60 * 60 * 24 * 30);
     })
-  })
+  });
+
 
   describe('/users/generate-invitation-code path', () => {
-    const mockEvent = {
+    const mockEventGenerateInvitationCode = {
       path: '/users/generate-invitation-code',
-      headers: {
-        Authorization: `Bearer ${getToken()}`
-      },
       body: null,
     };
 
     it('should successfully generate invitation code', async () => {
-      const response = await usersHandler(mockEvent);
+      const mockEventSuccess = {
+        ...mockEventGenerateInvitationCode,
+        headers: {
+          Authorization: `Bearer ${getToken(user_a.username, user_a.role, process.env.SECRET_ID_VALUE)}`
+        },
+      }
+
+      const response = await usersHandler(mockEventSuccess);
 
       expect(response.statusCode).toBe(200);
       const body = JSON.parse(response.body);
       expect(body.success).toBe(true);
-      expect(ddbMock.calls()).toHaveLength(1);
     })
 
     it('user is not admin', async () => {
       const mockEventNotAdmin = {
-        ...mockEvent,
+        ...mockEventGenerateInvitationCode,
         headers: {
-          Authorization: `Bearer ${getToken('user')}`
+          Authorization: `Bearer ${getToken(user_b.username, user_b.role, process.env.SECRET_ID_VALUE)}`
         }
       };
 
@@ -141,12 +130,12 @@ describe('users lambda', () => {
 
       expect(response.statusCode).toBe("401");
       const body = JSON.parse(response.body);
-      expect(body.message).toBe('User testuser is not authorized to do this action.');
+      expect(body.message).toBe(`User ${user_b.username} is not authorized to do this action.`);
     })
 
     it('should return 401 when token is missing', async () => {
       const eventWithoutToken = {
-        ...mockEvent,
+        ...mockEventGenerateInvitationCode,
         headers: {}
       }
       const response = await usersHandler(eventWithoutToken);
@@ -154,12 +143,11 @@ describe('users lambda', () => {
       expect(response.statusCode).toBe("401");
       const body = JSON.parse(response.body);
       expect(body.message).toBe('Token is missing.');
-      expect(ddbMock.calls()).toHaveLength(0);
     })
 
     it('should return 401 when token is invalid', async () => {
       const eventWithInvalidToken = {
-        ...mockEvent,
+        ...mockEventGenerateInvitationCode,
         headers: {
           Authorization: 'Bearer invalid-token'
         }
@@ -169,47 +157,120 @@ describe('users lambda', () => {
       expect(response.statusCode).toBe("401");
       const body = JSON.parse(response.body);
       expect(body.message).toBe('Token is invalid.');
-      expect(ddbMock.calls()).toHaveLength(0);
     })
 
-    it('should return 500 when there is an server error (PutCommand failed)', async () => {
-      ddbMock.on(PutCommand).rejects(new Error('Internal server error'));
+    it('should return 500 when there is a server error (PutCommand failed)', async () => {
+      const originalDbUsers = process.env.DB_USERS;
+
+      try {
+        process.env.DB_USERS = 'invalid-table-name';
+
+        const mockEvent = {
+          ...mockEventGenerateInvitationCode,
+          headers: {
+            Authorization: `Bearer ${getToken(user_a.username, user_a.role, process.env.SECRET_ID_VALUE)}`
+          },
+        };
+
+        const response = await usersHandler(mockEvent);
+
+        expect(response.statusCode).toBe("500");
+        const body = JSON.parse(response.body);
+        expect(body.message).toBe('Requested resource not found');
+      } finally {
+        process.env.DB_USERS = originalDbUsers;
+      }
+    });
+  });
+
+  describe('/users/register path', () => {
+    it('should successfully register user', async () => {
+      const mockEvent = {
+        path: '/users/register',
+        body: JSON.stringify({
+          user: 'user_register_from_integration_test',
+          password: 'testpassword',
+          userEmail: 'test@illusha.net',
+          invitationCode: process.env.INVITATION_CODE,
+          userMotherTongue: 'en',
+        })
+      }
+
+      getIncorrectItems.mockResolvedValue(['should successfully register user - incorrect1', 'should successfully register user - incorrect2', 'should successfully register user - incorrect3']);
+
       const response = await usersHandler(mockEvent);
+
+      // Verify response
+      expect(response.statusCode).toBe(200);
+      expect(JSON.parse(response.body).success).toBe(true);
+    })
+
+    it('should return 500 if username is already taken', async () => {
+      const mockEventUsernameTaken = {
+        path: '/users/register',
+        body: JSON.stringify({
+          user: user_a.username,
+          password: user_a.password,
+          userEmail: user_a.email,
+          invitationCode: process.env.INVITATION_CODE,
+          userMotherTongue: 'en'
+        })
+      }
+      const response = await usersHandler(mockEventUsernameTaken);
 
       expect(response.statusCode).toBe('500');
       const body = JSON.parse(response.body);
-      expect(body.message).toBe('Internal server error');
-      expect(ddbMock.calls()).toHaveLength(1);
+      expect(body.message).toBe('Either username already taken or inivation code is wrong.');
+    })
+
+    it('should return 500 if invitation code is wrong', async () => {
+      const mockEventInvitationCodeWrong = {
+        path: '/users/register',
+        body: JSON.stringify({
+          user: 'user_register_from_integration_test',
+          password: 'testpassword',
+          userEmail: 'test@illusha.net',
+          invitationCode: 'wrong-invitation-code',
+          userMotherTongue: 'en'
+        })
+      }
+
+      const response = await usersHandler(mockEventInvitationCodeWrong);
+
+      expect(response.statusCode).toBe('500');
+      const body = JSON.parse(response.body);
+      expect(body.message).toBe('Either username already taken or inivation code is wrong.');
     })
   })
 
   describe('/users/delete-account path', () => {
-    const mockEvent = {
+    const mockEventDeleteAccount = {
       path: '/users/delete-account',
-      headers: {
-        Authorization: `Bearer ${getToken()}`
-      },
       body: JSON.stringify({
-        user: 'testuser',
-        userId: 'test-user-id',
+        user: user_b.username,
+        userId: user_b.userId,
         toBeDeleted: true
       })
     };
 
     it('should successfully process delete account request', async () => {
-      sqsMock.on(SendMessageCommand).resolves({});
-      const response = await usersHandler(mockEvent);
+      const eventDeleteAccount = {
+        ...mockEventDeleteAccount,
+        headers: {
+          Authorization: `Bearer ${getToken(user_b.username, user_b.role, process.env.SECRET_ID_VALUE)}`
+        },
+      }
+      const response = await usersHandler(eventDeleteAccount);
 
       expect(response.statusCode).toBe(200);
       const body = JSON.parse(response.body);
       expect(body.success).toBe(true);
       expect(body.message).toBe('processed');
-      expect(sqsMock.calls()).toHaveLength(1);
     });
 
     it('should return 401 when token is missing', async () => {
       const eventWithoutToken = {
-        ...mockEvent,
+        ...mockEventDeleteAccount,
         headers: {}
       }
       const response = await usersHandler(eventWithoutToken);
@@ -217,12 +278,11 @@ describe('users lambda', () => {
       expect(response.statusCode).toBe("401");
       const body = JSON.parse(response.body);
       expect(body.message).toBe('Token is missing.');
-      expect(sqsMock.calls()).toHaveLength(0);
     });
 
     it('should return 401 when token is invalid', async () => {
       const eventWithInvalidToken = {
-        ...mockEvent,
+        ...mockEventDeleteAccount,
         headers: {
           Authorization: 'Bearer invalid-token'
         }
@@ -232,58 +292,56 @@ describe('users lambda', () => {
       expect(response.statusCode).toBe("401");
       const body = JSON.parse(response.body);
       expect(body.message).toBe('Token is invalid.');
-      expect(sqsMock.calls()).toHaveLength(0);
     })
   });
 
 
   describe('/users/forgot-password path', () => {
-    const mockEvent = {
+    const mockEventForgotPW = {
       path: '/users/forgot-password',
       body: JSON.stringify({
-        userEmail: 'test@example.com'
+        userEmail: user_a.email,
       })
     };
 
     it('should successfully process forgot password request', async () => {
-      sqsMock.on(SendMessageCommand).resolves({});
-      const response = await usersHandler(mockEvent);
+      const response = await usersHandler(mockEventForgotPW);
 
       expect(response.statusCode).toBe(200);
       const body = JSON.parse(response.body);
       expect(body.success).toBe(true);
       expect(body.message).toBe('processed');
-      expect(sqsMock.calls()).toHaveLength(1);
     });
-
   });
 
   describe('/users/change-password path', () => {
-    const mockEvent = {
+    const mockEventChangePW = {
       path: '/users/change-password',
-      headers: {
-        Authorization: `Bearer ${getToken()}`
-      },
       body: JSON.stringify({
-        password: 'newPassword123',
-        userId: 'test-user-id'
+        password: user_a.password, // use existing password as a "new" pw
+        userId: user_a.userId,
       })
     };
 
     it('should successfully process password change request', async () => {
-      sqsMock.on(SendMessageCommand).resolves({});
-      const response = await usersHandler(mockEvent);
+      const eventChangePW = {
+        ...mockEventChangePW,
+        headers: {
+          Authorization: `Bearer ${getToken(user_a.username, user_a.role, process.env.SECRET_ID_VALUE)}`
+        }
+      }
+
+      const response = await usersHandler(eventChangePW);
 
       expect(response.statusCode).toBe(200);
       const body = JSON.parse(response.body);
       expect(body.success).toBe(true);
       expect(body.message).toBe('processed');
-      expect(sqsMock.calls()).toHaveLength(1);
     });
 
     it('should return 401 when token is missing', async () => {
       const eventWithoutToken = {
-        ...mockEvent,
+        ...mockEventChangePW,
         headers: {}
       };
 
@@ -292,12 +350,11 @@ describe('users lambda', () => {
       expect(response.statusCode).toBe("401");
       const body = JSON.parse(response.body);
       expect(body.message).toBe('Token is missing.');
-      expect(sqsMock.calls()).toHaveLength(0);
     });
 
     it('should return 401 when token is invalid', async () => {
       const eventWithInvalidToken = {
-        ...mockEvent,
+        ...mockEventChangePW,
         headers: {
           Authorization: 'Bearer invalid-token'
         }
@@ -308,7 +365,6 @@ describe('users lambda', () => {
       expect(response.statusCode).toBe("401");
       const body = JSON.parse(response.body);
       expect(body.message).toBe('Token is invalid.');
-      expect(sqsMock.calls()).toHaveLength(0);
     });
   });
 });

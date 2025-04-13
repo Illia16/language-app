@@ -21,7 +21,6 @@ module.exports.handler = async (event) => {
     // Handle data
     const payload = JSON.parse(event.body);
     let user = '';
-    let userTierPremium = false;
 
     // Response obj
     let response = {
@@ -57,11 +56,9 @@ module.exports.handler = async (event) => {
             return responseWithError('401', `Payload is invalid.`, headerOrigin)
         }
 
-        // fetch user premiumStatus
-        try {
-            userTierPremium = userInfo[0].userTier === 'premium';
-        } catch (error) {
-            return responseWithError('401', `Failed to fetch user premiumStatus. ${error}`, headerOrigin)
+        let userTierPremium = userInfo[0].userTier === 'premium';
+        if (!userTierPremium) {
+            return responseWithError('401', `User is not premium.`, headerOrigin)
         }
         //
 

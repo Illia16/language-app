@@ -1,67 +1,118 @@
 const { mockClient } = require('aws-sdk-client-mock');
 require("aws-sdk-client-mock-jest");
-const { DynamoDBDocumentClient } = require('@aws-sdk/lib-dynamodb');
-const { SSMClient } = require('@aws-sdk/client-ssm');
-const { SESClient } = require("@aws-sdk/client-ses");
-const { SQSClient } = require("@aws-sdk/client-sqs");
-// const jwt = require('jsonwebtoken');
-// jest.mock('jsonwebtoken');
+const { getSecret } = require('../../lib/functions/helpers');
+const { createInvitationCode, createUser, deleteUser, deleteUserItemsByUserId, createUserItem, s3DeleteFile } = require('../util');
 
-// Mock clients
-const ddbMock = mockClient(DynamoDBDocumentClient);
-const ssmMock = mockClient(SSMClient);
-const sesMock = mockClient(SESClient);
-const sqsMock = mockClient(SQSClient);
-// Mock helper functions
-jest.mock('../../lib/functions/helpers', () => ({
-  findAll: jest.fn(),
-  findAllByPrimaryKey: jest.fn(),
-  findUserByEmail: jest.fn(),
-  findUser: jest.fn(),
-  getEventBridgeRuleInfo: jest.fn(),
-  getRateExpressionNextRun: jest.fn(),
-  getSecret: jest.fn(),
-  saveBatchItems: jest.fn(),
-  responseWithError: jest.fn().mockImplementation((code, message) => ({
-    statusCode: code,
-    body: JSON.stringify({ message })
-  }))
-}));
+const users = require('../fixtures/users');
 
 jest.mock('../../lib/functions/helpers/openai', () => ({
-  isAiDataValid: jest.fn(),
+  isAiDataValid: jest.requireActual('../../lib/functions/helpers/openai').isAiDataValid,
+  getAudio: jest.fn(() => {
+    const path = require('path');
+    const fs = require('fs');
+
+    const audioFilePath = path.resolve(__dirname, '../fixtures/test-item.mp3');
+    return fs.readFileSync(audioFilePath);
+  }),
+  getIncorrectItems: jest.fn(),
+  getAIDataBasedOnUserInput: jest.fn(),
 }));
 
-const setupTestEnv = () => {
-  process.env.STAGE = 'test';
-  process.env.PROJECT_NAME = 'test-project';
-  process.env.DB_DATA = 'test-data-table';
-  process.env.DB_USERS = 'test-users-table';
-  process.env.S3_FILES = 'test-bucket';
-  process.env.SECRET_ID = '/test/secret';
-  process.env.CLOUDFRONT_URL = 'test.com';
-  process.env.CLOUDFRONT_LOGIN = 'test_login';
-  process.env.CLOUDFRONT_PW = 'test_pw';
-  process.env.OPEN_AI_KEY = 'test_open_ai_key';
-  process.env.SQS_URL = 'test_sqs_url';
-  process.env.CERTIFICATE_ARN = 'test_certificate_arn';
-  process.env.EB_MANAGE_USERS_NAME = 'test_event_bridge_name';
+
+const tempUsers = Object.values(users).map(user => ({
+  username: user.username,
+  userId: user.userId,
+  password: user.password,
+  userRole: user.role,
+  userEmail: user.email,
+  userTier: user.tier,
+}));
+
+const fakeAiItems = [
+  {
+    item: 'test-item parse-ai-data 1',
+    itemCorrect: 'test-item-correct parse-ai-data 1',
+    itemTranscription: 'test-item-transcription parse-ai-data 1',
+    itemType: 'test-item-type parse-ai-data 1',
+    itemTypeCategory: 'test-item-type-category parse-ai-data 1',
+    incorrectItems: ['test-incorrect-item-1 parse-ai-data 1', 'test-incorrect-item-2 parse-ai-data 1', 'test-incorrect-item-3 parse-ai-data 1']
+  },
+  {
+    item: 'test-item parse-ai-data 2',
+    itemCorrect: 'test-item-correct parse-ai-data 2',
+    itemTranscription: 'test-item-transcription parse-ai-data 2',
+    itemType: 'test-item-type parse-ai-data 2',
+    itemTypeCategory: 'test-item-type-category parse-ai-data 2',
+    incorrectItems: ['test-incorrect-item-1 parse-ai-data 2', 'test-incorrect-item-2 parse-ai-data 2', 'test-incorrect-item-3 parse-ai-data 2']
+  },
+  {
+    item: 'test-item parse-ai-data 3',
+    itemCorrect: 'test-item-correct parse-ai-data 3',
+    itemTranscription: 'test-item-transcription parse-ai-data 3',
+    itemType: 'test-item-type parse-ai-data 3',
+    itemTypeCategory: 'test-item-type-category parse-ai-data 3',
+    incorrectItems: ['test-incorrect-item-1 parse-ai-data 3', 'test-incorrect-item-2 parse-ai-data 3', 'test-incorrect-item-3 parse-ai-data 3']
+  }
+];
+
+const setupTestEnv = async () => {
+  // Need to get secret to sign JWT for tests
+  const secretJwt = await getSecret(process.env.SECRET_ID);
+  process.env.SECRET_ID_VALUE = secretJwt;
+
+  // Create invitation code
+  const invitationCode = await createInvitationCode(process.env.DB_USERS);
+  process.env.INVITATION_CODE = invitationCode;
+
+  // Create users
+  for (const user of tempUsers) {
+    await createUser({
+      dbUsers: process.env.DB_USERS,
+      username: user.username,
+      userId: user.userId,
+      password: user.password,
+      userRole: user.userRole,
+      userEmail: user.userEmail,
+      userTier: user.userTier,
+    });
+  };
+
+  const userItemsToCreate = tempUsers.filter(usr => usr.userRole !== 'delete');
+  for (const user of userItemsToCreate) {
+    await createUserItem({
+      dbData: process.env.DB_DATA,
+      user: user.username,
+      itemID: user.userId,
+    });
+  }
 };
 
-const clearMocks = () => {
-  ddbMock.reset();
-  ssmMock.reset();
-  sesMock.reset();
-  sqsMock.reset();
-  jest.clearAllMocks();
-  jest.restoreAllMocks();
-};
+const cleanupTestEnv = async () => {
+  await Promise.all(tempUsers.map(async (user) => {
+    await deleteUser({ dbUsers: process.env.DB_USERS, user: user.username, userId: user.userId })
+    // Delete test user items from DynamoDB
+    await deleteUserItemsByUserId({ dbData: process.env.DB_DATA, user: user.username });
+  }));
+
+  const registeredUserName = 'user_register_from_integration_test';
+  const registeredUserId = registeredUserName + '___' + process.env.INVITATION_CODE;
+
+  await deleteUser({ dbUsers: process.env.DB_USERS, user: registeredUserName, userId: registeredUserId });
+
+  // Delete test files from S3 (individual files generated by the app)
+  await s3DeleteFile(process.env.S3_FILES, 'audio/test_put_item_1/test_put_item_1.m4a');
+  await s3DeleteFile(process.env.S3_FILES, 'audio/test_post_item_1/test_post_item_1.m4a');
+  await s3DeleteFile(process.env.S3_FILES, 'audio/test_post_item_2/test_post_item_2.mp3');
+  await s3DeleteFile(process.env.S3_FILES, 'audio/test-item_parse-ai-data_1/test-item_parse-ai-data_1.mp3');
+  await s3DeleteFile(process.env.S3_FILES, 'audio/test-item_parse-ai-data_2/test-item_parse-ai-data_2.mp3');
+  await s3DeleteFile(process.env.S3_FILES, 'audio/test-item_parse-ai-data_3/test-item_parse-ai-data_3.mp3');
+  await s3DeleteFile(process.env.S3_FILES, 'audio/test-item/test-item.mp3');
+}
+
 
 module.exports = {
-  ddbMock,
-  ssmMock,
-  sesMock,
-  sqsMock,
   setupTestEnv,
-  clearMocks,
+  cleanupTestEnv,
+  tempUsers,
+  fakeAiItems,
 };
