@@ -222,14 +222,12 @@ const login = async () => {
     .catch(er => {
         console.log('er', er);
     })
-    .finally(() => {
-        store.setLoading(false);
-    })
 
     if (!authUser.success) {
         errMsg.value = authUser?.message;
+        store.setLoading(false);
         return
-    } else {        
+    } else {
         errMsg.value = '';
         cookieUser.value = authUser.data.user;
         cookieUserId.value = authUser.data.userId;
@@ -243,6 +241,7 @@ const login = async () => {
         if (authUser.data.role === 'delete') {
             store.setUserRole(authUser.data.role)
             accountDeletionTime.value = Number(authUser.data.accountDeletionTime)/(1000 * 60 * 60 * 24);
+            store.setLoading(false);
         } else {
             store.setUserRole('');
             await getUserData();
