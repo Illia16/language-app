@@ -16,6 +16,10 @@ a {
 .form_el {
     input {
         @apply border border-black w-full text-center text-xl py-1;
+
+        &::placeholder {
+          @apply text-xl;
+        }
     }
 
     .field-error {
@@ -43,7 +47,7 @@ a {
 
     &:not([disabled]) {
         &:hover {
-            @apply bg-transparent text-mainGreen border-mainGreen border-2;
+            @apply bg-transparent text-mainGreen border-mainGreen;
         }
     }
 }

@@ -65,6 +65,12 @@ module.exports.handler = async (event, context) => {
     }
     //
 
+    // Check if user account is not "delete"
+    const userInfo = await findUser(dbUsers, user)
+    if (userInfo[0].role === 'delete') {
+        return responseWithError('410', 'User account is to be deleted.', headerOrigin);
+    }
+
     if (action === 'POST' || action === 'PUT') {
         if (isBase64Encoded) {
             const contentType = headers['Content-Type'] || headers['content-type'];
@@ -125,7 +131,6 @@ module.exports.handler = async (event, context) => {
 
     if (action === 'POST') {
         // fetch user premiumStatus
-        const userInfo = await findUser(dbUsers, user);
         userTierPremium = userInfo[0].userTier === 'premium';
         //
 
@@ -156,7 +161,7 @@ module.exports.handler = async (event, context) => {
                 incorrectItems = await getIncorrectItems(data.item);
             }
 
-            const allEls = [];
+            let resDataMsg = '';
             if (userRole === 'admin') {
                 // adding to all users that have the same lang as admin
                 const params = {
@@ -210,8 +215,8 @@ module.exports.handler = async (event, context) => {
                     }
                 };
                 const commandWrite = new BatchWriteCommand(input);
-                const resWrite = await docClient.send(commandWrite);
-                allEls.push(resWrite.ItemCollectionMetrics);
+                await docClient.send(commandWrite);
+                resDataMsg = `Successfully added ${data.item} by ${user}.`;
             } else {
                 const input = {
                     "Item": {
@@ -235,11 +240,11 @@ module.exports.handler = async (event, context) => {
                 };
 
                 const command = new PutCommand(input);
-                const res = await docClient.send(command);
-                allEls.push(res.Attributes);
+                await docClient.send(command);
+                resDataMsg = `Successfully added ${data.item} by ${user}.`;
             }
 
-            response.body = JSON.stringify({ success: true, data: allEls });
+            response.body = JSON.stringify({ success: true, data: resDataMsg });
         } catch (error) {
             return responseWithError('500', "Failed to post data", headerOrigin);
         }
@@ -255,35 +260,39 @@ module.exports.handler = async (event, context) => {
             }
             //
 
-            const allEls = [];
+            const expressionAttributeNames = {};
+            const expressionAttributeValues = {};
+            const updateExpressions = [];
+
             for (const key in data) {
                 if (!['user', 'itemID'].includes(key)) {
                     const attributeName = key === 'files' ? 'filePath' : key;
                     const attributeValue = (key === 'files' && filePath) ? filePath : data[key];
 
-                    const input = {
-                        TableName: dbData,
-                        Key: {
-                            user: user,
-                            itemID: data.itemID,
-                        },
-                        UpdateExpression: "SET #attributeName = :newValue",
-                        ExpressionAttributeNames: {
-                            "#attributeName": attributeName,
-                        },
-                        ExpressionAttributeValues: {
-                            ":newValue": attributeValue
-                        },
-                        ReturnValues: "ALL_NEW"
-                    };
+                    const placeholderName = `#${attributeName}`;
+                    const placeholderValue = `:${attributeName}`;
 
-                    const command = new UpdateCommand(input);
-                    const res = await docClient.send(command);
-                    allEls.push(res.Attributes);
+                    expressionAttributeNames[placeholderName] = attributeName;
+                    expressionAttributeValues[placeholderValue] = attributeValue;
+                    updateExpressions.push(`${placeholderName} = ${placeholderValue}`);
                 }
             }
 
-            response.body = JSON.stringify({ success: true, data: allEls });
+            const input = {
+                TableName: dbData,
+                Key: {
+                    user: user,
+                    itemID: data.itemID,
+                },
+                UpdateExpression: `SET ${updateExpressions.join(", ")}`,
+                ExpressionAttributeNames: expressionAttributeNames,
+                ExpressionAttributeValues: expressionAttributeValues,
+                ReturnValues: "ALL_NEW"
+            };
+
+            const command = new UpdateCommand(input);
+            const res = await docClient.send(command);
+            response.body = JSON.stringify({ success: true, data: res.Attributes });
         } catch (error) {
             return responseWithError('500', "Failed to PUT data", headerOrigin);
         }
@@ -312,7 +321,7 @@ module.exports.handler = async (event, context) => {
         //     await s3DeleteFile(s3Files, data.filePath)
         // }
         //
-        response.body = JSON.stringify({ success: true });
+        response.body = JSON.stringify({ success: true, message: 'Data deleted successfully' });
     }
 
     return response;

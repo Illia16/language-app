@@ -15,7 +15,7 @@ export const sortArray = (arr: SortableArray): SortableArray => {
     return arr;
 };
 
-export const getLesson = (m:string, lessonData: UserDataArrayOfObj): UserDataArrayOfObj => {    
+export const getLesson = (m:string, lessonData: UserDataArrayOfObj): UserDataArrayOfObj => {
     return sortArray(lessonData) as UserDataArrayOfObj;
 }
 
@@ -25,19 +25,19 @@ export const camelCaseString = (v: string):string => {
       }).replace(/\s+/g, '');
 }
 
-export const getQuestion = (m: string, lessonData: UserDataArrayOfObj, currentQuestionNum: number): Question => {    
+export const getQuestion = (m: string, lessonData: UserDataArrayOfObj, currentQuestionNum: number): Question => {
     const q = lessonData[currentQuestionNum-1] as UserData;
 
-    const handleQuestion = (m: string, lessonData: UserDataArrayOfObj): Question => {        
+    const handleQuestion = (m: string, lessonData: UserDataArrayOfObj): Question => {
         const questionAnswer = {} as Question;
         // diff splitter for Eng and Mandarin since the latter doesn't have spaces in sentences
-        const splitter = (q.languageStudying === 'zh' && m === mapModes.sentenceTranslationWord 
+        const splitter = (q.languageStudying === 'zh' && m === mapModes.sentenceTranslationWord
                         || q.userMotherTongue === 'zh' && m === mapModes.sentenceWordTranslation)
-                         ? '' : ' '; 
-        
+                         ? '' : ' ';
+
         questionAnswer.question = q[m === mapModes.wordTranslation || m === mapModes.wordTranslationMPChoice || m === mapModes.sentenceWordTranslation ? 'item' : 'itemCorrect'];
         questionAnswer.qAnswer = q[m === mapModes.wordTranslation || m === mapModes.wordTranslationMPChoice || m === mapModes.sentenceWordTranslation ? 'itemCorrect' : 'item'].replace(replaceAllinsideParantheses, '');
-        
+
         questionAnswer.id = q.itemID;
         questionAnswer.mode = m;
         questionAnswer.rule = camelCaseString(q.itemTypeCategory);
@@ -46,7 +46,7 @@ export const getQuestion = (m: string, lessonData: UserDataArrayOfObj, currentQu
         questionAnswer.item = q.item;
         questionAnswer.itemTranscription = q.itemTranscription;
 
-        if (m === mapModes.wordTranslationMPChoice) {            
+        if (m === mapModes.wordTranslationMPChoice) {
             questionAnswer.all = fillMpChoiceArray(lessonData, questionAnswer.qAnswer, 'itemCorrect');
         } else if (m === mapModes.translationWordMPChoice) {
             questionAnswer.all = fillMpChoiceArray(lessonData, questionAnswer.qAnswer, 'item');
@@ -64,7 +64,7 @@ export const getQuestion = (m: string, lessonData: UserDataArrayOfObj, currentQu
         const isEligibleForSentence = q.languageStudying === 'zh' ? q.item.split("").length >= 2 : q.item.split(" ").length >= 3;
         const hasAudioFile = q.filePath && q.fileUrl ? true : false;
         const randomMode = getRandomMode(isEligibleForSentence, hasAudioFile);
-        
+
         return handleQuestion(randomMode, lessonData);
     }
 }
@@ -72,12 +72,12 @@ export const getQuestion = (m: string, lessonData: UserDataArrayOfObj, currentQu
 // function to get a random mode
 const getRandomMode = (isEligibleForSentence: boolean, hasAudioFile: boolean):string => {
     const allModes: string[] = [
-        hasAudioFile && mapModes.wordListening, 
-        mapModes.wordTranslation, 
-        mapModes.translationWord, 
-        mapModes.wordTranslationMPChoice, 
-        mapModes.translationWordMPChoice, 
-        isEligibleForSentence && mapModes.sentenceWordTranslation, 
+        hasAudioFile && mapModes.wordListening,
+        mapModes.wordTranslation,
+        mapModes.translationWord,
+        mapModes.wordTranslationMPChoice,
+        mapModes.translationWordMPChoice,
+        isEligibleForSentence && mapModes.sentenceWordTranslation,
         isEligibleForSentence && mapModes.sentenceTranslationWord
     ]
     .filter(el=>el)
@@ -91,7 +91,7 @@ export const fillMpChoiceArray = (data: UserDataArrayOfObj, correctAnswer:string
 
     // check if there's predefined incorrect options
     const hasIncorrectOptions: UserData = data.filter(el => el[mpChoiceType]?.replace(replaceAllinsideParantheses, '') === correctAnswer && el?.incorrectItems?.length)[0];
-    
+
     if (hasIncorrectOptions?.incorrectItems?.length && mpChoiceType === 'item') {
         const mpChoices = hasIncorrectOptions.incorrectItems
             .map((el: string): MpChoices => {
@@ -100,12 +100,12 @@ export const fillMpChoiceArray = (data: UserDataArrayOfObj, correctAnswer:string
                     itemTranscription: null,
                 };
             })
-        mpChoices.push({item: correctAnswer, itemTranscription: hasIncorrectOptions?.itemTranscription});    
+        mpChoices.push({item: correctAnswer, itemTranscription: hasIncorrectOptions?.itemTranscription});
         return sortArray(mpChoices) as MpChoicesArrayOfObj;
     } else {
         const mpChoices = data
             .map((el: UserData, i: number): MpChoices => {
-                
+
                 let res: MpChoices = {} as MpChoices;
                 const q: string = el[mpChoiceType]?.replace(replaceAllinsideParantheses, '');
                 if (q !== correctAnswer) {
@@ -116,13 +116,13 @@ export const fillMpChoiceArray = (data: UserDataArrayOfObj, correctAnswer:string
                 } else {
                     correctitemTranscription = el?.itemTranscription;
                 }
-                                    
+
                 return res;
             })
             .filter(el=>el.item)
             .slice(0, 3);
-        
-        mpChoices.push({item: correctAnswer, itemTranscription: correctitemTranscription});    
+
+        mpChoices.push({item: correctAnswer, itemTranscription: correctitemTranscription});
         return sortArray(mpChoices) as MpChoicesArrayOfObj;
     }
 }
@@ -156,4 +156,12 @@ export const mapModes = {
     sentenceWordTranslation: 'sentenceWordTranslation',
     sentenceTranslationWord: 'sentenceTranslationWord',
     random: 'random',
+}
+
+export const detectLanguage = (v: string): string => {
+    // extend if needed
+    if (/[\u4e00-\u9fff]/.test(v)) {
+        return 'zh';
+    }
+    return 'other';
 }

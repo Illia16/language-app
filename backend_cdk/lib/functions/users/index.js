@@ -7,7 +7,7 @@ const clientSQS = new SQSClient({});
 // const clientSES = new SESClient({});
 const client = new DynamoDBClient({});
 const docClient = DynamoDBDocumentClient.from(client);
-const { responseWithError, cleanUpFileName, s3UploadFile, getSecret, findUser, findAll, findAllByPrimaryKey, getEventBridgeRuleInfo, getRateExpressionNextRun } = require('../helpers');
+const { responseWithError, cleanUpFileName, s3UploadFile, getSecret, findUser, findAll, findAllByPrimaryKey, getEventBridgeRuleInfo, getCronExpressionNextRun } = require('../helpers');
 const { getIncorrectItems, getAudio } = require('../helpers/openai');
 const { checkPassword, hashPassword } = require('../helpers/auth');
 const { v4: uuidv4 } = require("uuid");
@@ -60,8 +60,9 @@ module.exports.handler = async (event, context) => {
 
         let accountDeleteAt;
         if (userObj.role === 'delete') {
+            // Currently it tells that expression only, not the next run date
             const eventBridgeManageUsersData = await getEventBridgeRuleInfo(eventBridgeManageUsers);
-            accountDeleteAt = getRateExpressionNextRun(eventBridgeManageUsersData.ScheduleExpression)
+            accountDeleteAt = getCronExpressionNextRun(eventBridgeManageUsersData.ScheduleExpression)
         }
 
         const token = jwt.sign({ user: userObj.user, ...(userObj.role === 'admin' && { role: userObj.role }) }, secretJwt, { expiresIn: '25 days' });
@@ -108,7 +109,7 @@ module.exports.handler = async (event, context) => {
             if (error.name === 'JsonWebTokenError' || error.name === 'TokenExpiredError') {
                 return responseWithError('401', 'Token is invalid.', headerOrigin);
             } else {
-                console.error('Internal server error:', error.message);
+                console.log('Internal server error:', error.message);
                 return responseWithError('500', error.message, headerOrigin);
             }
         }

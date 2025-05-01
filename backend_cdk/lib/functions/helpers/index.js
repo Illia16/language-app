@@ -186,39 +186,39 @@ module.exports = {
             return error;
         }
     },
-    getRateExpressionNextRun: (scheduleExpression) => {
-        if (!scheduleExpression.startsWith('rate(')) {
+    getCronExpressionNextRun: (scheduleExpression) => {
+        if (!scheduleExpression.startsWith('cron(')) {
             throw new Error('Invalid scheduleExpression');
         }
 
-        const now = new Date();
-        const match = scheduleExpression.match(/rate\((\d+) (minute|minutes|hour|hours|day|days)\)/);
-
-        if (!match) throw new Error('Invalid rate expression');
-
-        const value = parseInt(match[1], 10);
-        const unit = match[2];
-        let nextRunTime;
-
-        switch (unit) {
-            case 'minute':
-            case 'minutes':
-                nextRunTime = new Date(now.getTime() + value * 60 * 1000);
-                break;
-            case 'hour':
-            case 'hours':
-                nextRunTime = new Date(now.getTime() + value * 60 * 60 * 1000);
-                break;
-            case 'day':
-            case 'days':
-                nextRunTime = new Date(now.getTime() + value * 24 * 60 * 60 * 1000);
-                break;
-            default:
-                throw new Error('Unsupported time unit');
+        // Extract cron expression parts
+        const cronMatch = scheduleExpression.match(/cron\((\d+) (\d+) (\d+) (\*|\d+) (\?|\d+) (\*|\d+)\)/);
+        if (!cronMatch) {
+            throw new Error('Invalid cron expression format');
         }
 
-        // time in ms
-        return nextRunTime - now;
+        const [_, minute, hour, dayOfMonth, month, dayOfWeek, year] = cronMatch;
+
+        // Create target date
+        const now = new Date();
+        const targetDate = new Date(now);
+
+        // Set the target date components
+        targetDate.setMinutes(parseInt(minute, 10));
+        targetDate.setHours(parseInt(hour, 10));
+        targetDate.setDate(parseInt(dayOfMonth, 10));
+
+
+        // If the target date is in the past, move it to the next occurrence
+        if (targetDate < now) {
+            // If it's past the day this month, move to next month
+            if (targetDate.getDate() !== parseInt(dayOfMonth, 10)) {
+                targetDate.setMonth(targetDate.getMonth() + 1);
+            }
+        }
+
+        // Return time until next execution in milliseconds
+        return targetDate - now;
     },
     saveBatchItems: async (resultsAIdata, userTierPremium, user, userMotherTongue, languageStudying) => {
         try {

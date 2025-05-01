@@ -1,6 +1,7 @@
 const cdk = require('aws-cdk-lib');
 const s3 = require('aws-cdk-lib/aws-s3');
 const cloudfront = require('aws-cdk-lib/aws-cloudfront');
+// const origins = require('aws-cdk-lib/aws-cloudfront-origins');
 const lambda = require('aws-cdk-lib/aws-lambda');
 const dynamoDb = require('aws-cdk-lib/aws-dynamodb');
 const apiGateway = require('aws-cdk-lib/aws-apigateway');
@@ -143,6 +144,28 @@ class BackendCdkStack extends cdk.Stack {
       ],
     });
 
+    // const oac = new cloudfront.S3OriginAccessControl(this, `${PROJECT_NAME}--oac--${STAGE}`, {
+    //   originAccessControlName: `${PROJECT_NAME}--oac--${STAGE}`,
+    //   signing: cloudfront.Signing.SIGV4_ALWAYS,
+    // });
+
+    // new cloudfront.Distribution(this, `${PROJECT_NAME}--cf--${STAGE}`, {
+    //   defaultBehavior: {
+    //     origin: origins.S3BucketOrigin.withOriginAccessControl(websiteBucket, {
+    //       originAccessControl: oac,
+    //     }),
+    //     functionAssociations: [{
+    //       eventType: cloudfront.FunctionEventType.VIEWER_REQUEST,
+    //       function: cfFunction,
+    //     }]
+    //   },
+    //   certificate: ssl_cert,
+    //   domainNames: [STAGE === 'prod' ? 'languageapp.illusha.net' : 'languageapp-test.illusha.net'],
+    //   minimumProtocolVersion: cloudfront.SecurityPolicyProtocol.TLS_V1_2_2021,
+    //   sslSupportMethod: cloudfront.SSLMethod.SNI,
+    //   defaultRootObject: 'index.html',
+    // });
+
     const myTable = new dynamoDb.TableV2(this, `${PROJECT_NAME}--db-data--${STAGE}`, {
       tableName: `${PROJECT_NAME}--db-data--${STAGE}`,
       partitionKey: {
@@ -181,12 +204,12 @@ class BackendCdkStack extends cdk.Stack {
       layerVersionName: `${PROJECT_NAME}--fn-layer--${STAGE}`,
       code: lambda.Code.fromAsset(path.join(__dirname, 'layers/layer-lambda')),
       compatibleArchitectures: [lambda.Architecture.X86_64, lambda.Architecture.ARM_64],
-      compatibleRuntimes: [lambda.Runtime.NODEJS_18_X, lambda.Runtime.NODEJS_20_X]
+      compatibleRuntimes: [lambda.Runtime.NODEJS_20_X, lambda.Runtime.NODEJS_22_X]
     });
 
     // Lambda fn #1 (handle items by user: add, delete, update)
     const lambdaFnDynamoDb = new lambda.Function(this, `${PROJECT_NAME}--lambda-fn-data--${STAGE}`, {
-      runtime: lambda.Runtime.NODEJS_18_X,
+      runtime: lambda.Runtime.NODEJS_22_X,
       handler: 'data/index.handler',
       code: lambda.Code.fromAsset(path.join(__dirname, 'functions')),
       functionName: `${PROJECT_NAME}--lambda-fn-data--${STAGE}`,
@@ -211,7 +234,7 @@ class BackendCdkStack extends cdk.Stack {
 
     // Lambda fn #2 (handle users: login, generate-invitation-code, register, delete-account, forgot-password, change-password)
     const authFn = new lambda.Function(this, `${PROJECT_NAME}--lambda-fn-users--${STAGE}`, {
-      runtime: lambda.Runtime.NODEJS_18_X,
+      runtime: lambda.Runtime.NODEJS_22_X,
       handler: 'users/index.handler',
       code: lambda.Code.fromAsset(path.join(__dirname, 'functions')),
       functionName: `${PROJECT_NAME}--lambda-fn-users--${STAGE}`,
@@ -235,7 +258,7 @@ class BackendCdkStack extends cdk.Stack {
 
     // Lambda fn #3 (generate items by AI from user input)
     const lambdaFnDataAIGenerated = new lambda.Function(this, `${PROJECT_NAME}--lambda-fn-data-ai-generated--${STAGE}`, {
-      runtime: lambda.Runtime.NODEJS_20_X,
+      runtime: lambda.Runtime.NODEJS_22_X,
       handler: 'data-ai-generated/index.handler',
       code: lambda.Code.fromAsset(path.join(__dirname, 'functions')),
       functionName: `${PROJECT_NAME}--lambda-fn-data-ai-generated--${STAGE}`,
@@ -331,7 +354,7 @@ class BackendCdkStack extends cdk.Stack {
 
     // Lambda fn #4 (manage users: delete)
     const manageUsersFn = new lambda.Function(this, `${PROJECT_NAME}--lambda-fn-manage-users--${STAGE}`, {
-      runtime: lambda.Runtime.NODEJS_18_X,
+      runtime: lambda.Runtime.NODEJS_22_X,
       handler: 'manage-users/index.handler',
       code: lambda.Code.fromAsset(path.join(__dirname, 'functions')),
       functionName: `${PROJECT_NAME}--lambda-fn-manage-users--${STAGE}`,
@@ -353,7 +376,7 @@ class BackendCdkStack extends cdk.Stack {
 
     // Lambda fn #5 (rotate secret)
     const rotateSecretFn = new lambda.Function(this, `${PROJECT_NAME}--lambda-fn-secret-rotation--${STAGE}`, {
-      runtime: lambda.Runtime.NODEJS_18_X,
+      runtime: lambda.Runtime.NODEJS_22_X,
       handler: 'secret-rotation/index.handler',
       code: lambda.Code.fromAsset(path.join(__dirname, 'functions')),
       functionName: `${PROJECT_NAME}--lambda-fn-secret-rotation--${STAGE}`,
@@ -372,7 +395,7 @@ class BackendCdkStack extends cdk.Stack {
     const rule = new events.Rule(this, `${PROJECT_NAME}--secret-update-schedule-rule--${STAGE}`, {
       ruleName: `${PROJECT_NAME}--secret-update-schedule-rule--${STAGE}`,
       description: `Event to update auth secret for ${PROJECT_NAME} project ${STAGE} env`,
-      schedule: events.Schedule.rate(cdk.Duration.days(25)),
+      schedule: events.Schedule.cron({ minute: '5', hour: '10', day: '25', month: '*', year: '*' }),
       targets: [new eventsTargets.LambdaFunction(rotateSecretFn, {
         retryAttempts: 0,
       })],
@@ -381,7 +404,7 @@ class BackendCdkStack extends cdk.Stack {
     const manageUsersRule = new events.Rule(this, `${PROJECT_NAME}--manage-users-schedule-rule--${STAGE}`, {
       ruleName: `${PROJECT_NAME}--manage-users-schedule-rule--${STAGE}`,
       description: `Event to manage users for ${PROJECT_NAME} project ${STAGE} env`,
-      schedule: events.Schedule.rate(cdk.Duration.days(30)),
+      schedule: events.Schedule.cron({ minute: '5', hour: '10', day: '25', month: '*', year: '*' }),
       targets: [new eventsTargets.LambdaFunction(manageUsersFn, {
         retryAttempts: 0,
       })],
@@ -403,7 +426,7 @@ class BackendCdkStack extends cdk.Stack {
 
     // Lambda fn #6 (handle users: sqs)
     const lambdaFnSQS = new lambda.Function(this, `${PROJECT_NAME}--lambda-fn-users-sqs--${STAGE}`, {
-      runtime: lambda.Runtime.NODEJS_18_X,
+      runtime: lambda.Runtime.NODEJS_22_X,
       handler: 'users-sqs/index.handler',
       code: lambda.Code.fromAsset(path.join(__dirname, 'functions')),
       functionName: `${PROJECT_NAME}--lambda-fn-users-sqs--${STAGE}`,
