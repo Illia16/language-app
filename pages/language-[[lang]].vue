@@ -108,10 +108,10 @@
                 :playRightAway="true"
             >
             </AudioPlayer>
-            <span class="lesson-started--question-text">
+            <span :class="`lesson-started--question-text lesson-started--question-text--${detectLanguage(currentQuestion.question)}`">
                 <span
                     v-if="[mapModes.wordTranslation, mapModes.translationWord, mapModes.wordTranslationMPChoice, mapModes.translationWordMPChoice, mapModes.sentenceWordTranslation, mapModes.sentenceTranslationWord, mapModes.random].includes(currentQuestion.mode)"
-                    :class="!currentQuestionAnswered ? 'animated-text' : 'font-bold'">
+                    :class="!currentQuestionAnswered ? 'animated-text' : ''">
                     {{currentQuestion.question}}
                 </span>
                 <span
@@ -142,7 +142,7 @@
         </div>
 
         <!--MODE: Multiple Choice -->
-        <div class="lesson-started-mp-choice" v-if="currentQuestion.mode === mapModes.wordTranslationMPChoice || currentQuestion.mode === mapModes.translationWordMPChoice">
+        <div :class="`lesson-started-mp-choice lesson-started-mp-choice--${detectLanguage(currentQuestion.qAnswer)}`" v-if="currentQuestion.mode === mapModes.wordTranslationMPChoice || currentQuestion.mode === mapModes.translationWordMPChoice">
             <div v-for="(q, key) of currentQuestion.all" :key="`mp-choice-q-key-${key}`" class="mp-choice-checkbox" tabindex="0">
                 <label :class="[`${currentQuestionAnswered ? 'lesson-started-mp-choice-answered' : ''}`]">
                     <input
@@ -155,12 +155,13 @@
                         v-model="userAnswer"
                     />
                     <span class="tense-name">
-                        <span>
+                        <span class="tense-name--item">
                             {{q.item}}
                         </span>
                         <span
                             v-if="q.itemTranscription
                             && [mapModes.translationWord, mapModes.translationWordMPChoice, mapModes.sentenceTranslationWord].includes(currentQuestion.mode)"
+                            class="tense-name--item-transcription"
                         >
                             ({{ q.itemTranscription }})
                         </span>
@@ -171,7 +172,7 @@
 
         <!--MODE: Sentence Builer -->
         <template v-if="currentQuestion.mode === mapModes.sentenceWordTranslation || currentQuestion.mode === mapModes.sentenceTranslationWord">
-            <div class="lesson-started--sentenceBuiler">
+            <div :class="`lesson-started--sentenceBuiler lesson-started--sentenceBuiler--${detectLanguage(currentQuestion.qAnswer)}`">
                 <button
                     @click="userAnswer ? userAnswer = userAnswer + (lessonData[0].languageStudying === 'zh' && currentQuestion.mode === mapModes.sentenceTranslationWord ? '' : ' ') + word : userAnswer = word"
                     v-for="(word, key) of currentQuestion.splitted"
@@ -182,7 +183,7 @@
                 </button>
             </div>
 
-            <div class="lesson-started--sentenceBuiler-userAnswer">
+            <div :class="`lesson-started--sentenceBuiler-userAnswer lesson-started--sentenceBuiler-userAnswer--${detectLanguage(currentQuestion.qAnswer)}`">
                 <h4>{{ t('yourAnswer') }}</h4>
                 <div class="lesson-started--sentenceBuiler-userAnswer-dynamic">{{userAnswer}}</div>
 
@@ -242,7 +243,7 @@
 import GrammarEng from 'components/english/GrammarEng.vue';
 import GrammarRulesEng from 'components/english/GrammarRulesEng.vue';
 import { useMainStore } from 'store/main';
-import { getLesson, getQuestion, isCorrect, mapModes } from 'helper/helpers';
+import { getLesson, getQuestion, isCorrect, mapModes, detectLanguage } from 'helper/helpers';
 import { UserDataArrayOfObj, Question, ReportArrayOfObj, RecordUserAnswerDestructured, Report } from 'types/helperTypes'
 const store = useMainStore();
 const { t } = useI18n({useScope: 'local'})
@@ -469,6 +470,20 @@ section {
                     @apply text-xl;
                 }
             }
+
+            .lesson-started--question-text {
+              @apply font-extralight;
+
+              &.lesson-started--question-text--zh {
+                @apply  text-6xl leading-normal pt-4;
+              }
+            }
+        }
+
+        .form_el {
+          input {
+            @apply text-4xl py-4;
+          }
         }
 
         .lesson-started-mp-choice {
@@ -489,17 +504,39 @@ section {
                 }
 
                 .tense-name {
-                    @apply flex p-2 w-full;
+                    @apply flex p-2 w-full items-center;
+
+                    .tense-name--item {
+                      @apply font-extralight;
+                    }
 
                 }
                 input:checked ~ .tense-name {
                     @apply bg-mainGreen text-white;
                 }
             }
+
+            &.lesson-started-mp-choice--zh {
+              .tense-name {
+                .tense-name--item {
+                  @apply text-4xl;
+                }
+              }
+            }
         }
 
         .lesson-started--sentenceBuiler {
             @apply my-5 flex justify-center flex-wrap;
+
+            button {
+              @apply font-extralight;
+            }
+
+            &.lesson-started--sentenceBuiler--zh {
+              button {
+                @apply text-7xl p-3;
+              }
+            }
         }
 
         .lesson-started--sentenceBuiler-userAnswer {
@@ -510,11 +547,17 @@ section {
             }
 
             .lesson-started--sentenceBuiler-userAnswer-dynamic {
-                @apply min-h-[40px] text-center font-bold text-2xl;
+                @apply min-h-[40px] text-center text-2xl font-extralight;
             }
 
             .lesson-started--sentenceBuiler-userAnswer-clearBtn {
                 @apply text-center;
+            }
+
+            &.lesson-started--sentenceBuiler-userAnswer--zh {
+              .lesson-started--sentenceBuiler-userAnswer-dynamic {
+                @apply text-7xl my-10;
+              }
             }
         }
 
@@ -527,16 +570,6 @@ section {
                 button {
                     @apply mt-3 w-full;
                 }
-            }
-        }
-    }
-}
-
-.language-learning--zh {
-    .lesson-started {
-        .lesson-started--question {
-            .lesson-started--question-text {
-                @apply  text-6xl leading-none;
             }
         }
     }
