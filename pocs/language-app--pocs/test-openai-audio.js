@@ -3,21 +3,42 @@ const path = require('path');
 const OpenAI = require("openai");
 
 const config = require('../../deploy.config');
-
 const openai = new OpenAI({ apiKey: config.OPEN_AI_KEY });
 
-const baseSentence = "The man needs help.";
-const speechFile = path.resolve("./audio-generated/speech.mp3");
+// Get command-line arguments
+const args = process.argv.slice(2);
+if (args.length < 2) {
+  console.error("Usage: node script.js '<baseSentence>' '<instructions>'");
+  process.exit(1);
+}
+const baseSentence = args[0];
+const instructions = args[1];
 
-async function main(v) {
+console.log('instructions', instructions);
+console.log('baseSentence', baseSentence);
+
+const safeFilename = baseSentence
+  .toLowerCase()
+  .replace(/[^\w\s]/g, '')
+  .split(/\s+/)
+  .slice(0, 5)
+  .join('-')
+  .substring(0, 50);
+
+const speechFile = path.resolve(`./audio-generated/speech--${safeFilename}.mp3`);
+console.log('speechFile',speechFile);
+
+async function main(v, instructions) {
   const mp3 = await openai.audio.speech.create({
-    model: "tts-1",
+    model: "gpt-4o-mini-tts",
     voice: "echo",
     input: v,
+    instructions: instructions,
   });
-  console.log('mp3', mp3);
+
   const buffer = Buffer.from(await mp3.arrayBuffer());
-  console.log('buffer', buffer);
   await fs.promises.writeFile(speechFile, buffer);
+  console.log(`Audio saved to ${speechFile}`);
 }
-main(baseSentence);
+
+main(baseSentence, instructions);
