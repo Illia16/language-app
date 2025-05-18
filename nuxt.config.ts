@@ -1,11 +1,6 @@
 import { resolve } from 'path'
-import type { NuxtConfig } from '@nuxt/types'
 
-console.log('API_URL_DATA:', process.env.API_URL_DATA,);
-console.log('API_URL_USERS:', process.env.API_URL_USERS,);
-console.log('ENV_NAME:', process.env.ENV_NAME,);
-
-const config: NuxtConfig = {
+export default defineNuxtConfig({
     runtimeConfig: {
         API_URL_DATA: process.env.API_URL_DATA,
         ENV_NAME: process.env.ENV_NAME,
@@ -14,6 +9,10 @@ const config: NuxtConfig = {
             API_URL_USERS: process.env.API_URL_USERS,
             ENV_NAME: process.env.ENV_NAME,
         }
+    },
+    compatibilityDate: "2024-11-01",
+    devtools: {
+        enabled: false,
     },
     app: {
         head: {
@@ -29,23 +28,9 @@ const config: NuxtConfig = {
             link: [
                 { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' }
             ]
-        },
+        }
     },
     css: ["@/assets/styles/main.scss"],
-    build: {
-        postcss: {
-            postcssOptions: {
-                plugins: {
-                    tailwindcss: {},
-                    autoprefixer: {},
-                },
-            },
-        },
-    },
-    buildModules: [
-        '@nuxt/postcss8',
-        '@nuxt/typescript-build',
-    ],
     modules: [
         '@pinia/nuxt',
         '@nuxtjs/tailwindcss',
@@ -57,21 +42,9 @@ const config: NuxtConfig = {
                 defaultLocale: 'en',
                 fallbackLocale: "en",
                 locales: [
-                    {
-                        code: 'en',
-                        iso: 'en-US',
-                        name: 'English'
-                    },
-                    {
-                        code: 'ru',
-                        iso: 'ru-RU',
-                        name: 'Русский'
-                    },
-                    {
-                        code: 'zh',
-                        iso: 'zh-CN',
-                        name: '简体中文'
-                    }
+                    { code: 'en', iso: 'en-US', name: 'English' },
+                    { code: 'ru', iso: 'ru-RU', name: 'Русский' },
+                    { code: 'zh', iso: 'zh-CN', name: '简体中文' }
                 ],
                 detectBrowserLanguage: {
                     useCookie: true,
@@ -99,7 +72,11 @@ const config: NuxtConfig = {
         'store': resolve(__dirname, './store'),
         'types': resolve(__dirname, './types'),
         'components': resolve(__dirname, './components')
+    },
+    postcss: {
+        plugins: {
+            tailwindcss: {},
+            autoprefixer: {},
+        },
     }
-};
-
-export default config;
+})
