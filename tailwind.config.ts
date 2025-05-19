@@ -17,7 +17,7 @@ export default <Partial<Config>>{
                 "white": '#fff',
             },
             fontFamily: {
-                heading: ['"Roboto Condensed"'],
+                heading: ['Roboto Condensed'],
                 main: ['Roboto'],
             }
         },

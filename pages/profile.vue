@@ -448,7 +448,7 @@
 
 <script lang="ts" setup>
 import { useMainStore } from 'store/main';
-import { UserData } from 'types/helperTypes'
+import { type UserData } from 'types/helperTypes'
 import { v4 as uuidv4  } from "uuid";
 import { mapLanguage } from 'helper/helpers';
 

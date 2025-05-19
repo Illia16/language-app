@@ -111,7 +111,7 @@
 <script lang="ts" setup>
 import { useMainStore } from 'store/main';
 import { mapLanguage } from 'helper/helpers';
-import { UserData } from 'types/helperTypes'
+import { type UserData } from 'types/helperTypes'
 
 const config = useRuntimeConfig();
 const store = useMainStore();
@@ -377,7 +377,7 @@ onMounted(async() => {
         forgotPassword: 'Forgot password?'
         specifyYourEmail: 'Please, specify your email'
         createAccount: 'Create account'
-        accountDeletionTime: Your account will be deleted in <span class="green-bolded">{v}</span> days
+        accountDeletionTime: Your account will be deleted in {v} days
         username: 'Username'
         password: 'Password'
         retypePassword: 'Retype password'
@@ -396,7 +396,7 @@ onMounted(async() => {
         forgotPassword: 'Забыли пароль?'
         specifyYourEmail: 'Укажите вашу электронную почту'
         createAccount: 'Создать аккаунт'
-        accountDeletionTime: Ваш аккаунт будет удален через <span class="font-black underline">{v}</span> дней
+        accountDeletionTime: Ваш аккаунт будет удален через {v} дней
         username: 'Логин'
         password: 'Пароль'
         retypePassword: 'Повторите пароль'
@@ -415,7 +415,7 @@ onMounted(async() => {
         forgotPassword: 忘記密碼？
         specifyYourEmail: 請指定您的電子郵件
         createAccount: 創建帳戶
-        accountDeletionTime: 你的帐户将在 <span class="green-bolded">{v}</span> 天内被删除
+        accountDeletionTime: 你的帐户将在 {v} 天内被删除
         username: 用戶名
         password: 密碼
         retypePassword: 重新輸入密碼
