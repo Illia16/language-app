@@ -25,7 +25,7 @@
 
 <script lang="ts" setup>
 import { useMainStore } from 'store/main'
-import { UserDataArrayOfObj, Report } from 'types/helperTypes'
+import { type UserDataArrayOfObj, type Report } from 'types/helperTypes'
 const store = useMainStore()
 const config = useRuntimeConfig();
 const { t } = useI18n({useScope: 'local'})

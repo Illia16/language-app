@@ -1,5 +1,5 @@
 import { defineStore } from "pinia";
-import { UserDataArrayOfObj } from 'types/helperTypes';
+import { type UserDataArrayOfObj } from 'types/helperTypes';
 
 export const useMainStore = defineStore('main-store', {
     state: () => ({

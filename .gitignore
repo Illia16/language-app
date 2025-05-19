@@ -107,3 +107,5 @@ sw.*
 *.swp
 
 .vscode
+
+pocs/*/*/*.mp3

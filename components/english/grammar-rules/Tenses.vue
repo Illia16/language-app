@@ -523,7 +523,7 @@ const tensesDataShort: TensesDataShort = {
         negative: Negative
         question: Question
         questionNegative: Question negative
-        examplesBelow: See examples <span class="green-bolded">{v}</span> below
+        examplesBelow: See examples {v} below
         examples: Rules and examples
         presentSimple:
             name: Present Simple
@@ -590,7 +590,7 @@ const tensesDataShort: TensesDataShort = {
         negative: Отрицающее
         question: Вопросительное
         questionNegative: Вопросительное отрицательное
-        examplesBelow: Смотрите примеры <span class="green-bolded">{v}</span> ниже
+        examplesBelow: "Смотрите примеры {v} ниже"
         examples: Правила и примеры
         presentSimple:
             name: Настоящее простое
@@ -657,7 +657,7 @@ const tensesDataShort: TensesDataShort = {
         negative: '否定'
         question: '问题'
         questionNegative: '否定问题'
-        examplesBelow: '请参阅以下示例 <span class="green-bolded">{v}</span>'
+        examplesBelow: '请参阅以下示例'
         examples: '规则和例子'
         presentSimple:
             name: '现在时态'
