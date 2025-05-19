@@ -244,7 +244,7 @@ import GrammarEng from 'components/english/GrammarEng.vue';
 import GrammarRulesEng from 'components/english/GrammarRulesEng.vue';
 import { useMainStore } from 'store/main';
 import { getLesson, getQuestion, isCorrect, mapModes, detectLanguage } from 'helper/helpers';
-import { UserDataArrayOfObj, Question, ReportArrayOfObj, RecordUserAnswerDestructured, Report } from 'types/helperTypes'
+import { type UserDataArrayOfObj, type Question, type ReportArrayOfObj, type RecordUserAnswerDestructured, type Report } from 'types/helperTypes'
 const store = useMainStore();
 const { t } = useI18n({useScope: 'local'})
 const route = useRoute()

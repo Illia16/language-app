@@ -1,4 +1,4 @@
-import { UserData, UserDataArrayOfObj, SortableArray, Question, MpChoices, MpChoicesArrayOfObj } from 'types/helperTypes';
+import { type UserData, type UserDataArrayOfObj, type SortableArray, type Question, type MpChoices, type MpChoicesArrayOfObj } from 'types/helperTypes';
 
 // Replaced () and all what's inside with empty string so that the hint OR transcription is not included in the answer
 const replaceAllinsideParantheses = new RegExp(/\s*\([^)]*\)/);
@@ -15,7 +15,7 @@ export const sortArray = (arr: SortableArray): SortableArray => {
     return arr;
 };
 
-export const getLesson = (m:string, lessonData: UserDataArrayOfObj): UserDataArrayOfObj => {
+export const getLesson = (m:string, lessonData: UserDataArrayOfObj): UserDataArrayOfObj => {    
     return sortArray(lessonData) as UserDataArrayOfObj;
 }
 

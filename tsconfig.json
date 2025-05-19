@@ -1,26 +1,10 @@
 {
   "compilerOptions": {
-    "target": "es2020",
-    "module": "esnext",
-    "lib": [
-      "ESNext",
-      "ESNext.AsyncIterable",
-      "DOM"
-    ],
-    "esModuleInterop": true,
-    "allowSyntheticDefaultImports": true,
-    "sourceMap": true,
-    "strict": true,
     "allowJs": false,
     "noImplicitAny": true,
     "noImplicitReturns": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
-    "experimentalDecorators": true,
-    "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true,
-    "moduleResolution": "node",
-    "noEmit": true,
     "baseUrl": ".",
     "paths": {
       "store": [
@@ -33,24 +17,6 @@
         "./*"
       ],
     },
-    "types": [
-      "@nuxt/types",
-      "@nuxt/typescript-build",
-      "@types/node",
-    ],
   },
   "extends": "./.nuxt/tsconfig.json",
-  "include": [
-    "nuxt.config.ts",
-    "layouts/**/*.vue",
-    "pages/**/*.vue",
-    "plugins/**/*.ts",
-    "store/**/*.ts",
-    "env.d.ts",
-    ".nuxt/nuxt.d.ts",
-    "**/*"
-  ],
-  "exclude": [
-    "node_modules"
-  ]
 }
