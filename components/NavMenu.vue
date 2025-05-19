@@ -104,8 +104,8 @@ const handleLogout = () => {
     store.setCurrentUserId('');
     store.setUserRole('');
     navigateTo('/');
-    useCookie('user').value = '';
-    useCookie('token').value = '';
+    useCookie('languageapp_user').value = '';
+    useCookie('languageapp_token').value = '';
 };
 
 

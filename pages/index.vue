@@ -124,9 +124,9 @@ useHead({
     }
 })
 
-const cookieUser = useCookie('user', { maxAge: 2160000});
-const cookieUserId = useCookie('userId', { maxAge: 2160000});
-const cookieToken = useCookie('token', { maxAge: 2160000});
+const cookieUser = useCookie('languageapp_user', { maxAge: 2160000});
+const cookieUserId = useCookie('languageapp_userId', { maxAge: 2160000});
+const cookieToken = useCookie('languageapp_token', { maxAge: 2160000});
 const user = ref<string>('');
 const password = ref<string>('');
 const userErrMsg = ref<string>('');
@@ -182,7 +182,7 @@ const getUserData = async () => {
         }
 
         if (!store?.userMotherTongue) {
-            const userSavedLang = useCookie('i18n_redirected').value as string;
+            const userSavedLang = useCookie('languageapp_i18n_redirected').value as string;
             store.setUserMortherTongue(userSavedLang);
             setLocale(userSavedLang);
         }
@@ -191,8 +191,8 @@ const getUserData = async () => {
         store.setUserLangData([]);
         store.setCurrentUserName('');
         store.setCurrentUserId('');
-        useCookie('user').value = '';
-        useCookie('token').value = '';
+        useCookie('languageapp_user').value = '';
+        useCookie('languageapp_token').value = '';
     }
 }
 
