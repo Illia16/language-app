@@ -208,17 +208,34 @@ module.exports = {
         targetDate.setHours(parseInt(hour, 10));
         targetDate.setDate(parseInt(dayOfMonth, 10));
 
+        // Handle month if specified (not *)
+        if (month !== '*') {
+            targetDate.setMonth(parseInt(month, 10) - 1);
+        }
+
+        // Handle year if specified (not *)
+        if (year !== '*') {
+            targetDate.setFullYear(parseInt(year, 10));
+        }
 
         // If the target date is in the past, move it to the next occurrence
-        if (targetDate < now) {
-            // If it's past the day this month, move to next month
-            if (targetDate.getDate() !== parseInt(dayOfMonth, 10)) {
+        if (targetDate <= now) {
+            if (month !== '*') {
+                // If month is specified, move to next year
+                targetDate.setFullYear(targetDate.getFullYear() + 1);
+            } else {
+                // If month is *, move to next month
                 targetDate.setMonth(targetDate.getMonth() + 1);
+
+                // If we've moved past December, wrap to next year
+                if (targetDate.getMonth() === 0) {
+                    targetDate.setFullYear(targetDate.getFullYear() + 1);
+                }
             }
         }
 
         // Return time until next execution in milliseconds
-        return targetDate - now;
+        return targetDate.getTime() - now.getTime();
     },
     saveBatchItems: async (resultsAIdata, userTierPremium, user, userMotherTongue, languageStudying) => {
         try {

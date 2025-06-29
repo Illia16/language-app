@@ -1,10 +1,13 @@
 const { DynamoDBClient } = require("@aws-sdk/client-dynamodb");
-const { DynamoDBDocumentClient, QueryCommand, ScanCommand, BatchWriteCommand, PutCommand, UpdateCommand } = require("@aws-sdk/lib-dynamodb");
+const { DynamoDBDocumentClient, ScanCommand, BatchWriteCommand, PutCommand, UpdateCommand } = require("@aws-sdk/lib-dynamodb");
 
 const client = new DynamoDBClient({});
 const docClient = DynamoDBDocumentClient.from(client);
-const { s3ListObjects, s3UploadFile, s3DeleteFile, s3GetSignedUrl, cleanUpFileName, getFilePathIfFileIsPresentInBody, responseWithError, getSecret, findUser } = require('../helpers/index');
-const { getIncorrectItems, getAudio } = require('../helpers/openai')
+const { s3ListObjects, s3UploadFile, s3DeleteFile, s3GetSignedUrl, cleanUpFileName, getFilePathIfFileIsPresentInBody, responseWithError, getSecret, findUser, findAll, findAllByPrimaryKey, getEventBridgeRuleInfo, getCronExpressionNextRun, findUserByEmail } = require('../helpers');
+const { getIncorrectItems, getAudio } = require('../helpers/openai');
+const { getRefreshToken } = require('../helpers/auth');
+const { getGoogleToken } = require('../helpers/auth.google');
+const { getGitHubUserInfo } = require('../helpers/auth.github');
 const multipartParser = require('parse-multipart-data');
 const jwt = require('jsonwebtoken');
 
@@ -16,6 +19,11 @@ module.exports.handler = async (event, context) => {
     const dbData = process.env.DB_DATA;
     const dbUsers = process.env.DB_USERS;
     const s3Files = process.env.S3_FILES;
+
+    // Google envs
+    const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
+    const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
+    //
 
     // Event obj and CORS
     const headers = event.headers;
@@ -29,6 +37,7 @@ module.exports.handler = async (event, context) => {
     let user = '';
     let userRole = '';
     let userTierPremium = false;
+    let thirdPartyAuth = '';
 
     // Regex
     const englishRegex = /[a-zA-Z]/;
@@ -58,6 +67,7 @@ module.exports.handler = async (event, context) => {
             userRole = decoded.role || 'user';
             user = decoded.user;
             isTokenValid = true;
+            thirdPartyAuth = decoded.auth_3rd_party || '';
         }
     })
     if (!isTokenValid) {
@@ -69,6 +79,40 @@ module.exports.handler = async (event, context) => {
     const userInfo = await findUser(dbUsers, user)
     if (userInfo[0].role === 'delete') {
         return responseWithError('410', 'User account is to be deleted.', headerOrigin);
+    }
+
+    if (thirdPartyAuth === 'google') {
+        try {
+            const refreshToken = await getRefreshToken(dbUsers, user, userInfo[0].userId, 'google');
+            if (!refreshToken) {
+                throw new Error('No Google refresh token found for user');
+            }
+
+            const tokens = await getGoogleToken({
+                refresh_token: refreshToken,
+                client_id: GOOGLE_CLIENT_ID,
+                client_secret: GOOGLE_CLIENT_SECRET,
+                redirect_uri: 'https://' + event.requestContext.domainName + event.requestContext.path,
+            });
+
+            console.log('____+tokens', tokens);
+        } catch (error) {
+            return responseWithError('500', error.message || 'Google authentication failed', headerOrigin);
+        }
+    }
+
+    if (thirdPartyAuth === 'github') {
+        try {
+            const github_access_token = await getRefreshToken(dbUsers, user, userInfo[0].userId, 'github');
+            if (!github_access_token) {
+                throw new Error('No GitHub refresh token found for user');
+            }
+
+            // Check if token is valid by getting user info
+            await getGitHubUserInfo(github_access_token)
+        } catch (error) {
+            return responseWithError('500', error.message || 'GitHub authentication failed', headerOrigin);
+        }
     }
 
     if (action === 'POST' || action === 'PUT') {

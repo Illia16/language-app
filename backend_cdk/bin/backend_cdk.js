@@ -7,7 +7,7 @@ const app = new cdk.App();
 
 new BackendCdkStack(app, `${process.env.PROJECT_NAME}-stack-${process.env.ENV_NAME}`, {
     env: {
-        region: 'us-east-1', 
+        region: 'us-east-1',
         STAGE: process.env.ENV_NAME,
         PROJECT_NAME: process.env.PROJECT_NAME,
         CLOUDFRONT_URL: `https://${process.env.CLOUDFRONT_URL}`,
@@ -16,6 +16,10 @@ new BackendCdkStack(app, `${process.env.PROJECT_NAME}-stack-${process.env.ENV_NA
         OPEN_AI_KEY: process.env.OPEN_AI_KEY,
         SQS_URL: process.env.SQS_URL,
         CERTIFICATE_ARN: process.env.CERTIFICATE_ARN,
+        GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID,
+        GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET,
+        GITHUB_CLIENT_ID: process.env.GITHUB_CLIENT_ID,
+        GITHUB_CLIENT_SECRET: process.env.GITHUB_CLIENT_SECRET,
     },
     description: `Backend stack for ${process.env.PROJECT_NAME} for ${process.env.ENV_NAME} environment.`
 });

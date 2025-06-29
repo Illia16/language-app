@@ -8,6 +8,8 @@ export default defineNuxtConfig({
             API_URL_DATA: process.env.API_URL_DATA,
             API_URL_USERS: process.env.API_URL_USERS,
             ENV_NAME: process.env.ENV_NAME,
+            GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID,
+            GITHUB_CLIENT_ID: process.env.GITHUB_CLIENT_ID,
         }
     },
     compatibilityDate: "2024-11-01",
@@ -22,7 +24,7 @@ export default defineNuxtConfig({
             title: 'Language App',
             meta: [
                 { name: 'viewport', content: 'width=device-width, initial-scale=1' },
-                { name: 'description', content: 'asdasdasda' },
+                { name: 'description', content: 'Language App' },
                 { name: 'format-detection', content: 'telephone=no' }
             ],
             link: [
