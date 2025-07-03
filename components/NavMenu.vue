@@ -2,52 +2,56 @@
     <nav>
         <ul class="main-menu">
             <li v-if="isLinkShown">
-                Hello, {{ store.currentUserName }}!
+                <span>
+                    Hello, {{ store.currentUserName }}!
+                </span>
+                <span v-if="store.userPicture" class="pl-2">
+                    <img :src="store.userPicture" alt="user picture" class="w-10 h-10 rounded-full">
+                </span>
             </li>
             <template v-if="store.userRole !== 'delete'">
                 <li v-if="$route.path !== '/'">
                     <NuxtLink to="/" class="custom-button-link-secondary">
-                        {{t('goToHome')}}
+                        {{ t('goToHome') }}
                     </NuxtLink>
                 </li>
                 <li v-if="$route.path !== '/profile'">
-                    <NuxtLink class="custom-button-link-secondary" to="/profile">{{t('myProfile')}}</NuxtLink>
+                    <NuxtLink class="custom-button-link-secondary" to="/profile">{{ t('myProfile') }}</NuxtLink>
                 </li>
                 <li v-if="isLinkShown">
-                    <CustomSelect
-                        v-model="v_interfaceLang"
-                        :options="[
-                            {
-                                value: 'en',
-                                name: 'English'
-                            },
-                            {
-                                value: 'ru',
-                                name: 'Русский'
-                            },
-                            {
-                                value: 'zh',
-                                name: '简体中文'
-                            }
-                        ]"
-                        state="interfaceLang"
-                    >
-                        <template v-slot:label>{{t('interfaceLang')}}</template>
+                    <CustomSelect v-model="v_interfaceLang" :options="[
+                        {
+                            value: 'en',
+                            name: 'English'
+                        },
+                        {
+                            value: 'ru',
+                            name: 'Русский'
+                        },
+                        {
+                            value: 'zh',
+                            name: '简体中文'
+                        }
+                    ]" state="interfaceLang">
+                        <template v-slot:label>{{ t('interfaceLang') }}</template>
                     </CustomSelect>
                 </li>
                 <li v-if="$route.path === '/profile'">
-                    <button @click="store.setModalOpen(true); store.setModalType('change-pasword');" class="custom-button-link-secondary">
+                    <button @click="store.setModalOpen(true); store.setModalType('change-pasword');"
+                        class="custom-button-link-secondary">
                         {{ t('changePasword') }}
                     </button>
                 </li>
                 <li v-if="$route.path === '/profile'">
-                    <button @click="store.setModalOpen(true); store.setModalType('delete-account');" class="custom-button-link-secondary">
+                    <button @click="store.setModalOpen(true); store.setModalType('delete-account');"
+                        class="custom-button-link-secondary">
                         {{ t('deleteAccount') }}
                     </button>
                 </li>
             </template>
             <template v-if="store.userRole === 'delete'">
-                <button @click="store.setModalOpen(true); store.setModalType('restore-account');" class="custom-button-link-secondary">
+                <button @click="store.setModalOpen(true); store.setModalType('restore-account');"
+                    class="custom-button-link-secondary">
                     {{ t('restoreAccount') }}
                 </button>
             </template>
@@ -63,21 +67,23 @@
         <Modal v-if="store.modalOpen && store.modalType === 'change-pasword'" class="modal-change-pasword">
             <ChangePassword @pwChangedSuccess="pwChangedSuccessCallback" />
         </Modal>
-        <Modal v-if="store.modalOpen && store.modalType === 'delete-account'" @closeCallback="closeModal" class="modal-delete-account">
+        <Modal v-if="store.modalOpen && store.modalType === 'delete-account'" @closeCallback="closeModal"
+            class="modal-delete-account">
             <div class="flex flex-col items-center gap-4">
-                <div>{{t('areYouSure')}}</div>
+                <div>{{ t('areYouSure') }}</div>
                 <div class="flex flex-col md:flex-row space-y-3 md:space-y-0 md:space-x-3">
-                    <button class="custom-button-link" @click="deleteUser(true)">{{t('confirm')}}</button>
-                    <button @click="closeModal" class="custom-button-link">{{t('cancel')}}</button>
+                    <button class="custom-button-link" @click="deleteUser(true)">{{ t('confirm') }}</button>
+                    <button @click="closeModal" class="custom-button-link">{{ t('cancel') }}</button>
                 </div>
             </div>
         </Modal>
-        <Modal v-if="store.modalOpen && store.modalType === 'restore-account'" @closeCallback="closeModal" class="modal-restore-account">
+        <Modal v-if="store.modalOpen && store.modalType === 'restore-account'" @closeCallback="closeModal"
+            class="modal-restore-account">
             <div class="flex flex-col items-center gap-4">
-                <div>{{t('areYouSure')}}</div>
+                <div>{{ t('areYouSure') }}</div>
                 <div class="flex flex-col md:flex-row space-y-3 md:space-y-0 md:space-x-3">
-                    <button class="custom-button-link" @click="deleteUser(false)">{{t('confirm')}}</button>
-                    <button @click="closeModal" class="custom-button-link">{{t('cancel')}}</button>
+                    <button class="custom-button-link" @click="deleteUser(false)">{{ t('confirm') }}</button>
+                    <button @click="closeModal" class="custom-button-link">{{ t('cancel') }}</button>
                 </div>
             </div>
         </Modal>
@@ -90,11 +96,11 @@ import { useMainStore } from 'store/main';
 const config = useRuntimeConfig();
 const route = useRoute()
 const { t, setLocale } = useI18n({
-  useScope: 'local'
+    useScope: 'local'
 })
 const store = useMainStore();
 
-const isLinkShown = computed<boolean>(():boolean => route.path === '/' || route.path === '/profile');
+const isLinkShown = computed<boolean>((): boolean => route.path === '/' || route.path === '/profile');
 const v_interfaceLang = ref<string>('');
 
 
@@ -104,8 +110,9 @@ const handleLogout = () => {
     store.setCurrentUserId('');
     store.setUserRole('');
     navigateTo('/');
-    useCookie('user').value = '';
-    useCookie('token').value = '';
+    useCookie('languageapp_user').value = '';
+    useCookie('languageapp_token').value = '';
+    store.setUserPicture('');
 };
 
 
@@ -143,27 +150,27 @@ const deleteUser = async (toBeDeleted: boolean) => {
             "Authorization": `Bearer ${store.token}`
         }
     })
-    .then(res => res.json())
-    .catch(err => {
-        console.log('err DELETE ACCOUNT API:', err);
-    })
-    .finally(() => {
-        handleLogout();
-        closeModal();
-        store.setLoading(false);
-    });
+        .then(res => res.json())
+        .catch(err => {
+            console.log('err DELETE ACCOUNT API:', err);
+        })
+        .finally(() => {
+            handleLogout();
+            closeModal();
+            store.setLoading(false);
+        });
 }
 
 </script>
 
 <style lang="scss">
-    .main-menu {
-        @apply flex flex-col space-y-2 md:flex-row md:space-y-0 md:space-x-4;
+.main-menu {
+    @apply flex flex-col space-y-2 md:flex-row md:space-y-0 md:space-x-4;
 
-        li {
-            @apply flex items-center;
-        }
+    li {
+        @apply flex items-center;
     }
+}
 </style>
 
 

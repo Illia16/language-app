@@ -1,11 +1,11 @@
 <template>
     <div class="main-page">
         <form id="user_login" v-if="!store.currentUserName">
-            <h1>{{t('helloMsg')}}</h1>
+            <h1>{{ t('helloMsg') }}</h1>
             <div class="form_el">
                 <label for="username">{{ t('username') }}:</label>
                 <input type="text" name="username" v-model="user" />
-                <span class="field-error">{{userErrMsg}}</span>
+                <span class="field-error">{{ userErrMsg }}</span>
             </div>
 
             <div class="form_el">
@@ -14,20 +14,27 @@
                 <span class="field-error">{{ passwordErrMsg }}</span>
             </div>
 
-            <span v-if="errMsg" class="field-error">{{errMsg}}</span>
+            <span v-if="errMsg" class="field-error">{{ errMsg }}</span>
+            <span v-if="successMsg" class="field-success">{{ successMsg }}</span>
 
             <div class="form-buttons">
                 <button type="button" @click="login" class="custom-button-link">
                     {{ t('submit') }}
                 </button>
                 <div class="form-buttons--sub">
-                    <button type="button" @click="store.setModalOpen(true); store.setModalType('forgot-password');" class="custom-button-link-secondary">
+                    <button type="button" @click="store.setModalOpen(true); store.setModalType('forgot-password');"
+                        class="custom-button-link-secondary">
                         {{ t('forgotPassword') }}
                     </button>
-                    <button type="button" @click="store.setModalOpen(true); store.setModalType('signup');" class="custom-button-link-secondary">
+                    <button type="button" @click="store.setModalOpen(true); store.setModalType('signup');"
+                        class="custom-button-link-secondary">
                         {{ t('createAccount') }}
                     </button>
                 </div>
+            </div>
+            <div class="container flex flex-col items-center justify-center gap-4">
+                <AuthGoogle />
+                <AuthGitHub />
             </div>
         </form>
         <!-- User languages in progress -->
@@ -35,61 +42,60 @@
             <h1>{{ t('languageMenuTitle') }}</h1>
             <ul class="list-items">
                 <li v-for="(user_language, i) of userLanguagesInProgress" :key="i">
-                    <NuxtLink class="custom-button-link" :to="'/language-' + user_language">{{mapLanguage(user_language)}}</NuxtLink>
+                    <NuxtLink class="custom-button-link" :to="'/language-' + user_language">{{
+                        mapLanguage(user_language) }}
+                    </NuxtLink>
                 </li>
             </ul>
         </template>
 
         <template v-if="store.userRole === 'delete'">
-            <h1 v-html="t('accountDeletionTime', {v: accountDeletionTime})"></h1>
+            <h1 v-html="t('accountDeletionTime', { v: accountDeletionTime })"></h1>
         </template>
 
         <teleport to="body">
             <Modal v-if="store.modalOpen && store.modalType === 'signup'" class="modal-signup">
                 <div class="form_el">
-                    <label>{{t('username')}}</label>
+                    <label>{{ t('username') }}</label>
                     <input type="text" v-model="signup_user" />
                 </div>
                 <div class="form_el">
-                    <label>{{t('specifyYourEmail')}}</label>
+                    <label>{{ t('specifyYourEmail') }}</label>
                     <input type="text" v-model="signup_user_email" />
                 </div>
                 <div class="form_el">
-                    <label>{{t('password')}}</label>
+                    <label>{{ t('password') }}</label>
                     <input type="password" v-model="signup_pw" />
                 </div>
                 <div class="form_el">
-                    <label>{{t('retypePassword')}}</label>
+                    <label>{{ t('retypePassword') }}</label>
                     <input type="password" v-model="retypeSignup_pw" />
                 </div>
                 <div v-if="signup_pw !== retypeSignup_pw" class="field-error">{{ t('passowrdsNoMatch') }}</div>
-                <CustomSelect
-                    v-model="v_motherTongue"
-                    :options="[
-                        {
-                            name: 'English',
-                            value: 'en',
-                        },
-                        {
-                            name: 'Chinese',
-                            value: 'zh',
-                        },
-                        {
-                            name: 'Russian',
-                            value: 'ru',
-                        },
-                    ]"
-                    state="lang"
-                >
-                    <template v-slot:label>{{t('motherTongue')}}</template>
+
+                <CustomSelect v-model="v_motherTongue" :options="[
+                    {
+                        name: 'English',
+                        value: 'en',
+                    },
+                    {
+                        name: 'Chinese',
+                        value: 'zh',
+                    },
+                    {
+                        name: 'Russian',
+                        value: 'ru',
+                    },
+                ]" state="lang">
+                    <template v-slot:label>{{ t('motherTongue') }}</template>
                 </CustomSelect>
                 <div class="form_el">
-                    <label>{{t('invitationCode')}}</label>
+                    <label>{{ t('invitationCode') }}</label>
                     <input type="text" v-model="signup_invitation_code" />
                 </div>
-                <p class="signupEmailNote">{{t('signupEmailNote')}}</p>
+                <p class="signupEmailNote">{{ t('signupEmailNote') }}</p>
                 <div class="mt-4">
-                    <button class="custom-button-link" @click="signup">{{t('signup')}}</button>
+                    <button class="custom-button-link" @click="signup">{{ t('signup') }}</button>
                 </div>
             </Modal>
         </teleport>
@@ -97,7 +103,7 @@
         <teleport to="body">
             <Modal v-if="store.modalOpen && store.modalType === 'forgot-password'" class="modal-forgot-password">
                 <div class="form_el">
-                    <label>{{t('specifyYourEmail')}}</label>
+                    <label>{{ t('specifyYourEmail') }}</label>
                     <input type="text" v-model="userEmail" />
                 </div>
                 <div class="mt-4">
@@ -111,7 +117,7 @@
 <script lang="ts" setup>
 import { useMainStore } from 'store/main';
 import { mapLanguage } from 'helper/helpers';
-import { UserData } from 'types/helperTypes'
+import { type UserData, type Auth3rdPartyQuery } from 'types/helperTypes'
 
 const config = useRuntimeConfig();
 const store = useMainStore();
@@ -124,17 +130,18 @@ useHead({
     }
 })
 
-const cookieUser = useCookie('user', { maxAge: 2160000});
-const cookieUserId = useCookie('userId', { maxAge: 2160000});
-const cookieToken = useCookie('token', { maxAge: 2160000});
+const cookieUser = useCookie('languageapp_user', { maxAge: 2160000 });
+const cookieUserId = useCookie('languageapp_userId', { maxAge: 2160000 });
+const cookieToken = useCookie('languageapp_token', { maxAge: 2160000 });
 const user = ref<string>('');
 const password = ref<string>('');
 const userErrMsg = ref<string>('');
 const errMsg = ref<string>('');
+const successMsg = ref<string>('');
 const passwordErrMsg = ref<string>('');
 const accountDeletionTime = ref<number>(0);
-const userLanguagesInProgress = computed<string[]>(() => store.userLangData.reduce(function (accumulator:string[], currentValue:UserData) {
-    if (!accumulator.includes(currentValue.languageStudying)){
+const userLanguagesInProgress = computed<string[]>(() => store.userLangData.reduce(function (accumulator: string[], currentValue: UserData) {
+    if (!accumulator.includes(currentValue.languageStudying)) {
         accumulator.push(currentValue.languageStudying)
     }
     return accumulator
@@ -147,7 +154,6 @@ const signup_pw = ref<string>('');
 const retypeSignup_pw = ref<string>('');
 const v_motherTongue = ref<string>('en');
 const signup_invitation_code = ref<string>('');
-//
 
 // Forgot password
 const userEmail = ref<string>('');
@@ -159,13 +165,13 @@ const getUserData = async () => {
             "Authorization": `Bearer ${store.token}`
         }
     })
-    .then(res => res.json())
-    .catch(err => {
-        errMsg.value = err?.message;
-    })
-    .finally(() => {
-        store.setLoading(false);
-    })
+        .then(res => res.json())
+        .catch(err => {
+            errMsg.value = err?.message;
+        })
+        .finally(() => {
+            store.setLoading(false);
+        })
 
     if (userData.success) {
         cookieUser.value = store.currentUserName;
@@ -182,7 +188,7 @@ const getUserData = async () => {
         }
 
         if (!store?.userMotherTongue) {
-            const userSavedLang = useCookie('i18n_redirected').value as string;
+            const userSavedLang = useCookie('languageapp_i18n_redirected').value as string;
             store.setUserMortherTongue(userSavedLang);
             setLocale(userSavedLang);
         }
@@ -191,13 +197,13 @@ const getUserData = async () => {
         store.setUserLangData([]);
         store.setCurrentUserName('');
         store.setCurrentUserId('');
-        useCookie('user').value = '';
-        useCookie('token').value = '';
+        useCookie('languageapp_user').value = '';
+        useCookie('languageapp_token').value = '';
     }
 }
 
 const login = async () => {
-    document.querySelectorAll('.form_el').forEach(el=>el.classList.remove('error'))
+    document.querySelectorAll('.form_el').forEach(el => el.classList.remove('error'))
 
     if (!user.value || !password.value) {
         if (!user.value) {
@@ -216,12 +222,12 @@ const login = async () => {
     store.setLoading(true);
     const authUser = await fetch(`${config.public.API_URL_USERS}/${config.public.ENV_NAME}/users/login`, {
         method: 'POST',
-        body: JSON.stringify({user: user.value, password: password.value})
+        body: JSON.stringify({ user: user.value, password: password.value })
     })
-    .then(res => res.json())
-    .catch(er => {
-        console.log('er', er);
-    })
+        .then(res => res.json())
+        .catch(er => {
+            console.log('er', er);
+        })
 
     if (!authUser.success) {
         errMsg.value = authUser?.message;
@@ -240,7 +246,7 @@ const login = async () => {
 
         if (authUser.data.role === 'delete') {
             store.setUserRole(authUser.data.role)
-            accountDeletionTime.value = Number(authUser.data.accountDeletionTime)/(1000 * 60 * 60 * 24);
+            accountDeletionTime.value = Number(authUser.data.accountDeletionTime) / (1000 * 60 * 60 * 24);
             store.setLoading(false);
         } else {
             store.setUserRole('');
@@ -265,15 +271,15 @@ const signup = async () => {
             "invitationCode": signup_invitation_code.value,
         })
     })
-    .then(res => res.json())
-    .catch(err => {
-        console.log('err signup API:', err);
-    })
-    .finally(() => {
-        store.setLoading(false);
-        store.setModalOpen(false);
-        store.setModalType('');
-    });
+        .then(res => res.json())
+        .catch(err => {
+            console.log('err signup API:', err);
+        })
+        .finally(() => {
+            store.setLoading(false);
+            store.setModalOpen(false);
+            store.setModalType('');
+        });
 
     if (!signupRes.success) {
         errMsg.value = signupRes.message;
@@ -282,7 +288,7 @@ const signup = async () => {
     }
 }
 
-const handleForgotPassword =async () => {
+const handleForgotPassword = async () => {
     if (!userEmail.value) {
         return
     }
@@ -294,16 +300,16 @@ const handleForgotPassword =async () => {
             "userEmail": userEmail.value,
         })
     })
-    .then(res => res.json())
-    .catch(err => {
-        console.log('err signup API:', err);
-    })
-    .finally(() => {
-        store.setLoading(false);
-        store.setModalOpen(false);
-        store.setModalType('');
-        userEmail.value = '';
-    });
+        .then(res => res.json())
+        .catch(err => {
+            console.log('err signup API:', err);
+        })
+        .finally(() => {
+            store.setLoading(false);
+            store.setModalOpen(false);
+            store.setModalType('');
+            userEmail.value = '';
+        });
 
     if (!signupRes.success) {
         errMsg.value = signupRes.message;
@@ -312,7 +318,50 @@ const handleForgotPassword =async () => {
     }
 }
 
-onMounted(async() => {
+onMounted(async () => {
+    // Login after success login via Google, GitHub
+    const route = useRoute();
+    const query = route.query as Auth3rdPartyQuery;
+
+    if (query.auth_3rd_party) {
+        store.setLoading(true);
+        // Handle errors
+        if (query.auth_3rd_party_error_message) {
+            errMsg.value = query.auth_3rd_party_error_message;
+            store.setLoading(false);
+            return
+        }
+
+        if (query.auth_3rd_party_success_message) {
+            successMsg.value = query.auth_3rd_party_success_message;
+            store.setLoading(false);
+            return
+        }
+
+        // Save cookies
+        cookieUser.value = query.user;
+        cookieUserId.value = query.userId;
+        cookieToken.value = query.token;
+
+        store.setCurrentUserName(query.user);
+        store.setCurrentUserId(query.userId);
+        store.setToken(query.token);
+        store.setUserMortherTongue(query.userMotherTongue);
+        store.setUserPicture(query.userPicture);
+
+        setLocale(query.userMotherTongue);
+
+        if (query.role === 'delete') {
+            store.setUserRole(query.role)
+            accountDeletionTime.value = Number(query.accountDeletionTime) / (1000 * 60 * 60 * 24);
+        } else {
+            store.setUserRole('');
+            await getUserData();
+        }
+        store.setLoading(false);
+    }
+
+    // Login via cookie (from previous session)
     if (cookieUser.value && cookieUserId.value && cookieToken.value && !store.currentUserName && !store.userLangData.length) {
         store.setCurrentUserName(cookieUser.value);
         store.setCurrentUserId(cookieUserId.value);
@@ -324,47 +373,48 @@ onMounted(async() => {
 </script>
 
 <style lang="scss">
-    .main-page {
-        @apply flex flex-col items-center;
+.main-page {
+    @apply flex flex-col items-center;
 
-        h1 {
-            @apply text-4xl my-8;
+    h1 {
+        @apply text-4xl my-8;
+    }
+
+    h1,
+    h2 {
+        @apply text-center;
+    }
+
+    h2 {
+        @apply mb-4;
+
+        &.tasks {
+            @apply mt-24;
         }
+    }
 
-        h1, h2 {
-            @apply text-center;
-        }
+    #user_login {
+        @apply space-y-3;
 
-        h2 {
-            @apply mb-4;
+        .form-buttons {
+            @apply flex flex-col space-y-2;
 
-            &.tasks {
-                @apply mt-24;
-            }
-        }
+            .form-buttons--sub {
+                @apply flex justify-center space-x-2;
 
-        #user_login {
-            @apply space-y-3;
-
-            .form-buttons {
-                @apply flex flex-col space-y-2;
-
-                .form-buttons--sub {
-                    @apply flex justify-center space-x-2;
-
-                    button {
-                        @apply text-xs;
-                    }
+                button {
+                    @apply text-xs;
                 }
             }
         }
     }
+}
 
-    .modal-signup {
-        .signupEmailNote {
-            @apply text-xs my-1;
-        }
+.modal-signup {
+    .signupEmailNote {
+        @apply text-xs my-1;
     }
+}
 </style>
 
 
@@ -377,7 +427,7 @@ onMounted(async() => {
         forgotPassword: 'Forgot password?'
         specifyYourEmail: 'Please, specify your email'
         createAccount: 'Create account'
-        accountDeletionTime: Your account will be deleted in <span class="green-bolded">{v}</span> days
+        accountDeletionTime: Your account will be deleted in {v} days
         username: 'Username'
         password: 'Password'
         retypePassword: 'Retype password'
@@ -396,7 +446,7 @@ onMounted(async() => {
         forgotPassword: 'Забыли пароль?'
         specifyYourEmail: 'Укажите вашу электронную почту'
         createAccount: 'Создать аккаунт'
-        accountDeletionTime: Ваш аккаунт будет удален через <span class="font-black underline">{v}</span> дней
+        accountDeletionTime: Ваш аккаунт будет удален через {v} дней
         username: 'Логин'
         password: 'Пароль'
         retypePassword: 'Повторите пароль'
@@ -415,7 +465,7 @@ onMounted(async() => {
         forgotPassword: 忘記密碼？
         specifyYourEmail: 請指定您的電子郵件
         createAccount: 創建帳戶
-        accountDeletionTime: 你的帐户将在 <span class="green-bolded">{v}</span> 天内被删除
+        accountDeletionTime: 你的帐户将在 {v} 天内被删除
         username: 用戶名
         password: 密碼
         retypePassword: 重新輸入密碼

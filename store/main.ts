@@ -1,5 +1,5 @@
 import { defineStore } from "pinia";
-import { UserDataArrayOfObj } from 'types/helperTypes';
+import { type UserDataArrayOfObj } from 'types/helperTypes';
 
 export const useMainStore = defineStore('main-store', {
     state: () => ({
@@ -8,6 +8,7 @@ export const useMainStore = defineStore('main-store', {
         lessonStarted: false,
         currentUserName: '',
         currentUserId: '',
+        userPicture: '',
         userRole: '',
         token: '',
         userLangData: [] as UserDataArrayOfObj,
@@ -29,6 +30,9 @@ export const useMainStore = defineStore('main-store', {
         },
         setCurrentUserId(v: string) {
             this.currentUserId = v;
+        },
+        setUserPicture(v: string) {
+            this.userPicture = v;
         },
         setUserRole(v: string) {
             this.userRole = v;

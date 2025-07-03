@@ -28,6 +28,16 @@ class BackendCdkStack extends cdk.Stack {
     const SQS_URL = props.env.SQS_URL;
     const CERTIFICATE_ARN = props.env.CERTIFICATE_ARN;
 
+    // Google envs
+    const GOOGLE_CLIENT_ID = props.env.GOOGLE_CLIENT_ID;
+    const GOOGLE_CLIENT_SECRET = props.env.GOOGLE_CLIENT_SECRET;
+    //
+
+    // GitHub envs
+    const GITHUB_CLIENT_ID = props.env.GITHUB_CLIENT_ID;
+    const GITHUB_CLIENT_SECRET = props.env.GITHUB_CLIENT_SECRET;
+    //
+
     const websiteBucket = new s3.Bucket(this, `${PROJECT_NAME}--s3-site--${STAGE}`, {
       removalPolicy: cdk.RemovalPolicy.DESTROY,
       bucketName: `${PROJECT_NAME}--s3-site--${STAGE}`,
@@ -222,6 +232,10 @@ class BackendCdkStack extends cdk.Stack {
         S3_FILES: websiteBucketFiles.bucketName,
         DB_DATA: myTable.tableName,
         DB_USERS: myTableUsers.tableName,
+        GOOGLE_CLIENT_ID: GOOGLE_CLIENT_ID,
+        GOOGLE_CLIENT_SECRET: GOOGLE_CLIENT_SECRET,
+        GITHUB_CLIENT_ID: GITHUB_CLIENT_ID,
+        GITHUB_CLIENT_SECRET: GITHUB_CLIENT_SECRET,
       },
       timeout: cdk.Duration.seconds(30),
       layers: [lambdaLayer]
@@ -248,6 +262,10 @@ class BackendCdkStack extends cdk.Stack {
         S3_FILES: websiteBucketFiles.bucketName,
         DB_DATA: myTable.tableName,
         DB_USERS: myTableUsers.tableName,
+        GOOGLE_CLIENT_ID: GOOGLE_CLIENT_ID,
+        GOOGLE_CLIENT_SECRET: GOOGLE_CLIENT_SECRET,
+        GITHUB_CLIENT_ID: GITHUB_CLIENT_ID,
+        GITHUB_CLIENT_SECRET: GITHUB_CLIENT_SECRET,
       },
       timeout: cdk.Duration.seconds(30),
       layers: [lambdaLayer],
@@ -323,6 +341,7 @@ class BackendCdkStack extends cdk.Stack {
 
     const routesApiAuth = myApiAuth.root.addResource('users');
     const item = routesApiAuth.addResource('{item}');
+    item.addMethod('GET');
     item.addMethod('POST');
     item.addMethod('DELETE');
     item.addMethod('PUT');
@@ -456,7 +475,7 @@ class BackendCdkStack extends cdk.Stack {
       policyName: `${PROJECT_NAME}--iam-policy--${STAGE}`,
       statements: [
         new iam.PolicyStatement({
-          actions: ['dynamodb:Query', 'dynamodb:BatchWriteItem', 'dynamodb:PutItem', 'dynamodb:UpdateItem', 'dynamodb:Scan', 'dynamodb:DeleteItem'],
+          actions: ['dynamodb:Query', 'dynamodb:BatchWriteItem', 'dynamodb:GetItem', 'dynamodb:PutItem', 'dynamodb:UpdateItem', 'dynamodb:Scan', 'dynamodb:DeleteItem'],
           resources: [
             myTable.tableArn,
             myTableUsers.tableArn,

@@ -32,7 +32,7 @@
 </template>
 
 <script lang="ts" setup>
-import { PropType } from 'vue'
+import { type PropType } from 'vue'
 const emit = defineEmits(['update:modelValue']);
 const props = defineProps({
 	modelValue: String,

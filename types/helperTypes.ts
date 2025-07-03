@@ -1,10 +1,12 @@
+export type SupportedLanguage = "en" | "ru" | "zh";
+
 export interface UserData {
     level: string;
     languageStudying: string;
     itemTypeCategory: string;
     user: string;
     itemType: string;
-    userMotherTongue: string;
+    userMotherTongue: SupportedLanguage;
     itemID: string;
     item: string;
     itemCorrect: string;
@@ -13,14 +15,14 @@ export interface UserData {
     fileUrl: string | null;
     itemTranscription: string | null;
 }
-export interface UserDataArrayOfObj extends Array<UserData> {};
-export interface SortableArray extends Array<string | UserData> {};
+export interface UserDataArrayOfObj extends Array<UserData> { };
+export interface SortableArray extends Array<string | UserData> { };
 
 export interface MpChoices {
     item: string;
     itemTranscription: string | null;
 }
-export interface MpChoicesArrayOfObj extends Array<MpChoices> {};
+export interface MpChoicesArrayOfObj extends Array<MpChoices> { };
 
 export interface Question {
     question: string;
@@ -31,7 +33,7 @@ export interface Question {
     level: string;
     fileUrl: string | null;
     all: MpChoicesArrayOfObj;
-    splitted:  string[];
+    splitted: string[];
     itemTranscription: string | null;
     item: string;
 };
@@ -45,7 +47,7 @@ export interface Report {
     level: string;
     item: string;
 };
-export interface ReportArrayOfObj extends Array<Report> {};
+export interface ReportArrayOfObj extends Array<Report> { };
 
 export interface RecordUserAnswerDestructured {
     qAnswer: string;
@@ -54,3 +56,16 @@ export interface RecordUserAnswerDestructured {
     level: string;
     item: string;
 };
+
+export interface Auth3rdPartyQuery {
+    auth_3rd_party: string;
+    user: string;
+    userId: string;
+    token: string;
+    userMotherTongue: SupportedLanguage;
+    userPicture: string;
+    role: string;
+    accountDeletionTime?: string;
+    auth_3rd_party_error_message?: string;
+    auth_3rd_party_success_message?: string;
+}

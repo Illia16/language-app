@@ -1,137 +1,154 @@
-@import "tailwindcss/base";
-@import "tailwindcss/components";
-@import "tailwindcss/utilities";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 button,
 a {
-    > * {
-        @apply pointer-events-none;
-    }
+  >* {
+    @apply pointer-events-none;
+  }
 }
 
 .field-error {
-    @apply text-red-500 font-bold;
+  @apply text-red-500 font-bold;
+}
+
+.field-success {
+  @apply text-mainGreen font-bold;
 }
 
 .form_el {
-    input {
-        @apply border border-black w-full text-center text-xl py-1;
+  input {
+    @apply border border-black w-full text-center text-xl py-1;
 
-        &::placeholder {
-          @apply text-xl;
-        }
+    &::placeholder {
+      @apply text-xl;
     }
+  }
 
+  .field-error {
+    @apply hidden text-red-500 font-bold;
+  }
+
+  &.error {
     .field-error {
-        @apply hidden text-red-500 font-bold;
+      @apply block;
     }
-
-    &.error {
-        .field-error {
-            @apply block;
-        }
-    }
+  }
 }
 
 .list-items {
-    @apply space-y-12 mb-4;
+  @apply space-y-12 mb-4;
 }
 
 .custom-button-link {
-    @apply bg-mainGreen text-white rounded-lg min-h-[3rem] text-2xl disabled:opacity-25 flex justify-center items-center min-w-[250px] m-auto border border-transparent;
+  @apply bg-mainGreen text-white rounded-lg min-h-[3rem] text-2xl disabled:opacity-25 flex justify-center items-center min-w-[250px] m-auto border border-transparent;
 
 
-    &.custom-button-link--mp-choice {
-        @apply bg-mainGreen py-1 px-2 m-2 min-w-0;
+  &.custom-button-link--mp-choice {
+    @apply bg-mainGreen py-1 px-2 m-2 min-w-0;
+  }
+
+  &:not([disabled]) {
+    &:hover {
+      @apply bg-transparent text-mainGreen border-mainGreen;
     }
-
-    &:not([disabled]) {
-        &:hover {
-            @apply bg-transparent text-mainGreen border-mainGreen;
-        }
-    }
+  }
 }
 
 .custom-button-link-secondary {
-    @apply underline disabled:opacity-25;
+  @apply underline disabled:opacity-25;
 
-    &:not([disabled]) {
-        &:hover,
-        &:focus {
-            @apply no-underline;
-        }
+  &:not([disabled]) {
+
+    &:hover,
+    &:focus {
+      @apply no-underline;
     }
+  }
+}
+
+.custom-button-auth {
+  @apply flex items-center justify-center bg-white text-black border border-black rounded-lg px-4 py-1;
+
+  span {
+    @apply min-w-[75px];
+  }
 }
 
 h2 {
-    @apply text-xl font-bold;
+  @apply text-xl font-bold;
 }
 
 .correct-answer {
-    @apply text-mainGreen text-lg font-bold;
+  @apply text-mainGreen text-lg font-bold;
 }
 
 .incorrect-answer {
-    @apply text-red-500 text-lg font-bold;
+  @apply text-red-500 text-lg font-bold;
 }
 
 .mode-radio,
 .num-of-q-checkbox,
 .exercise-checkbox {
-    label {
-        @apply min-h-[2.5rem];
-    }
+  label {
+    @apply min-h-[2.5rem];
+  }
 }
 
 .mode-radio,
 .num-of-q-checkbox,
 .exercise-checkbox {
-    @apply mb-2;
+  @apply mb-2;
 
-    label {
-        @apply relative flex items-center;
+  label {
+    @apply relative flex items-center;
 
-        input {
-            ~ .radio-bg,
-            ~ .checkbox-bg {
-                &::before {
-                    content: '';
-                    @apply absolute left-0 top-0 w-10 h-10 border-mainGreen border bg-white;
-                }
+    input {
 
-                &::after {
-                    content: '';
-                    @apply w-8 h-8 bg-mainGreen absolute top-[calc(2.5rem/2-2rem/2)] left-[calc(2.5rem/2-2rem/2)] opacity-0;
-                }
-            }
-
-            &:checked {
-                ~ .radio-bg,
-                ~ .checkbox-bg {
-                    &::after {
-                        @apply opacity-100
-                    }
-                }
-            }
+      ~.radio-bg,
+      ~.checkbox-bg {
+        &::before {
+          content: '';
+          @apply absolute left-0 top-0 w-10 h-10 border-mainGreen border bg-white;
         }
 
-        .input-name {
-            @apply pl-14;
+        &::after {
+          content: '';
+          @apply w-8 h-8 bg-mainGreen absolute top-[calc(2.5rem/2-2rem/2)] left-[calc(2.5rem/2-2rem/2)] opacity-0;
         }
+      }
+
+      &:checked {
+
+        ~.radio-bg,
+        ~.checkbox-bg {
+          &::after {
+            @apply opacity-100
+          }
+        }
+      }
     }
+
+    .input-name {
+      @apply pl-14;
+    }
+  }
 }
 
 .mode-radio,
 .num-of-q-checkbox {
-    label {
-        input {
-            ~ .radio-bg,
-            ~ .checkbox-bg {
-                &::before,
-                &::after {
-                    @apply rounded-full;
-                }
-            }
+  label {
+    input {
+
+      ~.radio-bg,
+      ~.checkbox-bg {
+
+        &::before,
+        &::after {
+          @apply rounded-full;
         }
+      }
     }
+  }
 }
