@@ -6,13 +6,31 @@ on: workflow_call
 jobs:
   deploy-frontend:
     runs-on: ubuntu-latest
+    environment: ${{ github.ref == 'refs/heads/deploy/prod' && 'prod' || 'test' }}
     steps:
       - name: Set environment variable
         run: echo "ENV_NAME=${GITHUB_REF#refs/heads/deploy/}" >> $GITHUB_ENV
 
+      - name: Log Environment and Secrets Status
+        run: |
+          echo "🔍 Environment Debug Information deploy-frontend:"
+          echo "Branch: ${{ github.ref }}"
+          echo "Environment Name: ${{ env.ENV_NAME }}"
+          echo "GitHub Environment: ${{ github.environment }}"
+          echo ""
+          echo "🔑 OAuth Secrets Status:"
+          echo "GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID != '' && '✅ Available' || '❌ Missing' }}"
+          echo "GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET != '' && '✅ Available' || '❌ Missing' }}"
+          echo "GH_CLIENT_ID: ${{ secrets.GH_CLIENT_ID != '' && '✅ Available' || '❌ Missing' }}"
+          echo "GH_CLIENT_SECRET: ${{ secrets.GH_CLIENT_SECRET != '' && '✅ Available' || '❌ Missing' }}"
+          echo ""
+          echo "🔧 Other Secrets Status:"
+          echo "AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID != '' && '✅ Available' || '❌ Missing' }}"
+          echo "OPEN_AI_KEY: ${{ secrets.OPEN_AI_KEY != '' && '✅ Available' || '❌ Missing' }}"
+
       - name: Checkout Code
         uses: actions/checkout@v4
-  
+
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
@@ -35,7 +53,7 @@ jobs:
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-      
+
       - name: Get API urls
         id: get-api-urls
         run: |
@@ -49,12 +67,15 @@ jobs:
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        
+
       - name: Install Dependencies
         run: npm install
 
       - name: Build Project
         run: npm run generate:${{ env.ENV_NAME }}
+        env:
+          GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
+          GITHUB_CLIENT_ID: ${{ secrets.GH_CLIENT_ID }}
 
       - name: Deploy to S3
         run: |
